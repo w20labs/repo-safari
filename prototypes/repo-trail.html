@@ -1,0 +1,736 @@
+<title>Repo Trail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Bungee&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* Layout: a wide stage (the trail, or a category room once you drop in), touch pad under it, then two notes columns. */
+:root {
+  --bg: #0A0C14;
+  --panel: #121626;
+  --sunken: #0B0E19;
+  --line: #262C42;
+  --raised: #1A2036;
+  --text: #ECEFF7;
+  --muted: #9AA3B8;
+  --teal: #2EC4A6;
+  --amber: #F2B544;
+  --lime: #D4F25C;
+  --ink: #12141c;
+  --display: 'Bungee', 'Bricolage Grotesque', system-ui, sans-serif;
+  --ui: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--text); }
+body { font-family: var(--ui); font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 40px; display: grid; gap: 14px; }
+a { color: var(--teal); }
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; border-radius: 6px; }
+kbd { font-family: var(--mono); font-size: 11px; background: var(--sunken); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; color: var(--text); white-space: nowrap; }
+
+header.top { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { font-family: var(--display); font-size: clamp(24px, 4vw, 34px); line-height: 1; margin: 0; }
+.brand span { color: var(--lime); }
+.pitch { color: var(--muted); margin: 6px 0 0; max-width: 64ch; }
+.tag { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--amber); border: 1px solid rgba(242,181,68,.45); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+
+/* ---------- stage ---------- */
+.stage { position: relative; height: clamp(420px, 68vh, 640px); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--bg); }
+canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hud { position: absolute; inset: 0 0 auto 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px; pointer-events: none; flex-wrap: wrap; z-index: 1; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(18,22,38,.9); border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.chip b { color: var(--text); font-variant-numeric: tabular-nums; }
+.chip.zone { color: var(--zone, var(--teal)); font-weight: 700; letter-spacing: .04em; }
+.minimap { display: flex; gap: 8px; align-items: center; background: rgba(18,22,38,.9); border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; }
+.minimap .grp { display: flex; gap: 3px; }
+.minimap i { width: 9px; height: 9px; border-radius: 2px; border: 1.5px solid #3a4364; display: block; }
+.minimap i.seen { background: var(--c); border-color: var(--c); }
+.minimap i.here { outline: 2px solid var(--text); outline-offset: 1px; }
+.minimap i.room { box-shadow: 0 0 0 2px var(--lime); }
+
+/* the card over the platform you stand on */
+.card {
+  position: absolute; width: min(320px, calc(100% - 24px)); background: var(--panel); border: 1px solid var(--line);
+  border-top: 4px solid var(--c, var(--teal)); border-radius: 12px; padding: 12px 14px; box-shadow: 0 16px 40px rgba(0,0,0,.5);
+  transform-origin: var(--ox, 50%) 100%; transition: transform .18s cubic-bezier(.2,.9,.3,1.2), opacity .14s; z-index: 2;
+}
+.card.below { transform-origin: var(--ox, 50%) 0%; }
+.card[data-open="false"] { opacity: 0; transform: scale(.55); pointer-events: none; }
+.card .eyebrow { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.card .eyebrow .rg { color: var(--c); }
+.card h3 { margin: 6px 0 0; font-family: var(--display); font-weight: 400; font-size: 20px; line-height: 1.1; overflow-wrap: anywhere; }
+.card .full { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 2px; overflow-wrap: anywhere; }
+.card p { margin: 8px 0 0; font-size: 14px; line-height: 1.4; }
+.roomline { margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 9px; background: var(--sunken); border: 1px dashed color-mix(in srgb, var(--c) 60%, transparent); font-size: 13.5px; }
+.roomline b { color: var(--c); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 6px 12px; border-radius: 9px; background: var(--raised); border: 1px solid var(--line); color: var(--text); font: 600 13.5px var(--ui); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.btn:hover { border-color: #3a4364; }
+.btn.go { background: var(--lime); border-color: var(--lime); color: #12160a; }
+.btn.on { color: var(--lime); border-color: rgba(212,242,92,.6); }
+
+/* ---------- the room: a sticker wall for one category ---------- */
+.room { position: absolute; inset: 0; z-index: 3; display: grid; grid-template-rows: auto minmax(290px, 1fr) auto; overflow-y: auto; background:
+  radial-gradient(ellipse at 50% -20%, color-mix(in srgb, var(--c) 18%, transparent), transparent 60%),
+  repeating-linear-gradient(90deg, transparent 0 79px, rgba(38,44,66,.35) 79px 80px), #0C0F1B; }
+.room[hidden] { display: none; }
+.room-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px 0; flex-wrap: wrap; }
+.room-sign { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; min-width: 0; }
+.room-sign .k { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
+.room-sign h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(18px, 3vw, 26px); line-height: 1.1; }
+.room-sign span.n { color: var(--muted); font-size: 13px; }
+.wall-wrap { position: relative; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; padding: 18px 14px 0; min-height: 0; }
+.wall { display: flex; gap: 16px; align-items: flex-end; height: 100%; padding-bottom: 46px; position: relative; min-width: max-content; }
+.floor { position: absolute; left: 0; right: 0; bottom: 30px; height: 3px; background: var(--c); opacity: .7; }
+.sticker {
+  --rot: 0deg; scroll-snap-align: center; width: 150px; flex: none; border: 0; text-align: left; cursor: pointer; font: inherit;
+  background: var(--paper); color: var(--ink); border-radius: 14px; padding: 12px 12px 12px; position: relative;
+  box-shadow: 0 0 0 4px #F3F4F8, 0 10px 24px rgba(0,0,0,.45); transform: rotate(var(--rot)); transition: transform .16s ease, box-shadow .16s;
+  display: grid; gap: 6px; align-self: end;
+}
+.sticker:hover { transform: rotate(0deg) translateY(-4px); }
+.sticker[aria-pressed="true"] { transform: rotate(0deg) translateY(-14px) scale(1.06); box-shadow: 0 0 0 4px #F3F4F8, 0 0 0 7px var(--c), 0 18px 34px rgba(0,0,0,.55); z-index: 1; }
+.sticker::after { content: ''; position: absolute; right: 0; top: 0; width: 22px; height: 22px; border-radius: 0 14px 0 10px; background: linear-gradient(225deg, #0C0F1B 50%, rgba(0,0,0,.18) 50%); }
+.sticker .rank { font-family: var(--display); font-size: 22px; line-height: 1; }
+.sticker .nm { font-family: var(--display); font-size: 14px; line-height: 1.15; overflow-wrap: anywhere; }
+.sticker .ow { font-family: var(--mono); font-size: 10.5px; opacity: .7; overflow-wrap: anywhere; }
+.sticker .st { font-family: var(--mono); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sticker .bar { height: 6px; border-radius: 6px; background: rgba(18,20,28,.15); overflow: hidden; }
+.sticker .bar span { display: block; height: 100%; background: var(--ink); }
+.sticker .mine { position: absolute; left: 10px; top: -12px; background: var(--ink); color: var(--paper); font: 700 10px var(--mono); padding: 2px 7px; border-radius: 999px; letter-spacing: .04em; }
+.sticker .saved { position: absolute; right: 26px; top: 8px; font-size: 14px; }
+canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; transition: left .22s ease; pointer-events: none; }
+
+.detail { margin: 0 14px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px; }
+.detail-top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: start; }
+.detail h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 18px; overflow-wrap: anywhere; }
+.detail .full { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.detail p { margin: 0; font-size: 14.5px; max-width: 72ch; }
+.stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.stat { background: var(--sunken); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+.stat .v { font-family: var(--mono); font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat .l { font-size: 11px; color: var(--muted); }
+.acts { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.overlay { position: absolute; inset: 0; z-index: 4; display: flex; align-items: safe center; justify-content: center; padding: 16px; overflow: auto; background: rgba(6,8,14,.82); }
+.overlay[hidden] { display: none; }
+.summary { width: min(560px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 12px; }
+.summary h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 26px; }
+.summary pre { margin: 0; background: var(--sunken); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font: 13px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.toast { position: absolute; left: 50%; top: 54px; transform: translateX(-50%); z-index: 5; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--lime); border-radius: 10px; padding: 7px 14px; font-size: 14px; pointer-events: none; max-width: calc(100% - 24px); }
+.toast[hidden] { display: none; }
+
+.pad { display: none; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.pad button { width: 60px; height: 60px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); color: var(--text); font: 700 15px var(--mono); touch-action: none; display: grid; place-items: center; }
+.pad button.on { border-color: var(--teal); color: var(--teal); background: var(--raised); }
+.pad .sp { flex: 1; max-width: 50px; }
+@media (pointer: coarse), (max-width: 700px) { .pad { display: flex; } }
+
+.notes { display: grid; grid-template-columns: 1fr 1.25fr; gap: 14px; }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; min-width: 0; }
+.box h2 { margin: 0 0 10px; font-family: var(--display); font-weight: 400; font-size: 15px; }
+.trail { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.trail li { display: flex; gap: 10px; align-items: baseline; justify-content: space-between; padding: 8px 10px; background: var(--sunken); border: 1px solid var(--line); border-left: 3px solid var(--c); border-radius: 9px; min-width: 0; }
+.trail a { font-family: var(--mono); font-weight: 700; text-decoration: none; color: var(--text); overflow-wrap: anywhere; min-width: 0; }
+.trail a:hover { color: var(--lime); }
+.trail span { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+.empty { color: var(--muted); margin: 0; font-size: 14px; }
+.points { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--muted); font-size: 14.5px; }
+.points b { color: var(--text); font-weight: 600; }
+.keys { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--muted); margin-top: 12px; }
+@media (max-width: 760px) {
+  .notes { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sticker { width: 128px; }
+  .detail p { font-size: 13.5px; }
+}
+@media (prefers-reduced-motion: reduce) { .card, .sticker, canvas.walker { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1 class="brand">REPO <span>TRAIL</span></h1>
+      <p class="pitch">A walk through open source, one category at a time. Stand on a platform to meet its best-known repo. Drop through it into the room where every repo in that category sits on the wall, most stars first.</p>
+    </div>
+    <span class="tag">Prototype · GitHub data as of 2026-10-11</span>
+  </header>
+
+  <section class="stage" id="stage" aria-label="Trail">
+    <canvas id="cv" aria-hidden="true"></canvas>
+    <div class="hud" id="hud">
+      <span class="chip zone" id="zone">AI & ML</span>
+      <div class="minimap" id="minimap" aria-label="Trail map"></div>
+      <span class="chip"><b id="seen">0</b>/<span id="total">0</span> rooms found · <b id="visited">0</b> entered · <b id="saved">0</b> saved</span>
+    </div>
+    <div class="card" id="card" data-open="false" role="region" aria-live="polite" aria-label="Platform details"></div>
+    <div class="room" id="room" hidden></div>
+    <div class="toast" id="toast" hidden></div>
+    <div class="overlay" id="end" hidden></div>
+  </section>
+
+  <div class="pad" id="pad" aria-label="Touch controls">
+    <button type="button" data-k="left" aria-label="Left">◀</button>
+    <button type="button" data-k="right" aria-label="Right">▶</button>
+    <span class="sp"></span>
+    <button type="button" data-k="save" aria-label="Save">★</button>
+    <button type="button" data-k="down" aria-label="Drop into room">▼</button>
+    <button type="button" data-k="jump" aria-label="Jump, or climb back out">▲</button>
+  </div>
+
+  <section class="notes">
+    <div class="box">
+      <h2>Your trail</h2>
+      <ul class="trail" id="trailList"></ul>
+      <p class="empty" id="trailEmpty">Nothing saved yet. Press <kbd>E</kbd> on any repo, on the trail or inside a room.</p>
+    </div>
+    <div class="box">
+      <h2>What this prototype tries</h2>
+      <ul class="points">
+        <li><b>Each platform is a category.</b> It shows the category's best-known repo, so walking the trail is a tour of what exists.</li>
+        <li><b>Rooms show the whole category.</b> Press <kbd>↓</kbd> to drop into it. Every repo is a sticker, ranked by stars. Walk along the wall to compare stars, forks, issues, age and last commit, then open any of them on GitHub.</li>
+        <li><b>Saving is the goal.</b> What you save becomes your trail, ready to share or come back to.</li>
+        <li><b>A little skill.</b> This week's rising repos sit on a high platform at the end. You need a double jump to reach it.</li>
+        <li><b>Nothing to fail.</b> No pit, no timer, no questions.</li>
+      </ul>
+      <div class="keys">
+        <span><kbd>←</kbd> <kbd>→</kbd> walk</span>
+        <span><kbd>Space</kbd> jump, twice in the air</span>
+        <span><kbd>↓</kbd> drop into the room</span>
+        <span><kbd>E</kbd> save</span>
+        <span><kbd>Enter</kbd> open on GitHub (in a room)</span>
+        <span><kbd>Esc</kbd> climb back out</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const ROOMS = [{"zone":"rising","title":"Rising this week","flagship":"storytold/photocraft","repos":[{"name":"storytold/photocraft","desc":"An open-source, clean-room reimplementation of Adobe Photoshop in pure Rust","lang":"Rust","stars":43061,"forks":6520,"issues":1038,"created":"2026-09-30","pushed":"2026-10-11","license":"Apache-2.0","archived":false},{"name":"NandhaKishorM/laya","desc":"Non-autoregressive System 1 decision engine. Typed choice, score and yes/no decisions over any text in a single forward pass, in 100+ languages, with a router that picks the right checkpoint per request.","lang":"Python","stars":32194,"forks":2860,"issues":122,"created":"2026-09-18","pushed":"2026-10-10","license":"Apache-2.0","archived":false},{"name":"browser-use/jev-ultrafast","desc":"Fastest and cheapest web agent","lang":"Python","stars":22567,"forks":1655,"issues":191,"created":"2026-09-16","pushed":"2026-09-30","license":"MIT","archived":false},{"name":"Niko1221/Strata","desc":"Qwen3.8-Flash-Next on any consumer hardware: one-click install for Windows / Linux. Strata inference engine, OpenAI/Anthropic API on localhost, optional image input.","lang":"C++","stars":20879,"forks":1954,"issues":644,"created":"2026-09-24","pushed":"2026-10-10","license":"MIT","archived":false},{"name":"robbietilton/Compositor","desc":"The Photoshop alternative for Mac","lang":"Swift","stars":15579,"forks":1474,"issues":61,"created":"2026-09-16","pushed":"2026-10-11","license":"MIT","archived":false},{"name":"google/artemis","desc":"ARTEMIS turns natural-language instructions into reliable Android automation. It automates end-to-end workflows, captures logs, and integrates seamlessly with AI coding assistants such as Antigravity, Codex, and Claude Code.  It also achieves 99%+ success rate on AndroidWorld Benchmark.","lang":"Python","stars":11310,"forks":1157,"issues":133,"created":"2026-08-13","pushed":"2026-10-01","license":"Apache-2.0","archived":false},{"name":"storytold/lightcraft","desc":"An open-source, clean-room reimplementation of Adobe Lightroom in pure Rust.","lang":"Rust","stars":9204,"forks":2949,"issues":361,"created":"2026-09-30","pushed":"2026-10-11","license":"Apache-2.0","archived":false},{"name":"lnkiai/m3e-canvas","desc":"Sketch Material 3 Expressive screens in the browser and turn them into vibe-coding prompts.","lang":"TypeScript","stars":9130,"forks":975,"issues":6,"created":"2026-09-02","pushed":"2026-10-08","license":"MIT","archived":false}]},{"zone":"ai","title":"Run LLMs on your machine","flagship":"ollama/ollama","repos":[{"name":"ollama/ollama","desc":"Get up and running with Kimi, GLM, MiniMax, DeepSeek, gpt-oss, Qwen, Gemma and other models.","lang":"Go","stars":182678,"forks":18197,"issues":4242,"created":"2023-06-26","pushed":"2026-10-11","license":"MIT","archived":false},{"name":"ggml-org/llama.cpp","desc":"LLM inference in C/C++","lang":"C++","stars":130785,"forks":24286,"issues":2510,"created":"2023-03-10","pushed":"2026-10-10","license":"MIT","archived":false},{"name":"vllm-project/vllm","desc":"A high-throughput and memory-efficient inference and serving engine for LLMs","lang":"Python","stars":93542,"forks":23227,"issues":8671,"created":"2023-02-09","pushed":"2026-10-11","license":"Apache-2.0","archived":false},{"name":"mudler/LocalAI","desc":"LocalAI is the open-source AI engine. Run any model - LLMs, vision, voice, image, video - on any hardware. No GPU required.","lang":"Go","stars":49466,"forks":4493,"issues":201,"created":"2023-03-18","pushed":"2026-10-11","license":"MIT","archived":false},{"name":"mozilla-ai/llamafile","desc":"Distribute and run LLMs with a single file.","lang":"C++","stars":26220,"forks":1650,"issues":212,"created":"2023-09-10","pushed":"2026-10-08","license":null,"archived":false},{"name":"ml-explore/mlx-lm","desc":"Run LLMs with MLX","lang":"Python","stars":7265,"forks":1117,"issues":226,"created":"2025-03-11","pushed":"2026-10-10","license":"MIT","archived":false}]},{"zone":"ai","title":"Speech to text","flagship":"openai/whisper","repos":[{"name":"openai/whisper","desc":"Robust Speech Recognition via Large-Scale Weak Supervision","lang":"Python","stars":110300,"forks":13367,"issues":169,"created":"2022-09-16","pushed":"2026-08-31","license":"MIT","archived":false},{"name":"ggml-org/whisper.cpp","desc":"Port of OpenAI's Whisper model in C/C++","lang":"C++","stars":54281,"forks":6222,"issues":352,"created":"2022-09-25","pushed":"2026-10-11","license":"MIT","archived":false},{"name":"SYSTRAN/faster-whisper","desc":"Faster Whisper transcription with CTranslate2","lang":"Python","stars":25805,"forks":2119,"issues":30,"created":"2023-02-11","pushed":"2026-10-10","license":"MIT","archived":false},{"name":"m-bain/whisperX","desc":"WhisperX:  Automatic Speech Recognition with Word-level Timestamps (& Diarization)","lang":"Python","stars":24459,"forks":2470,"issues":230,"created":"2022-12-09","pushed":"2026-09-26","license":"BSD-2-Clause","archived":false},{"name":"k2-fsa/sherpa-onnx","desc":"Speech-to-text, text-to-speech, speaker diarization, speech enhancement, source separation, and VAD using next-gen Kaldi with onnxruntime without Internet connection. Support embedded systems, Android, iOS, HarmonyOS, Raspberry Pi, RISC-V, RK NPU, Axera NPU, Ascend NPU, x86_64 servers, websocket server/client, support 12 programming languages","lang":"C++","stars":15211,"forks":1761,"issues":665,"created":"2022-09-01","pushed":"2026-10-09","license":"Apache-2.0","archived":false},{"name":"alphacep/vosk-api","desc":"Offline speech recognition API for Android, iOS, Raspberry Pi and servers with Python, Java, C# and Node","lang":"Jupyter Notebook","stars":15168,"forks":1766,"issues":606,"created":"2019-09-03","pushed":"2026-08-09","license":"Apache-2.0","archived":false}]},{"zone":"ai","title":"Image generation apps","flagship":"AUTOMATIC1111/stable-diffusion-webui","repos":[{"name":"AUTOMATIC1111/stable-diffusion-webui","desc":"Stable Diffusion web UI","lang":"Python","stars":165042,"forks":32966,"issues":2510,"created":"2022-08-22","pushed":"2026-03-02","license":"AGPL-3.0","archived":false},{"name":"Comfy-Org/ComfyUI","desc":"The most powerful and modular diffusion model GUI, api and backend with a graph/nodes interface. The fastest local inference engine in the world.","lang":"Python","stars":136821,"forks":16286,"issues":5127,"created":"2023-01-17","pushed":"2026-10-11","license":"GPL-3.0","archived":false},{"name":"lllyasviel/Fooocus","desc":"Focus on prompting and generating","lang":"Python","stars":53355,"forks":8637,"issues":315,"created":"2023-08-09","pushed":"2025-12-01","license":"GPL-3.0","archived":false},{"name":"huggingface/diffusers","desc":"🤗 Diffusers: State-of-the-art diffusion models for image, video, and audio generation in PyTorch.","lang":"Python","stars":34701,"forks":7385,"issues":1469,"created":"2022-05-30","pushed":"2026-10-10","license":"Apache-2.0","archived":false},{"name":"invoke-ai/InvokeAI","desc":"Invoke is a leading creative engine for Stable Diffusion models, empowering professionals, artists, and enthusiasts to generate and create visual media using the latest AI-driven technologies. The solution offers an industry leading WebUI, and serves as the foundation for multiple commercial products.","lang":"TypeScript","stars":28547,"forks":3025,"issues":400,"created":"2022-08-17","pushed":"2026-10-11","license":"Apache-2.0","archived":false}]},{"zone":"ai","title":"Build apps on LLMs","flagship":"langchain-ai/langchain","repos":[{"name":"langchain-ai/langchain","desc":"The agent engineering platform.","lang":"Python","stars":147570,"forks":24753,"issues":645,"created":"2022-10-17","pushed":"2026-10-10","license":"MIT","archived":false},{"name":"microsoft/autogen","desc":"A programming framework for agentic AI","lang":"Python","stars":61343,"forks":9273,"issues":1101,"created":"2023-08-18","pushed":"2026-04-15","license":"CC-BY-4.0","archived":false},{"name":"crewAIInc/crewAI","desc":"Framework for orchestrating role-playing, autonomous AI agents. By fostering collaborative intelligence, CrewAI empowers agents to work together seamlessly, tackling complex tasks.","lang":"Python","stars":59547,"forks":8686,"issues":625,"created":"2023-10-27","pushed":"2026-10-10","license":"MIT","archived":false},{"name":"run-llama/llama_index","desc":"LlamaIndex is the document processing platform for AI","lang":"Python","stars":52462,"forks":8317,"issues":901,"created":"2022-11-02","pushed":"2026-10-08","license":"MIT","archived":false},{"name":"stanfordnlp/dspy","desc":"DSPy: The framework for programming—not prompting—language models","lang":"Python","stars":38585,"forks":3408,"issues":796,"created":"2023-01-09","pushed":"2026-10-10","license":"MIT","archived":false},{"name":"deepset-ai/haystack","desc":"Open-source AI orchestration framework for building context-engineered, production-ready LLM applications. Design modular pipelines and agent workflows with explicit control over retrieval, routing, memory, and generation. Built for scalable agents, RAG, multimodal applications, semantic search, and conversational systems.","lang":"Python","stars":26715,"forks":3265,"issues":160,"created":"2019-11-14","pushed":"2026-10-10","license":"Apache-2.0","archived":false}]},{"zone":"web","title":"UI frameworks","flagship":"react/react","repos":[{"name":"react/react","desc":"The library for web and native user interfaces.","lang":"JavaScript","stars":250827,"forks":51458,"issues":1431,"created":"2013-05-24","pushed":"2026-10-09","license":"MIT","archived":false},{"name":"angular/angular","desc":"Deliver web apps with confidence 🚀","lang":"TypeScript","stars":101027,"forks":29950,"issues":1174,"created":"2014-09-18","pushed":"2026-10-10","license":"MIT","archived":false},{"name":"sveltejs/svelte","desc":"web development for the rest of us","lang":"JavaScript","stars":88418,"forks":7740,"issues":1137,"created":"2016-11-20","pushed":"2026-10-10","license":"MIT","archived":false},{"name":"vuejs/core","desc":"🖖 Vue.js is a progressive, incrementally-adoptable JavaScript framework for building UI on the web.","lang":"TypeScript","stars":54609,"forks":9246,"issues":943,"created":"2018-06-12","pushed":"2026-10-11","license":"MIT","archived":false},{"name":"preactjs/preact","desc":"⚛️ Fast 3kB React alternative with the same modern API. Components & Virtual DOM.","lang":"JavaScript","stars":38922,"forks":4213,"issues":41,"created":"2015-09-11","pushed":"2026-10-09","license":"MIT","archived":false},{"name":"solidjs/solid","desc":"A declarative, efficient, and flexible JavaScript library for building user interfaces.","lang":"TypeScript","stars":36118,"forks":1123,"issues":57,"created":"2018-04-24","pushed":"2026-10-11","license":"MIT","archived":false}]},{"zone":"web","title":"Frontend build tools","flagship":"vitejs/vite","repos":[{"name":"vitejs/vite","desc":"Next generation frontend tooling. It's fast!","lang":"TypeScript","stars":83278,"forks":8844,"issues":763,"created":"2020-04-21","pushed":"2026-10-09","license":"MIT","archived":false},{"name":"webpack/webpack","desc":"A bundler for javascript and friends. Packs many modules into a few bundled assets. Code Splitting allows for loading parts of the application on demand. Through \"loaders\", modules can be CommonJs, AMD, ES6 modules, CSS, Images, JSON, Coffeescript, LESS, ... and your custom stuff.","lang":"JavaScript","stars":66058,"forks":9531,"issues":131,"created":"2012-03-10","pushed":"2026-10-11","license":"MIT","archived":false},{"name":"parcel-bundler/parcel","desc":"The zero configuration build tool for the web. 📦🚀","lang":"JavaScript","stars":44012,"forks":2293,"issues":609,"created":"2017-08-07","pushed":"2026-09-29","license":"MIT","archived":false},{"name":"evanw/esbuild","desc":"An extremely fast bundler for the web","lang":"Go","stars":40069,"forks":1354,"issues":629,"created":"2016-06-14","pushed":"2026-08-09","license":"MIT","archived":false},{"name":"rollup/rollup","desc":"Next-generation ES module bundler","lang":"JavaScript","stars":26302,"forks":1784,"issues":605,"created":"2015-05-14","pushed":"2026-10-11","license":null,"archived":false}]},{"zone":"web","title":"Backend frameworks","flagship":"fastapi/fastapi","repos":[{"name":"fastapi/fastapi","desc":"FastAPI framework, high performance, easy to learn, fast to code, ready for production","lang":"Python","stars":102977,"forks":10019,"issues":88,"created":"2018-12-08","pushed":"2026-10-08","license":"MIT","archived":false},{"name":"django/django","desc":"The Web framework for perfectionists with deadlines.","lang":"Python","stars":91363,"forks":36837,"issues":540,"created":"2012-04-28","pushed":"2026-10-10","license":"BSD-3-Clause","archived":false},{"name":"nestjs/nest","desc":"A progressive Node.js framework for building efficient, scalable, and enterprise-grade server-side applications with TypeScript/JavaScript 🚀","lang":"TypeScript","stars":76806,"forks":8572,"issues":47,"created":"2017-02-04","pushed":"2026-10-10","license":"MIT","archived":false},{"name":"pallets/flask","desc":"The Python micro framework for building web applications.","lang":"Python","stars":74995,"forks":17067,"issues":4,"created":"2010-04-06","pushed":"2026-10-07","license":"BSD-3-Clause","archived":false},{"name":"expressjs/express","desc":"Fast, unopinionated, minimalist web framework for node.","lang":"JavaScript","stars":69602,"forks":25196,"issues":236,"created":"2009-06-26","pushed":"2026-10-09","license":"MIT","archived":false},{"name":"honojs/hono","desc":"Web framework built on Web Standards","lang":"TypeScript","stars":32476,"forks":1396,"issues":410,"created":"2021-12-14","pushed":"2026-10-10","license":"MIT","archived":false}]},{"zone":"dev","title":"Code editors","flagship":"zed-industries/zed","repos":[{"name":"microsoft/vscode","desc":"Visual Studio Code","lang":"TypeScript","stars":193536,"forks":45015,"issues":21717,"created":"2015-09-03","pushed":"2026-10-11","license":"MIT","archived":false},{"name":"neovim/neovim","desc":"Vim-fork focused on extensibility and usability","lang":"Vim Script","stars":102979,"forks":7167,"issues":1958,"created":"2014-01-31","pushed":"2026-10-11","license":null,"archived":false},{"name":"zed-industries/zed","desc":"Code at the speed of thought – Zed is a high-performance, multiplayer code editor from the creators of Atom and Tree-sitter.","lang":"Rust","stars":91565,"forks":11000,"issues":3014,"created":"2021-02-20","pushed":"2026-10-11","license":null,"archived":false},{"name":"atom/atom","desc":":atom: The hackable text editor","lang":"JavaScript","stars":60709,"forks":17167,"issues":992,"created":"2012-01-20","pushed":"2023-01-03","license":"MIT","archived":true},{"name":"helix-editor/helix","desc":"A post-modern modal text editor.","lang":"Rust","stars":46541,"forks":3824,"issues":1728,"created":"2020-06-01","pushed":"2026-09-29","license":"MPL-2.0","archived":false},{"name":"vim/vim","desc":"The official Vim repository","lang":"Vim Script","stars":41189,"forks":6157,"issues":1672,"created":"2015-08-18","pushed":"2026-10-10","license":"Vim","archived":false}]},{"zone":"dev","title":"Find things in the terminal","flagship":"BurntSushi/ripgrep","repos":[{"name":"junegunn/fzf","desc":":cherry_blossom: A command-line fuzzy finder","lang":"Go","stars":83539,"forks":4989,"issues":332,"created":"2013-10-23","pushed":"2026-10-11","license":"MIT","archived":false},{"name":"BurntSushi/ripgrep","desc":"ripgrep recursively searches directories for a regex pattern while respecting your gitignore","lang":"Rust","stars":69016,"forks":5017,"issues":204,"created":"2016-03-11","pushed":"2026-08-04","license":"Unlicense","archived":false},{"name":"sharkdp/fd","desc":"A simple, fast and user-friendly alternative to 'find'","lang":"Rust","stars":44749,"forks":1154,"issues":203,"created":"2017-05-09","pushed":"2026-10-07","license":"Apache-2.0","archived":false},{"name":"ajeetdsouza/zoxide","desc":"A smarter cd command. Supports all major shells.","lang":"Rust","stars":40019,"forks":921,"issues":148,"created":"2020-03-05","pushed":"2026-10-03","license":"MIT","archived":false}]},{"zone":"dev","title":"Python tooling","flagship":"astral-sh/uv","repos":[{"name":"astral-sh/uv","desc":"An extremely fast Python package and project manager, written in Rust.","lang":"Rust","stars":90598,"forks":3645,"issues":2994,"created":"2023-10-02","pushed":"2026-10-11","license":"Apache-2.0","archived":false},{"name":"astral-sh/ruff","desc":"An extremely fast Python linter and code formatter, written in Rust.","lang":"Rust","stars":49989,"forks":2497,"issues":2220,"created":"2022-08-09","pushed":"2026-10-11","license":"MIT","archived":false},{"name":"psf/black","desc":"The uncompromising Python code formatter","lang":"Python","stars":41891,"forks":2921,"issues":260,"created":"2018-03-14","pushed":"2026-10-10","license":"MIT","archived":false},{"name":"python-poetry/poetry","desc":"Python packaging and dependency management made easy","lang":"Python","stars":34303,"forks":2531,"issues":593,"created":"2018-02-28","pushed":"2026-10-06","license":"MIT","archived":false},{"name":"python/mypy","desc":"Optional static typing for Python","lang":"Python","stars":20674,"forks":3332,"issues":3252,"created":"2012-12-07","pushed":"2026-10-10","license":null,"archived":false},{"name":"pypa/pip","desc":"The Python package installer","lang":"Python","stars":10294,"forks":3402,"issues":961,"created":"2011-03-06","pushed":"2026-10-05","license":"MIT","archived":false}]},{"zone":"infra","title":"Databases","flagship":"duckdb/duckdb","repos":[{"name":"redis/redis","desc":"For developers, who are building real-time data-driven applications, Redis is the preferred, fastest, and most feature-rich cache, data structure server, and document and vector query engine.","lang":"C","stars":76708,"forks":24852,"issues":3019,"created":"2009-03-21","pushed":"2026-10-10","license":null,"archived":false},{"name":"ClickHouse/ClickHouse","desc":"ClickHouse® is a real-time analytics database management system","lang":"C++","stars":50333,"forks":9081,"issues":8188,"created":"2016-06-02","pushed":"2026-10-11","license":"Apache-2.0","archived":false},{"name":"duckdb/duckdb","desc":"DuckDB is an analytical in-process SQL database management system","lang":"C++","stars":42087,"forks":3902,"issues":1065,"created":"2018-06-26","pushed":"2026-10-10","license":"MIT","archived":false},{"name":"cockroachdb/cockroach","desc":"CockroachDB — the cloud native, distributed SQL database designed for high availability, effortless scale, and control over data placement.","lang":"Go","stars":32558,"forks":4127,"issues":8292,"created":"2014-02-06","pushed":"2026-10-03","license":null,"archived":false},{"name":"postgres/postgres","desc":"Mirror of the official PostgreSQL GIT repository. Note that this is just a *mirror* - we don't work with pull requests on github. To contribute, please see https://wiki.postgresql.org/wiki/Submitting_a_Patch","lang":"C","stars":22332,"forks":5941,"issues":0,"created":"2010-09-21","pushed":"2026-10-10","license":null,"archived":false},{"name":"sqlite/sqlite","desc":"Official Git mirror of the SQLite source tree","lang":"C","stars":10634,"forks":1686,"issues":24,"created":"2019-03-18","pushed":"2026-10-10","license":null,"archived":false}]},{"zone":"infra","title":"Web servers and proxies","flagship":"caddyserver/caddy","repos":[{"name":"caddyserver/caddy","desc":"Fast and extensible multi-platform HTTP/1-2-3 web server with automatic HTTPS","lang":"Go","stars":77710,"forks":5113,"issues":282,"created":"2015-01-13","pushed":"2026-10-11","license":"Apache-2.0","archived":false},{"name":"traefik/traefik","desc":"The Cloud Native Application Proxy","lang":"Go","stars":65150,"forks":6233,"issues":950,"created":"2015-09-13","pushed":"2026-10-08","license":"MIT","archived":false},{"name":"nginx/nginx","desc":"The official NGINX Open Source repository.","lang":"C","stars":31845,"forks":8314,"issues":440,"created":"2015-06-23","pushed":"2026-09-30","license":"BSD-2-Clause","archived":false}]},{"zone":"infra","title":"Backend in a box","flagship":"supabase/supabase","repos":[{"name":"supabase/supabase","desc":"The Postgres development platform. Supabase gives you a dedicated Postgres database to build your web, mobile, and AI applications.","lang":"TypeScript","stars":111326,"forks":16401,"issues":1149,"created":"2019-10-12","pushed":"2026-10-11","license":"Apache-2.0","archived":false},{"name":"nocodb/nocodb","desc":"🔥 🔥 🔥 A Free & Self-hostable Airtable Alternative","lang":"TypeScript","stars":65242,"forks":5081,"issues":718,"created":"2017-10-29","pushed":"2026-10-11","license":null,"archived":false},{"name":"pocketbase/pocketbase","desc":"Open Source realtime backend in 1 file","lang":"Go","stars":61347,"forks":3728,"issues":19,"created":"2022-07-05","pushed":"2026-10-08","license":"MIT","archived":false},{"name":"appwrite/appwrite","desc":"The open-source cloud for agents & devs. Including Auth, Databases, Storage, Functions, Messaging, Hosting, Realtime, WAF and more","lang":"TypeScript","stars":57630,"forks":5778,"issues":779,"created":"2019-04-08","pushed":"2026-10-10","license":"BSD-3-Clause","archived":false}]},{"zone":"lang","title":"JavaScript runtimes","flagship":"oven-sh/bun","repos":[{"name":"nodejs/node","desc":"Node.js JavaScript runtime ✨🐢🚀✨","lang":"JavaScript","stars":122273,"forks":39395,"issues":1195,"created":"2014-11-26","pushed":"2026-10-11","license":null,"archived":false},{"name":"denoland/deno","desc":"A modern runtime for JavaScript and TypeScript.","lang":"Rust","stars":108721,"forks":6440,"issues":1689,"created":"2018-05-15","pushed":"2026-10-07","license":"MIT","archived":false},{"name":"oven-sh/bun","desc":"Incredibly fast JavaScript runtime, bundler, test runner, and package manager – all in one","lang":"Rust","stars":96186,"forks":5106,"issues":9519,"created":"2021-04-14","pushed":"2026-10-11","license":null,"archived":false}]},{"zone":"lang","title":"Systems languages","flagship":"rust-lang/rust","repos":[{"name":"golang/go","desc":"The Go programming language","lang":"Go","stars":139177,"forks":21865,"issues":10299,"created":"2014-08-19","pushed":"2026-10-10","license":"BSD-3-Clause","archived":false},{"name":"rust-lang/rust","desc":"Empowering everyone to build reliable and efficient software.","lang":"Rust","stars":119660,"forks":18201,"issues":12574,"created":"2010-06-16","pushed":"2026-10-11","license":"Apache-2.0","archived":false},{"name":"ziglang/zig","desc":"Moved to Codeberg","lang":"Zig","stars":43302,"forks":3186,"issues":2768,"created":"2015-08-06","pushed":"2025-11-27","license":"MIT","archived":false},{"name":"vlang/v","desc":"Simple, fast, safe, compiled language for developing maintainable software. Compiles itself in <1s with zero library dependencies. Supports automatic C => V translation. https://vlang.io","lang":"V","stars":37993,"forks":2298,"issues":220,"created":"2019-02-08","pushed":"2026-10-11","license":"MIT","archived":false},{"name":"carbon-language/carbon-lang","desc":"Carbon Language's main repository: documents, design, implementation, and related tools. (NOTE: Carbon Language is experimental; see README)","lang":"C++","stars":33897,"forks":1681,"issues":273,"created":"2020-04-27","pushed":"2026-10-11","license":null,"archived":false},{"name":"nim-lang/Nim","desc":"Nim is a statically typed compiled systems programming language. It combines successful concepts from mature languages like Python, Ada and Modula. Its design focuses on efficiency, expressiveness, and elegance (in that order of priority).","lang":"Nim","stars":18264,"forks":1564,"issues":2211,"created":"2010-08-16","pushed":"2026-10-11","license":null,"archived":false}]}];
+const AS_OF = '2026-10-11';
+
+const ZONES = [
+  { id: 'ai', name: 'AI & ML', color: '#5CC8E8', paper: '#BFE9F5' },
+  { id: 'web', name: 'Web', color: '#F2B544', paper: '#F8DFA6' },
+  { id: 'dev', name: 'Dev tools', color: '#9BE07A', paper: '#D3F2C2' },
+  { id: 'infra', name: 'Infra', color: '#B79CFF', paper: '#DDD1FF' },
+  { id: 'lang', name: 'Languages & runtimes', color: '#FF8A65', paper: '#FFCDBC' },
+  { id: 'rising', name: 'Rising this week', color: '#D4F25C', paper: '#EDF9B8' },
+];
+const zoneOf = (id) => ZONES.find((z) => z.id === id);
+const LICENSES = { 'Apache-2.0': 'Apache 2.0', MIT: 'MIT', 'BSD-3-Clause': 'BSD 3', 'BSD-2-Clause': 'BSD 2', 'GPL-3.0': 'GPL 3.0', 'GPL-2.0': 'GPL 2.0', 'MPL-2.0': 'MPL 2.0', 'AGPL-3.0': 'AGPL 3.0', 'LGPL-2.1': 'LGPL 2.1', ISC: 'ISC', 'BSL-1.0': 'Boost' };
+const kfmt = (n) => (n >= 100000 ? `${Math.round(n / 1000)}k` : n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
+const short = (name) => name.split('/')[1];
+const DAY = 86400000;
+function ago(date) {
+  const d = Math.round((Date.parse(AS_OF) - Date.parse(date)) / DAY);
+  if (d <= 0) return 'today';
+  if (d === 1) return 'yesterday';
+  if (d < 30) return `${d} days ago`;
+  if (d < 365) return `${Math.round(d / 30)} months ago`;
+  return `${Math.round(d / 365)} years ago`;
+}
+
+// ---------- world: one platform per room ----------
+const VIEW_H = 640, FLOOR = 580, G = 2400, JUMP = 1000, RUN = 320, BW = 26, BH = 40;
+const HEIGHTS = [460, 390, 330, 410, 350];
+const plats = [];
+const signs = [];
+let x = 430;
+for (const z of ZONES) {
+  const rooms = ROOMS.filter((r) => r.zone === z.id);
+  if (!rooms.length) continue;
+  signs.push({ x: x - 160, zone: z });
+  rooms.forEach((room) => {
+    const flag = room.repos.find((r) => r.name === room.flagship) || room.repos[0];
+    const w = z.id === 'rising' ? 210 : 176;
+    const y = z.id === 'rising' ? 225 : HEIGHTS[plats.length % HEIGHTS.length];
+    plats.push({ i: plats.length, room, flag, zone: z, x: x - w / 2, y, w, h: 26, seen: false, entered: false });
+    x += 250;
+  });
+  x += 170;
+}
+// stepping stones up to the high rising platform
+const STEPS = [{ x: plats.at(-1).x - 230, y: 420, w: 110 }];
+const END_X = x + 30;
+const W = END_X + 400;
+const saved = new Map(); // name -> {repo, zone, room}
+
+const body = { x: 140, y: FLOOR, vx: 0, vy: 0, ground: -2, jumps: 0, coyote: 0, face: 1, runT: 0 };
+let cam = 0, viewW = 1200, scale = 1, state = 'walk', current = -1, sinkT = 0, ended = false;
+let roomPlat = null, sel = 0;
+
+// ---------- DOM ----------
+const $ = (id) => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const stage = $('stage'), card = $('card'), roomEl = $('room'), endBox = $('end');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+$('total').textContent = plats.length;
+
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k === 'class') el.className = v;
+    else if (k === 'style') el.style.cssText = v;
+    else el.setAttribute(k, v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  return el;
+}
+
+const mm = $('minimap');
+for (const z of ZONES) {
+  const g = h('span', { class: 'grp', title: z.name });
+  plats.filter((p) => p.zone === z).forEach((p) => { p.dot = h('i', { style: `--c:${z.color}` }); g.append(p.dot); });
+  if (g.childElementCount) mm.append(g);
+}
+
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (t.hidden = true), 2000);
+}
+
+// ---------- platform card ----------
+function renderCard(p) {
+  const r = p.flag;
+  const others = p.room.repos.length - 1;
+  card.style.setProperty('--c', p.zone.color);
+  card.replaceChildren(
+    h('div', { class: 'eyebrow' }, h('span', { class: 'rg' }, p.zone.name), h('span', null, `★ ${kfmt(r.stars)} · ${r.lang || 'mixed'}`)),
+    h('h3', null, short(r.name)),
+    h('div', { class: 'full' }, r.name),
+    h('p', null, r.desc),
+    h('div', { class: 'roomline' },
+      h('span', null, 'Room: ', h('b', null, p.room.title), ` · ${others} more`),
+      h('button', { type: 'button', class: 'btn go', onclick: () => enterRoom() }, '▼ Drop in')),
+  );
+}
+
+function placeCard() {
+  if (current < 0 || card.dataset.open !== 'true') return;
+  const p = plats[current];
+  const cx = (p.x + p.w / 2 - cam) * scale;
+  const topY = p.y * scale;
+  const sw = stage.clientWidth, sh = stage.clientHeight;
+  const cw = card.offsetWidth, chh = card.offsetHeight;
+  const left = Math.max(12, Math.min(sw - cw - 12, cx - cw / 2));
+  const above = topY - (BH + 20) * scale - chh;
+  const below = above < 48;
+  card.classList.toggle('below', below);
+  card.style.left = `${left}px`;
+  card.style.top = `${below ? Math.min(sh - chh - 10, topY + (p.h + 30) * scale) : above}px`;
+  card.style.setProperty('--ox', `${Math.max(10, Math.min(cw - 10, cx - left))}px`);
+}
+
+function setCurrent(i) {
+  if (i === current) return;
+  current = i;
+  if (i < 0) { card.dataset.open = 'false'; updateCounts(); return; }
+  const p = plats[i];
+  if (!p.seen) { p.seen = true; burst(p.x + p.w / 2, p.y, p.zone.color); }
+  renderCard(p);
+  card.dataset.open = 'true';
+  updateCounts();
+  placeCard();
+}
+
+function updateCounts() {
+  $('seen').textContent = plats.filter((p) => p.seen).length;
+  $('visited').textContent = plats.filter((p) => p.entered).length;
+  $('saved').textContent = saved.size;
+  for (const p of plats) {
+    p.dot.classList.toggle('seen', p.seen);
+    p.dot.classList.toggle('room', p.entered);
+    p.dot.classList.toggle('here', p.i === current);
+  }
+  const list = $('trailList');
+  list.replaceChildren(...[...saved.values()].map((s) => h('li', { style: `--c:${s.zone.color}` },
+    h('a', { href: `https://github.com/${s.repo.name}`, target: '_blank', rel: 'noopener' }, s.repo.name),
+    h('span', null, s.room.title))));
+  $('trailEmpty').hidden = saved.size > 0;
+}
+
+function toggleSave(repo, p) {
+  if (saved.has(repo.name)) { saved.delete(repo.name); toast(`Removed ${short(repo.name)}`); }
+  else { saved.set(repo.name, { repo, zone: p.zone, room: p.room }); toast(`Saved ${short(repo.name)} to your trail`); }
+  updateCounts();
+}
+
+// ---------- the room ----------
+function enterRoom() {
+  if (current < 0 || state !== 'walk') return;
+  state = 'sinking'; sinkT = 0;
+  card.dataset.open = 'false';
+}
+
+function openRoom(p) {
+  roomPlat = p;
+  p.entered = true;
+  state = 'room';
+  sel = Math.max(0, p.room.repos.findIndex((r) => r.name === p.flag.name));
+  roomEl.style.setProperty('--c', p.zone.color);
+  roomEl.style.setProperty('--paper', p.zone.paper);
+  const max = p.room.repos[0].stars;
+  const stickers = p.room.repos.map((r, i) => h('button', {
+    type: 'button', class: 'sticker', 'aria-pressed': 'false', 'aria-label': `#${i + 1} ${r.name}, ${kfmt(r.stars)} stars`,
+    style: `--rot:${[-2.5, 1.5, -1, 2.2, -1.8, 1][i % 6]}deg; min-height:${Math.round(150 + (r.stars / max) * 70)}px`,
+    onclick: () => select(i),
+  },
+    r.name === p.flag.name ? h('span', { class: 'mine' }, 'YOU CAME FROM HERE') : null,
+    h('span', { class: 'rank' }, `#${i + 1}`),
+    h('span', { class: 'nm' }, short(r.name)),
+    h('span', { class: 'ow' }, r.name.split('/')[0]),
+    h('span', { class: 'st' }, `★ ${kfmt(r.stars)}`),
+    h('span', { class: 'bar', 'aria-hidden': 'true' }, h('span', { style: `width:${Math.max(4, Math.round((r.stars / max) * 100))}%` })),
+  ));
+  const walker = h('canvas', { class: 'walker', width: 72, height: 96, 'aria-hidden': 'true' });
+  const wall = h('div', { class: 'wall' }, h('div', { class: 'floor' }), stickers, walker);
+  const detail = h('div', { class: 'detail', 'aria-live': 'polite' });
+  roomEl.replaceChildren(
+    h('div', { class: 'room-head' },
+      h('div', { class: 'room-sign' },
+        h('span', { class: 'k' }, `Room · ${p.zone.name}`),
+        h('h2', null, p.room.title),
+        h('span', { class: 'n' }, `${p.room.repos.length} repos, most stars first`)),
+      h('button', { type: 'button', class: 'btn', onclick: exitRoom }, '▲ Back to the trail ', h('kbd', null, 'Esc'))),
+    h('div', { class: 'wall-wrap' }, wall),
+    detail,
+  );
+  roomEl.hidden = false;
+  drawWalkerTo(walker);
+  select(sel, true);
+  stickers[sel].focus({ preventScroll: true });
+  updateCounts();
+}
+
+function select(i, instant) {
+  const p = roomPlat;
+  const n = p.room.repos.length;
+  sel = (i + n) % n;
+  const stickers = roomEl.querySelectorAll('.sticker');
+  stickers.forEach((s, k) => s.setAttribute('aria-pressed', String(k === sel)));
+  const s = stickers[sel];
+  const walker = roomEl.querySelector('canvas.walker');
+  walker.style.transition = instant ? 'none' : '';
+  walker.style.left = `${s.offsetLeft + s.offsetWidth / 2 - 18}px`;
+  s.scrollIntoView({ behavior: reduced || instant ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
+  renderDetail();
+}
+
+function renderDetail() {
+  const p = roomPlat, r = p.room.repos[sel];
+  const isSaved = saved.has(r.name);
+  const lic = r.license ? LICENSES[r.license] || r.license : '—';
+  const stat = (v, l) => h('div', { class: 'stat' }, h('div', { class: 'v' }, v), h('div', { class: 'l' }, l));
+  roomEl.querySelector('.detail').replaceChildren(
+    h('div', { class: 'detail-top' },
+      h('div', null, h('h3', null, `#${sel + 1} ${short(r.name)}`), h('div', { class: 'full' }, r.name)),
+      h('div', { class: 'acts' },
+        h('a', { class: 'btn go', href: `https://github.com/${r.name}`, target: '_blank', rel: 'noopener', id: 'openGh' }, 'Open on GitHub ↗'),
+        h('button', { type: 'button', class: `btn ${isSaved ? 'on' : ''}`, onclick: () => { toggleSave(r, p); renderStickerSaved(); renderDetail(); } }, isSaved ? '★ Saved' : '☆ Save', ' ', h('kbd', null, 'E')))),
+    h('p', null, r.desc || 'No description on GitHub.'),
+    h('div', { class: 'stats' },
+      stat(`★ ${kfmt(r.stars)}`, 'Stars'),
+      stat(kfmt(r.forks), 'Forks'),
+      stat(kfmt(r.issues), 'Open issues'),
+      stat(r.lang || 'mixed', 'Language'),
+      stat(ago(r.pushed), 'Last commit'),
+      stat(p.zone.id === 'rising' ? ago(r.created) : r.created.slice(0, 4), p.zone.id === 'rising' ? 'Created' : 'Since')),
+    r.license || r.archived ? h('div', { class: 'full' }, `License: ${lic}${r.archived ? ' · archived, no longer maintained' : ''}`) : null,
+  );
+}
+
+function renderStickerSaved() {
+  roomEl.querySelectorAll('.sticker').forEach((s, k) => {
+    s.querySelector('.saved')?.remove();
+    if (saved.has(roomPlat.room.repos[k].name)) s.append(h('span', { class: 'saved', 'aria-label': 'saved' }, '★'));
+  });
+}
+
+function exitRoom() {
+  roomEl.hidden = true;
+  state = 'walk';
+  body.vy = -640; body.ground = -1;
+  current = -1;
+  document.activeElement?.blur?.();
+}
+
+function drawWalkerTo(c) {
+  const g = c.getContext('2d');
+  g.setTransform(2, 0, 0, 2, 18, 46);
+  ctxWalker(g, 0, 0, 1, 0, false, 1, 0);
+}
+
+// ---------- trail end ----------
+function showEnd() {
+  ended = true; state = 'end';
+  card.dataset.open = 'false';
+  const found = plats.filter((p) => p.seen).length, entered = plats.filter((p) => p.entered).length;
+  const row = ZONES.map((z) => plats.filter((p) => p.zone === z).map((p) => (p.entered ? '◆' : p.seen ? '●' : '○')).join('')).filter(Boolean).join(' ');
+  const text = [`Repo Trail · ${AS_OF}`, `Found ${found}/${plats.length} rooms · went into ${entered} · saved ${saved.size}`, row, ...[...saved.keys()].slice(0, 3).map((n) => `★ github.com/${n}`)].join('\n');
+  const pre = h('pre', null, text);
+  endBox.replaceChildren(h('div', { class: 'summary', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Trail end' },
+    h('h2', null, 'End of the trail'),
+    h('p', { class: 'empty', style: 'margin:0' }, saved.size ? `You saved ${saved.size}. They're under the stage with links.` : 'Nothing saved this time. Walk back and press E on the ones you like.'),
+    pre,
+    h('div', { class: 'acts' },
+      h('button', { type: 'button', class: 'btn', onclick: () => navigator.clipboard?.writeText(text).then(() => toast('Copied'), () => toast('Select the text to copy it')) }, 'Copy trail'),
+      h('button', { type: 'button', class: 'btn go', onclick: () => { endBox.hidden = true; state = 'walk'; body.x = END_X - 140; body.vx = 0; } }, 'Keep exploring'),
+      h('button', { type: 'button', class: 'btn', onclick: restart }, 'Walk it again'))));
+  endBox.hidden = false;
+}
+
+function restart() {
+  for (const p of plats) { p.seen = false; p.entered = false; }
+  saved.clear();
+  Object.assign(body, { x: 140, y: FLOOR, vx: 0, vy: 0, ground: -2 });
+  current = -1; ended = false; state = 'walk'; endBox.hidden = true; card.dataset.open = 'false';
+  updateCounts();
+}
+
+// ---------- input ----------
+const keys = new Set(), pressed = new Set();
+const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'jump', KeyW: 'jump', Space: 'jump', ArrowDown: 'down', KeyS: 'down', KeyE: 'save', Escape: 'esc', Enter: 'open' };
+function roomKey(k) {
+  if (k === 'left') select(sel - 1);
+  else if (k === 'right') select(sel + 1);
+  else if (k === 'esc' || k === 'jump') exitRoom();
+  else if (k === 'save') { toggleSave(roomPlat.room.repos[sel], roomPlat); renderStickerSaved(); renderDetail(); }
+  else if (k === 'open') $('openGh')?.click();
+}
+addEventListener('keydown', (e) => {
+  const k = KEYMAP[e.code];
+  if (!k) return;
+  if (state === 'room') {
+    if (k === 'open' && e.target.closest?.('button, a')) return; // let Enter activate the focused control
+    e.preventDefault();
+    if (!e.repeat || k === 'left' || k === 'right') roomKey(k);
+    return;
+  }
+  if (state !== 'walk') return;
+  if (['left', 'right', 'jump', 'down'].includes(k)) e.preventDefault();
+  if (!keys.has(k)) pressed.add(k);
+  keys.add(k);
+});
+addEventListener('keyup', (e) => { const k = KEYMAP[e.code]; if (k) keys.delete(k); });
+addEventListener('blur', () => keys.clear());
+for (const b of document.querySelectorAll('#pad button')) {
+  const k = b.dataset.k;
+  b.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add('on');
+    if (state === 'room') { roomKey(k === 'down' ? 'open' : k); return; }
+    if (!keys.has(k)) pressed.add(k); keys.add(k);
+  });
+  const up = () => { b.classList.remove('on'); keys.delete(k); };
+  b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('lostpointercapture', up);
+}
+
+// ---------- particles ----------
+const parts = [];
+function burst(px, py, color, n = 14) {
+  if (reduced) n = Math.ceil(n / 4);
+  for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = 120 + Math.random() * 220; parts.push({ x: px, y: py, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 160, t: 0, life: .5 + Math.random() * .4, color }); }
+}
+
+// ---------- simulation ----------
+const solids = () => [...plats, ...STEPS.map((s, i) => ({ ...s, i: -10 - i, h: 20 }))];
+function step(dt) {
+  if (state === 'sinking') {
+    sinkT += dt;
+    if (sinkT > (reduced ? 0.01 : 0.38)) openRoom(plats[current]);
+    return;
+  }
+  if (state !== 'walk') return;
+  const dir = (keys.has('right') ? 1 : 0) - (keys.has('left') ? 1 : 0);
+  if (dir) body.face = dir;
+  const grounded = body.ground !== -1;
+  const acc = (grounded ? 2600 : 1800) * dt;
+  const target = dir * RUN;
+  body.vx = body.vx < target ? Math.min(target, body.vx + acc) : Math.max(target, body.vx - acc);
+  body.coyote = grounded ? 0.1 : body.coyote - dt;
+  body.runT = grounded && Math.abs(body.vx) > 20 ? body.runT + dt : 0;
+
+  if (pressed.has('down') && body.ground >= 0) enterRoom();
+  if (pressed.has('save') && current >= 0) toggleSave(plats[current].flag, plats[current]);
+  if (pressed.has('jump')) {
+    if (grounded || body.coyote > 0) { body.vy = -JUMP; body.jumps = 1; body.ground = -1; body.coyote = 0; }
+    else if (body.jumps < 2) { body.vy = -JUMP * 0.9; body.jumps = 2; }
+  }
+  if (!keys.has('jump') && body.vy < -420) body.vy *= 0.55;
+  pressed.clear();
+  if (state !== 'walk') return;
+
+  body.vy = Math.min(body.vy + G * dt, 1500);
+  body.x = Math.max(BW / 2, Math.min(W - BW / 2, body.x + body.vx * dt));
+  const prev = body.y;
+  body.y += body.vy * dt;
+  const prevGround = body.ground;
+  body.ground = -1;
+  if (body.vy >= 0) {
+    let best = -1, top = Infinity;
+    if (prev <= FLOOR + 0.01 && body.y >= FLOOR) { best = -2; top = FLOOR; }
+    for (const p of solids()) {
+      if (body.x + BW / 2 <= p.x || body.x - BW / 2 >= p.x + p.w) continue;
+      if (prev <= p.y + 0.01 && body.y >= p.y && p.y < top) { top = p.y; best = p.i; }
+    }
+    if (best !== -1) { body.y = top; body.vy = 0; body.ground = best; body.jumps = 0; }
+  }
+  if (body.ground >= 0) setCurrent(body.ground);
+  else if (body.ground <= -2 || (prevGround >= 0 && body.y > plats[prevGround].y + 60)) setCurrent(-1);
+  if (!ended && body.x > END_X) showEnd();
+}
+
+// ---------- drawing ----------
+function fit() {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const w = cv.clientWidth, hgt = cv.clientHeight;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(hgt * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(hgt * dpr); }
+  scale = hgt / VIEW_H;
+  viewW = w / scale;
+  return dpr;
+}
+const hashf = (n) => { const s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); };
+
+function draw(time) {
+  const dpr = fit();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#0A0C14';
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  const k = scale * dpr;
+
+  ctx.setTransform(k, 0, 0, k, 0, 0);
+  const off = cam * 0.35;
+  for (let l = Math.floor(off / 120) - 1; l < Math.floor(off / 120) + viewW / 120 + 2; l++) {
+    const lx = l * 120 - off + 30;
+    ctx.strokeStyle = 'rgba(38,44,66,.55)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(lx, 0); ctx.lineTo(lx, VIEW_H); ctx.stroke();
+    for (let r = 0; r < 8; r++) {
+      const hv = hashf(l * 31 + r);
+      if (hv > .4) continue;
+      ctx.fillStyle = hv < .05 ? 'rgba(212,242,92,.3)' : 'rgba(58,66,96,.8)';
+      ctx.beginPath(); ctx.arc(lx, r * 80 + hv * 40, 5, 0, 7); ctx.fill();
+    }
+  }
+
+  ctx.setTransform(k, 0, 0, k, -cam * k, 0);
+  ctx.fillStyle = '#121626';
+  ctx.fillRect(cam - 10, FLOOR, viewW + 20, VIEW_H - FLOOR);
+  for (let si = 0; si < signs.length; si++) {
+    const s = signs[si], next = signs[si + 1] ? signs[si + 1].x : END_X + 120;
+    ctx.fillStyle = s.zone.color; ctx.fillRect(s.x, FLOOR, next - s.x, 4);
+  }
+  ctx.fillStyle = '#2EC4A6'; ctx.fillRect(0, FLOOR, signs[0].x, 4);
+
+  for (const s of signs) {
+    ctx.fillStyle = '#262C42'; ctx.fillRect(s.x + 14, FLOOR - 92, 6, 92);
+    ctx.font = '12px Bungee, sans-serif';
+    const tw = ctx.measureText(s.zone.name.toUpperCase()).width + 22;
+    ctx.fillStyle = '#121626'; ctx.strokeStyle = s.zone.color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(s.x, FLOOR - 124, tw, 34, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = s.zone.color; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    ctx.fillText(s.zone.name.toUpperCase(), s.x + 11, FLOOR - 106);
+  }
+
+  for (const s of STEPS) {
+    ctx.beginPath(); ctx.roundRect(s.x, s.y, s.w, 20, 5); ctx.fillStyle = '#121626'; ctx.fill();
+    ctx.strokeStyle = 'rgba(212,242,92,.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  for (const p of plats) {
+    if (p.x > cam + viewW + 60 || p.x + p.w < cam - 60) continue;
+    const isHere = p.i === current;
+    // the room below: a few stacked "sticker" edges peeking out under the platform
+    const n = Math.min(5, p.room.repos.length);
+    for (let j = n - 1; j >= 1; j--) {
+      ctx.fillStyle = j % 2 ? p.zone.paper : '#F3F4F8';
+      ctx.globalAlpha = .18 + .1 * (n - j);
+      ctx.beginPath(); ctx.roundRect(p.x + 10 + j * 4, p.y + p.h - 2 + j * 4, p.w - 20 - j * 8, 6, 3); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, p.h, 6);
+    ctx.fillStyle = p.seen ? '#16203A' : '#121626'; ctx.fill();
+    ctx.save(); ctx.clip(); ctx.fillStyle = p.zone.color; ctx.fillRect(p.x, p.y, p.w, 5); ctx.restore();
+    ctx.lineWidth = isHere ? 2.5 : 1.5;
+    ctx.strokeStyle = isHere ? p.zone.color : p.zone.id === 'rising' ? 'rgba(212,242,92,.7)' : '#262C42';
+    ctx.stroke();
+    if (p.zone.id === 'rising' && !reduced) { ctx.save(); ctx.shadowColor = '#D4F25C'; ctx.shadowBlur = 14 + Math.sin(time * 3) * 5; ctx.strokeStyle = 'rgba(212,242,92,.35)'; ctx.stroke(); ctx.restore(); }
+    // trapdoor into the room
+    const dx = p.x + p.w / 2;
+    ctx.fillStyle = '#05070C';
+    ctx.beginPath(); ctx.roundRect(dx - 18, p.y + 9, 36, 12, 3); ctx.fill();
+    ctx.strokeStyle = isHere ? p.zone.color : '#262C42'; ctx.lineWidth = 1.5; ctx.stroke();
+    if (isHere && !reduced) { ctx.fillStyle = p.zone.color; ctx.font = '700 10px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('▼ ▼', dx, p.y + 15.5 + Math.sin(time * 6) * 1); }
+    // labels: repo above, category below
+    ctx.textAlign = 'center';
+    ctx.font = `${p.seen ? 700 : 600} 13px "JetBrains Mono", monospace`;
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = p.seen ? '#ECEFF7' : '#9AA3B8';
+    ctx.fillText(short(p.flag.name), dx, p.y + p.h + 28);
+    ctx.font = '600 11px "Bricolage Grotesque", sans-serif';
+    ctx.fillStyle = p.zone.color;
+    ctx.fillText(p.room.title, dx, p.y + p.h + 46);
+    if (p.entered) { ctx.fillStyle = '#D4F25C'; ctx.font = '14px sans-serif'; ctx.textBaseline = 'alphabetic'; ctx.fillText('◆', p.x + p.w - 12, p.y - 6); }
+  }
+
+  ctx.strokeStyle = '#D4F25C'; ctx.lineWidth = 5;
+  ctx.strokeRect(END_X, FLOOR - 130, 90, 130);
+  ctx.fillStyle = 'rgba(212,242,92,.12)'; ctx.fillRect(END_X, FLOOR - 130, 90, 130);
+  ctx.fillStyle = '#D4F25C'; ctx.font = '13px Bungee, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('TRAIL END', END_X + 45, FLOOR - 142);
+
+  const sink = state === 'sinking' ? Math.min(1, sinkT / .38) : 0;
+  ctxWalker(ctx, body.x, body.y + sink * 30, body.face, body.runT, body.ground === -1, 1 - sink * .9, time);
+
+  for (const q of parts) { ctx.globalAlpha = Math.max(0, 1 - q.t / q.life); ctx.fillStyle = q.color; ctx.fillRect(q.x - 3, q.y - 3, 6, 6); }
+  ctx.globalAlpha = 1;
+}
+
+function ctxWalker(g, x, y, face, runT, air, alpha, time) {
+  const swing = air ? .5 : runT > 0 ? Math.sin(runT * 15) * .7 : 0;
+  const bob = !air && runT === 0 && !reduced ? Math.sin(time * 2.4) * 1.2 : 0;
+  g.save(); g.globalAlpha = alpha; g.translate(x, y + bob); g.scale(face, 1);
+  for (const s of [-1, 1]) { g.save(); g.translate(s * 5, -14); g.rotate(swing * s); g.fillStyle = '#1F8F79'; g.fillRect(-3.5, 0, 7, 11); g.fillStyle = '#ECEFF7'; g.fillRect(-3.5, 10, 9, 4); g.restore(); }
+  g.fillStyle = '#2EC4A6'; g.beginPath(); g.roundRect(-12, -31, 24, 19, 5); g.fill();
+  g.fillStyle = '#D4F25C'; g.fillRect(-12, -24, 24, 3);
+  g.fillStyle = '#E9C9AE'; g.beginPath(); g.arc(0, -38, 7, 0, 7); g.fill();
+  g.fillStyle = '#2A2233'; g.beginPath(); g.arc(0, -40, 7, Math.PI * 1.05, Math.PI * 1.95); g.fill();
+  g.fillStyle = '#0A0C14'; g.fillRect(3, -39, 2, 2);
+  g.restore();
+}
+
+// ---------- loop ----------
+let last = performance.now(), time = 0;
+function frame(now) {
+  // the first rAF timestamp can be earlier than `last`; never step backwards
+  const dt = Math.max(0, Math.min(1 / 30, (now - last) / 1000));
+  last = now; time += dt;
+  step(dt);
+  for (const q of parts) { q.t += dt; q.x += q.vx * dt; q.y += q.vy * dt; q.vy += 900 * dt; }
+  for (let i = parts.length - 1; i >= 0; i--) if (parts[i].t > parts[i].life) parts.splice(i, 1);
+  const target = Math.max(0, Math.min(W - viewW, body.x - viewW * 0.4));
+  cam += (target - cam) * (reduced ? 1 : Math.min(1, dt * 6));
+  if (state !== 'room') { draw(time); placeCard(); }
+  requestAnimationFrame(frame);
+}
+
+// first frame: standing on the Speech to text platform with its card open
+const start = plats.find((p) => p.room.title === 'Speech to text') || plats[0];
+body.x = start.x + start.w / 2; body.y = start.y; body.ground = start.i;
+cam = Math.max(0, body.x - 420);
+updateCounts();
+setCurrent(start.i);
+const zoneChip = $('zone');
+setInterval(() => {
+  const z = state === 'room' && roomPlat ? roomPlat.zone : (signs.filter((s) => s.x <= body.x + 40).pop() || signs[0]).zone;
+  zoneChip.textContent = state === 'room' ? `ROOM · ${roomPlat.room.title}` : z.name;
+  zoneChip.style.setProperty('--zone', z.color);
+}, 200);
+addEventListener('resize', () => { if (state === 'room') select(sel, true); });
+document.fonts?.ready.then(() => placeCard());
+requestAnimationFrame(frame);
+</script>

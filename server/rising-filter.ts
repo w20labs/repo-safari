@@ -20,6 +20,10 @@ const EXCLUDE: [string, RegExp][] = [
   ['watermark or provenance stripping', /watermark|provenance|c2pa|synthid|metadata strip|strip(s|ping)? metadata/i],
   ['account or credential abuse', /credential|password (crack|dump|steal)|stealer|token grabber|account (gen|creator|farm|checker)|\bcombo ?list|brute[- ]?force|phish|captcha (solver|bypass)|spam ?bot|mass (dm|report)|cookie (steal|grab)/i],
   ['adult content', /\bnsfw\b|\bporn|\bhentai|\badult\b|onlyfans|\bnude|\bxxx\b|\berotic/i],
+  ['leaked prompts or free access to paid AI', /prompts?[_ -]?leaks?|leak(ed|s)? (system )?prompts?|cl4r1t4s|gpt4free|free (gpt|chatgpt|claude|ai) (api|access)|reverse[- ]engineered (api|chatgpt|openai)/i],
+  ['piracy or licence bypass', /activation[- ]scripts?|\bkms\b|keygen|\bcrack(ed|s)?\b|piracy|warez|license bypass/i],
+  ['tracking people', /\bosint\b|people[- ]tracker|track (people|anyone|someone)|doxx|stalk/i],
+  ['offensive tooling', /post[- ]exploitation|offensive (security|powershell)|red[- ]team(ing)? (framework|toolkit)|\bc2 (framework|server)/i],
   ['cheats or malware', /\bcheat(s|ing)?\b|aimbot|\bmalware|\bransomware|\bkeylogger|\bbotnet|\brat\b/i],
 ];
 

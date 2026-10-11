@@ -4,3 +4,4 @@ data/*.db*
 test-results
 playwright-report
 .env
+data/rooms-cache.json

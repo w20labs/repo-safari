@@ -1,0 +1,790 @@
+<title>Repo Safari</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Bungee&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* Layout: header, the stage (today's trail, or a room once you drop in), touch pad, then album + feedback side by side. */
+:root {
+  --bg: #0A0C14;
+  --panel: #121626;
+  --sunken: #0B0E19;
+  --line: #262C42;
+  --raised: #1A2036;
+  --text: #ECEFF7;
+  --muted: #9AA3B8;
+  --teal: #2EC4A6;
+  --amber: #F2B544;
+  --lime: #D4F25C;
+  --ink: #12141c;
+  --display: 'Bungee', 'Bricolage Grotesque', system-ui, sans-serif;
+  --ui: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--text); }
+body { font-family: var(--ui); font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 40px; display: grid; gap: 14px; }
+a { color: var(--teal); }
+:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; border-radius: 6px; }
+kbd { font-family: var(--mono); font-size: 11px; background: var(--sunken); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; color: var(--text); white-space: nowrap; }
+
+header.top { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { font-family: var(--display); font-size: clamp(26px, 4.4vw, 38px); line-height: 1; margin: 0; }
+.brand span { color: var(--lime); }
+.pitch { color: var(--muted); margin: 6px 0 0; max-width: 64ch; text-wrap: pretty; }
+.today { display: flex; gap: 8px; flex-wrap: wrap; }
+.tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); border: 1px solid rgba(242,181,68,.45); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.tag.lime { color: var(--lime); border-color: rgba(212,242,92,.45); }
+
+/* ---------- stage ---------- */
+.stage { position: relative; height: clamp(420px, 68vh, 640px); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--bg); }
+canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hud { position: absolute; inset: 0 0 auto 0; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px; pointer-events: none; flex-wrap: wrap; z-index: 1; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(18,22,38,.9); border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.chip b { color: var(--text); font-variant-numeric: tabular-nums; }
+.minimap { display: flex; gap: 3px; align-items: center; background: rgba(18,22,38,.9); border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; }
+.minimap i { width: 9px; height: 9px; border-radius: 2px; border: 1.5px solid #3a4364; display: block; }
+.minimap i.seen { background: var(--c); border-color: var(--c); }
+.minimap i.here { outline: 2px solid var(--text); outline-offset: 1px; }
+.minimap i.room { box-shadow: 0 0 0 2px var(--lime); }
+
+.card {
+  position: absolute; width: min(320px, calc(100% - 24px)); background: var(--panel); border: 1px solid var(--line);
+  border-top: 4px solid var(--c, var(--teal)); border-radius: 12px; padding: 12px 14px; box-shadow: 0 16px 40px rgba(0,0,0,.5);
+  transform-origin: var(--ox, 50%) 100%; transition: transform .18s cubic-bezier(.2,.9,.3,1.2), opacity .14s; z-index: 2;
+}
+.card.below { transform-origin: var(--ox, 50%) 0%; }
+.card[data-open="false"] { opacity: 0; transform: scale(.55); pointer-events: none; }
+.card .eyebrow { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.card .eyebrow .rg { color: var(--c); }
+.card h3 { margin: 6px 0 0; font-family: var(--display); font-weight: 400; font-size: 20px; line-height: 1.1; overflow-wrap: anywhere; }
+.card .full { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 2px; overflow-wrap: anywhere; }
+.card p { margin: 8px 0 0; font-size: 14px; line-height: 1.4; }
+.roomline { margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 9px; background: var(--sunken); border: 1px dashed var(--c); font-size: 13.5px; }
+.roomline b { color: var(--c); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 36px; padding: 6px 12px; border-radius: 9px; background: var(--raised); border: 1px solid var(--line); color: var(--text); font: 600 13.5px var(--ui); cursor: pointer; text-decoration: none; white-space: nowrap; }
+.btn:hover { border-color: #3a4364; }
+.btn.go { background: var(--lime); border-color: var(--lime); color: #12160a; }
+.btn.on { color: var(--lime); border-color: rgba(212,242,92,.6); }
+
+/* ---------- a room: the sticker wall for one category ---------- */
+.room { position: absolute; inset: 0; z-index: 3; display: grid; grid-template-rows: auto minmax(290px, 1fr) auto; overflow-y: auto; background:
+  radial-gradient(ellipse at 50% -20%, color-mix(in srgb, var(--c) 18%, transparent), transparent 60%),
+  repeating-linear-gradient(90deg, transparent 0 79px, rgba(38,44,66,.35) 79px 80px), #0C0F1B; }
+.room[hidden] { display: none; }
+.room-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px 0; flex-wrap: wrap; }
+.room-sign { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; min-width: 0; }
+.room-sign .k { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
+.room-sign h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(18px, 3vw, 26px); line-height: 1.1; }
+.room-sign span.n { color: var(--muted); font-size: 13px; }
+.wall-wrap { position: relative; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; padding: 18px 14px 0; min-height: 0; }
+.wall { display: flex; gap: 16px; align-items: flex-end; height: 100%; padding-bottom: 46px; position: relative; min-width: max-content; }
+.floor { position: absolute; left: 0; right: 0; bottom: 30px; height: 3px; background: var(--c); opacity: .7; }
+.sticker {
+  --rot: 0deg; scroll-snap-align: center; width: 150px; flex: none; border: 0; text-align: left; cursor: pointer; font: inherit;
+  background: var(--paper); color: var(--ink); border-radius: 14px; padding: 12px; position: relative;
+  box-shadow: 0 0 0 4px #F3F4F8, 0 10px 24px rgba(0,0,0,.45); transform: rotate(var(--rot)); transition: transform .16s ease, box-shadow .16s;
+  display: grid; gap: 6px; align-self: end;
+}
+.sticker:hover { transform: rotate(0deg) translateY(-4px); }
+.sticker[aria-pressed="true"] { transform: rotate(0deg) translateY(-14px) scale(1.06); box-shadow: 0 0 0 4px #F3F4F8, 0 0 0 7px var(--c), 0 18px 34px rgba(0,0,0,.55); z-index: 1; }
+.sticker::after { content: ''; position: absolute; right: 0; top: 0; width: 22px; height: 22px; border-radius: 0 14px 0 10px; background: linear-gradient(225deg, #0C0F1B 50%, rgba(0,0,0,.18) 50%); }
+.sticker .rank { font-family: var(--display); font-size: 22px; line-height: 1; }
+.sticker .nm { font-family: var(--display); font-size: 14px; line-height: 1.15; overflow-wrap: anywhere; }
+.sticker .ow { font-family: var(--mono); font-size: 10.5px; opacity: .7; overflow-wrap: anywhere; }
+.sticker .st { font-family: var(--mono); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sticker .bar { height: 6px; border-radius: 6px; background: rgba(18,20,28,.15); overflow: hidden; }
+.sticker .bar span { display: block; height: 100%; background: var(--ink); }
+.sticker .mine { position: absolute; left: 10px; top: -12px; background: var(--ink); color: var(--paper); font: 700 10px var(--mono); padding: 2px 7px; border-radius: 999px; letter-spacing: .04em; }
+.sticker .saved { position: absolute; right: 26px; top: 8px; font-size: 14px; }
+canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; transition: left .22s ease; pointer-events: none; }
+
+.detail { margin: 0 14px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px; }
+.detail-top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: start; }
+.detail h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 18px; overflow-wrap: anywhere; }
+.detail .full { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.detail p { margin: 0; font-size: 14.5px; max-width: 72ch; }
+.stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.stat { background: var(--sunken); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; }
+.stat .v { font-family: var(--mono); font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stat .l { font-size: 11px; color: var(--muted); }
+.acts { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.overlay { position: absolute; inset: 0; z-index: 4; display: flex; align-items: safe center; justify-content: center; padding: 16px; overflow: auto; background: rgba(6,8,14,.82); }
+.overlay[hidden] { display: none; }
+.summary { width: min(560px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 12px; }
+.summary h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 26px; }
+.summary pre, .fb-out { margin: 0; background: var(--sunken); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font: 13px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.toast { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 5; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--lime); border-radius: 10px; padding: 7px 14px; font-size: 14px; pointer-events: none; max-width: calc(100% - 24px); }
+.toast[hidden] { display: none; }
+
+.pad { display: none; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.pad button { width: 60px; height: 60px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); color: var(--text); font: 700 15px var(--mono); touch-action: none; display: grid; place-items: center; }
+.pad button.on { border-color: var(--teal); color: var(--teal); background: var(--raised); }
+.pad .sp { flex: 1; max-width: 50px; }
+@media (pointer: coarse), (max-width: 700px) { .pad { display: flex; } }
+
+/* ---------- album + feedback ---------- */
+.below { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; min-width: 0; display: grid; gap: 12px; align-content: start; }
+.box h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 15px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.box h2 small { font: 500 12.5px var(--mono); color: var(--muted); }
+.album { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }
+.mini {
+  position: relative; display: grid; gap: 3px; align-content: start; padding: 9px 9px 8px; border-radius: 11px; background: var(--paper); color: var(--ink);
+  box-shadow: 0 0 0 3px #F3F4F8; text-decoration: none; transform: rotate(var(--rot)); min-width: 0; min-height: 84px;
+}
+.mini:hover { transform: rotate(0deg) translateY(-2px); }
+.mini b { font-family: var(--display); font-weight: 400; font-size: 12.5px; line-height: 1.15; overflow-wrap: anywhere; }
+.mini span { font: 600 10.5px var(--mono); opacity: .75; overflow-wrap: anywhere; }
+.mini.rare { box-shadow: 0 0 0 3px #F3F4F8, 0 0 0 6px var(--lime), 0 0 18px rgba(212,242,92,.5); background: linear-gradient(135deg, #EDF9B8, #BFE9F5 50%, #F8DFA6); }
+.mini.rare::before { content: 'RARE'; position: absolute; right: 6px; bottom: 6px; font: 700 9px var(--mono); letter-spacing: .08em; }
+.mini.new::after { content: 'NEW'; position: absolute; left: 6px; top: -9px; background: var(--ink); color: var(--lime); font: 700 9px var(--mono); padding: 1px 6px; border-radius: 99px; }
+.empty { color: var(--muted); margin: 0; font-size: 14px; }
+.fb label { display: grid; gap: 4px; font-size: 14px; }
+.fb textarea { background: var(--sunken); color: var(--text); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; font: 14px/1.4 var(--ui); min-height: 54px; resize: vertical; width: 100%; }
+.howto { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--muted); }
+.fine { font-size: 12.5px; color: var(--muted); margin: 0; }
+@media (max-width: 760px) {
+  .below { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .sticker { width: 128px; }
+  .detail p { font-size: 13.5px; }
+}
+@media (prefers-reduced-motion: reduce) { .card, .sticker, canvas.walker { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1 class="brand">REPO <span>SAFARI</span></h1>
+      <p class="pitch">A new trail through open source every day. Each platform is a category. Drop into its room to see every repo in it, ranked by stars. Save the ones you like as stickers.</p>
+    </div>
+    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag" id="nextTag">New trail at 00:00 UTC</span></div>
+  </header>
+
+  <section class="stage" id="stage" aria-label="Today's trail">
+    <canvas id="cv" aria-hidden="true"></canvas>
+    <div class="hud">
+      <span class="chip" id="where">Today's trail</span>
+      <div class="minimap" id="minimap" aria-label="Trail map"></div>
+      <span class="chip"><b id="visited">0</b>/<span id="total">0</span> rooms · <b id="savedToday">0</b> stickers today</span>
+    </div>
+    <div class="card" id="card" data-open="false" role="region" aria-live="polite" aria-label="Platform details"></div>
+    <div class="room" id="room" hidden></div>
+    <div class="toast" id="toast" hidden></div>
+    <div class="overlay" id="end" hidden></div>
+  </section>
+
+  <div class="pad" id="pad" aria-label="Touch controls">
+    <button type="button" data-k="left" aria-label="Left">◀</button>
+    <button type="button" data-k="right" aria-label="Right">▶</button>
+    <span class="sp"></span>
+    <button type="button" data-k="save" aria-label="Save sticker">★</button>
+    <button type="button" data-k="down" aria-label="Drop into room, or open on GitHub">▼</button>
+    <button type="button" data-k="jump" aria-label="Jump, or climb back out">▲</button>
+  </div>
+
+  <div class="howto">
+    <span><kbd>←</kbd> <kbd>→</kbd> walk</span>
+    <span><kbd>Space</kbd> jump, twice for a double jump</span>
+    <span><kbd>↓</kbd> drop into a room</span>
+    <span><kbd>E</kbd> save a sticker</span>
+    <span><kbd>Enter</kbd> open on GitHub</span>
+    <span><kbd>Esc</kbd> climb out</span>
+  </div>
+
+  <section class="below">
+    <div class="box">
+      <h2>Your sticker album <small id="albumCount">0 stickers</small></h2>
+      <div class="album" id="album"></div>
+      <p class="empty" id="albumEmpty">No stickers yet. In any room, press <kbd>E</kbd> on a repo to keep it. Rising repos are rare stickers: they're only on the trail for a week.</p>
+      <p class="fine">Your album is saved in this browser only.</p>
+    </div>
+    <form class="box fb" id="fb">
+      <h2>Tell us what you think</h2>
+      <p class="fine" style="margin-top:-6px">This is an early playtest. Three quick questions; then copy your answers and paste them in the thread you came from.</p>
+      <label for="fb1">What did you save, and why?<textarea id="fb1" rows="2"></textarea></label>
+      <label for="fb2">Would you come back tomorrow for a new trail? What would make you?<textarea id="fb2" rows="2"></textarea></label>
+      <label for="fb3">What felt slow, confusing or pointless?<textarea id="fb3" rows="2"></textarea></label>
+      <div class="acts"><button class="btn go" type="submit">Copy my feedback</button></div>
+      <pre class="fb-out" id="fbOut" hidden></pre>
+    </form>
+  </section>
+  <p class="fine">Rooms are built automatically from GitHub topics; numbers come from the GitHub API as of <span id="asOf"></span>. Repo Safari is an independent fan project and isn't affiliated with GitHub.</p>
+</div>
+
+<script>
+const DATA = __ROOMS__;
+const RISING = __RISING__;
+const SHARE_URL = '__SHARE_URL__';
+
+const AS_OF = DATA.asOf;
+const DAY = 86400000;
+const PALETTE = [
+  ['#5CC8E8', '#BFE9F5'], ['#F2B544', '#F8DFA6'], ['#9BE07A', '#D3F2C2'], ['#B79CFF', '#DDD1FF'],
+  ['#FF8A65', '#FFCDBC'], ['#7FD4C1', '#C8F0E6'], ['#F28DB2', '#FAD0E0'],
+];
+const RISING_COLORS = ['#D4F25C', '#EDF9B8'];
+const LICENSES = { 'Apache-2.0': 'Apache 2.0', MIT: 'MIT', 'BSD-3-Clause': 'BSD 3', 'BSD-2-Clause': 'BSD 2', 'GPL-3.0': 'GPL 3.0', 'GPL-2.0': 'GPL 2.0', 'MPL-2.0': 'MPL 2.0', 'AGPL-3.0': 'AGPL 3.0', 'LGPL-2.1': 'LGPL 2.1', 'LGPL-3.0': 'LGPL 3.0', ISC: 'ISC', 'BSL-1.0': 'Boost', Unlicense: 'Unlicense', 'CC0-1.0': 'CC0' };
+const kfmt = (n) => (n >= 100000 ? `${Math.round(n / 1000)}k` : n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
+const short = (name) => name.split('/')[1];
+function ago(date) {
+  const d = Math.round((Date.parse(AS_OF) - Date.parse(date)) / DAY);
+  if (d <= 0) return 'today';
+  if (d === 1) return 'yesterday';
+  if (d < 30) return `${d} days ago`;
+  if (d < 365) return `${Math.round(d / 30)} months ago`;
+  return `${Math.round(d / 365)} years ago`;
+}
+
+// ---------- seeded daily trail ----------
+function fnv(s) { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { let a = fnv(seed); return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function shuffle(r, arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const TODAY = new Date().toISOString().slice(0, 10);
+const PER_DAY = 12;
+/** Same rooms for everyone on a UTC date; no repeats until the whole pool has been walked. */
+function trailFor(date) {
+  const pool = DATA.rooms;
+  const per = Math.min(PER_DAY, pool.length);
+  const days = Math.max(1, Math.floor(pool.length / per));
+  const dayNo = Math.floor(Date.parse(date) / DAY);
+  const cycle = Math.floor(dayNo / days);
+  const order = shuffle(rng(`repo-safari-${cycle}`), pool.map((_, i) => i));
+  const start = (dayNo % days) * per;
+  return order.slice(start, start + per).map((i) => pool[i]);
+}
+const trail = trailFor(TODAY);
+const colorOf = (id) => PALETTE[fnv(id) % PALETTE.length];
+
+// ---------- world ----------
+const VIEW_H = 640, FLOOR = 580, G = 2400, JUMP = 1000, RUN = 320, BW = 26, BH = 40;
+const HEIGHTS = [460, 390, 330, 410, 350];
+const plats = [];
+let x = 360;
+trail.forEach((room) => {
+  const [c, paper] = colorOf(room.id);
+  plats.push({ i: plats.length, room, flag: room.repos[0], color: c, paper, rising: false, x: x - 88, y: HEIGHTS[plats.length % HEIGHTS.length], w: 176, h: 26, seen: false, entered: false });
+  x += 250;
+});
+x += 120;
+const STEPS = [{ x: x - 150, y: 420, w: 110 }];
+if (RISING && RISING.repos.length >= 2) {
+  plats.push({ i: plats.length, room: RISING, flag: RISING.repos[0], color: RISING_COLORS[0], paper: RISING_COLORS[1], rising: true, x: x - 15, y: 225, w: 210, h: 26, seen: false, entered: false });
+  x += 300;
+}
+const END_X = x + 30;
+const W = END_X + 400;
+
+// ---------- album (this browser only) ----------
+const ALBUM_KEY = 'repo-safari-album-v1';
+const album = new Map();
+try { for (const s of JSON.parse(localStorage.getItem(ALBUM_KEY) || '[]')) album.set(s.name, s); } catch { /* storage unavailable */ }
+const saveAlbum = () => { try { localStorage.setItem(ALBUM_KEY, JSON.stringify([...album.values()])); } catch { /* fine */ } };
+
+const body = { x: 140, y: FLOOR, vx: 0, vy: 0, ground: -2, jumps: 0, coyote: 0, face: 1, runT: 0 };
+let cam = 0, viewW = 1200, scale = 1, state = 'walk', current = -1, sinkT = 0, ended = false;
+let roomPlat = null, sel = 0;
+
+const $ = (id) => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+const stage = $('stage'), card = $('card'), roomEl = $('room'), endBox = $('end');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+$('total').textContent = plats.length;
+$('asOf').textContent = AS_OF;
+$('dayTag').textContent = `Trail for ${new Date(TODAY + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
+(function nextTrail() {
+  const ms = Date.parse(TODAY) + DAY - Date.now();
+  const hrs = Math.floor(ms / 3600000), mins = Math.floor((ms % 3600000) / 60000);
+  $('nextTag').textContent = `New trail in ${hrs}h ${mins}m`;
+  setTimeout(nextTrail, 30000);
+})();
+
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+    else if (k === 'class') el.className = v;
+    else if (k === 'style') el.style.cssText = v;
+    else el.setAttribute(k, v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  return el;
+}
+
+const mm = $('minimap');
+for (const p of plats) { p.dot = h('i', { style: `--c:${p.color}`, title: p.room.title }); mm.append(p.dot); }
+
+let toastTimer = 0;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => (t.hidden = true), 2000);
+}
+
+// ---------- trail card ----------
+function renderCard(p) {
+  const r = p.flag;
+  card.style.setProperty('--c', p.color);
+  card.replaceChildren(
+    h('div', { class: 'eyebrow' }, h('span', { class: 'rg' }, p.rising ? 'Rising this week' : 'Most stars in this room'), h('span', null, `★ ${kfmt(r.stars)}`)),
+    h('h3', null, short(r.name)),
+    h('div', { class: 'full' }, r.name),
+    h('p', null, r.desc || 'No description on GitHub.'),
+    h('div', { class: 'roomline' },
+      h('span', null, 'Room: ', h('b', null, p.room.title), ` · ${p.room.repos.length} repos`),
+      h('button', { type: 'button', class: 'btn go', onclick: () => enterRoom() }, '▼ Drop in')),
+  );
+}
+
+function placeCard() {
+  if (current < 0 || card.dataset.open !== 'true') return;
+  const p = plats[current];
+  const cx = (p.x + p.w / 2 - cam) * scale;
+  const topY = p.y * scale;
+  const sw = stage.clientWidth, sh = stage.clientHeight;
+  const cw = card.offsetWidth, chh = card.offsetHeight;
+  const left = Math.max(12, Math.min(sw - cw - 12, cx - cw / 2));
+  const above = topY - (BH + 20) * scale - chh;
+  const below = above < 48;
+  card.classList.toggle('below', below);
+  card.style.left = `${left}px`;
+  card.style.top = `${below ? Math.min(sh - chh - 10, topY + (p.h + 30) * scale) : above}px`;
+  card.style.setProperty('--ox', `${Math.max(10, Math.min(cw - 10, cx - left))}px`);
+}
+
+function setCurrent(i) {
+  if (i === current) return;
+  current = i;
+  if (i < 0) { card.dataset.open = 'false'; updateCounts(); return; }
+  const p = plats[i];
+  if (!p.seen) { p.seen = true; burst(p.x + p.w / 2, p.y, p.color); }
+  renderCard(p);
+  card.dataset.open = 'true';
+  updateCounts();
+  placeCard();
+}
+
+function updateCounts() {
+  $('visited').textContent = plats.filter((p) => p.entered).length;
+  $('savedToday').textContent = [...album.values()].filter((s) => s.day === TODAY).length;
+  for (const p of plats) {
+    p.dot.classList.toggle('seen', p.seen);
+    p.dot.classList.toggle('room', p.entered);
+    p.dot.classList.toggle('here', p.i === current);
+  }
+  renderAlbum();
+}
+
+const ROTS = [-3, 2, -1.5, 2.5, -2, 1];
+function renderAlbum() {
+  const list = [...album.values()].sort((a, b) => (a.day === b.day ? 0 : a.day < b.day ? 1 : -1));
+  $('album').replaceChildren(...list.map((s, k) => h('a', {
+    class: `mini ${s.rare ? 'rare' : ''} ${s.day === TODAY ? 'new' : ''}`, href: `https://github.com/${s.name}`, target: '_blank', rel: 'noopener',
+    style: `--paper:${s.paper}; --rot:${ROTS[k % ROTS.length]}deg`, title: `${s.name} · ${s.room}`,
+  }, h('b', null, short(s.name)), h('span', null, `★ ${kfmt(s.stars)}`), h('span', null, s.room))));
+  $('albumEmpty').hidden = album.size > 0;
+  const rare = list.filter((s) => s.rare).length;
+  $('albumCount').textContent = `${album.size} sticker${album.size === 1 ? '' : 's'}${rare ? ` · ${rare} rare` : ''}`;
+}
+
+function toggleSave(repo, p) {
+  if (album.has(repo.name)) { album.delete(repo.name); toast(`Removed ${short(repo.name)} from your album`); }
+  else {
+    album.set(repo.name, { name: repo.name, stars: repo.stars, room: p.room.title, paper: p.paper, rare: p.rising, day: TODAY });
+    toast(p.rising ? `Rare sticker! ${short(repo.name)} is in your album` : `${short(repo.name)} is in your album`);
+  }
+  saveAlbum();
+  updateCounts();
+}
+
+// ---------- the room ----------
+function enterRoom() {
+  if (current < 0 || state !== 'walk') return;
+  state = 'sinking'; sinkT = 0;
+  card.dataset.open = 'false';
+}
+
+function openRoom(p) {
+  roomPlat = p;
+  p.entered = true;
+  state = 'room';
+  sel = 0;
+  roomEl.style.setProperty('--c', p.color);
+  roomEl.style.setProperty('--paper', p.paper);
+  const max = p.room.repos[0].stars;
+  const stickers = p.room.repos.map((r, i) => h('button', {
+    type: 'button', class: 'sticker', 'aria-pressed': 'false', 'aria-label': `#${i + 1} ${r.name}, ${kfmt(r.stars)} stars`,
+    style: `--rot:${ROTS[i % ROTS.length]}deg; min-height:${Math.round(150 + (r.stars / max) * 70)}px`,
+    onclick: () => select(i),
+  },
+    i === 0 ? h('span', { class: 'mine' }, 'ON THE TRAIL') : null,
+    h('span', { class: 'rank' }, `#${i + 1}`),
+    h('span', { class: 'nm' }, short(r.name)),
+    h('span', { class: 'ow' }, r.name.split('/')[0]),
+    h('span', { class: 'st' }, `★ ${kfmt(r.stars)}`),
+    h('span', { class: 'bar', 'aria-hidden': 'true' }, h('span', { style: `width:${Math.max(4, Math.round((r.stars / max) * 100))}%` })),
+  ));
+  const walker = h('canvas', { class: 'walker', width: 72, height: 96, 'aria-hidden': 'true' });
+  roomEl.replaceChildren(
+    h('div', { class: 'room-head' },
+      h('div', { class: 'room-sign' },
+        h('span', { class: 'k' }, p.rising ? 'Room · new this week' : 'Room'),
+        h('h2', null, p.room.title),
+        h('span', { class: 'n' }, `${p.room.repos.length} repos, most stars first`)),
+      h('button', { type: 'button', class: 'btn', onclick: exitRoom }, '▲ Back to the trail ', h('kbd', null, 'Esc'))),
+    h('div', { class: 'wall-wrap' }, h('div', { class: 'wall' }, h('div', { class: 'floor' }), stickers, walker)),
+    h('div', { class: 'detail', 'aria-live': 'polite' }),
+  );
+  roomEl.hidden = false;
+  const g = walker.getContext('2d');
+  g.setTransform(2, 0, 0, 2, 18, 46);
+  drawWalker(g, 0, 0, 1, 0, false, 1, 0);
+  select(0, true);
+  renderStickerSaved();
+  stickers[0].focus({ preventScroll: true });
+  updateCounts();
+}
+
+function select(i, instant) {
+  const n = roomPlat.room.repos.length;
+  sel = (i + n) % n;
+  const stickers = roomEl.querySelectorAll('.sticker');
+  stickers.forEach((s, k) => s.setAttribute('aria-pressed', String(k === sel)));
+  const s = stickers[sel];
+  const walker = roomEl.querySelector('canvas.walker');
+  walker.style.transition = instant ? 'none' : '';
+  walker.style.left = `${s.offsetLeft + s.offsetWidth / 2 - 18}px`;
+  s.scrollIntoView({ behavior: reduced || instant ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
+  renderDetail();
+}
+
+function renderDetail() {
+  const p = roomPlat, r = p.room.repos[sel];
+  const isSaved = album.has(r.name);
+  const lic = r.license ? LICENSES[r.license] || r.license : null;
+  const stat = (v, l) => h('div', { class: 'stat' }, h('div', { class: 'v' }, v), h('div', { class: 'l' }, l));
+  roomEl.querySelector('.detail').replaceChildren(
+    h('div', { class: 'detail-top' },
+      h('div', null, h('h3', null, `#${sel + 1} ${short(r.name)}`), h('div', { class: 'full' }, r.name)),
+      h('div', { class: 'acts' },
+        h('a', { class: 'btn go', href: `https://github.com/${r.name}`, target: '_blank', rel: 'noopener', id: 'openGh' }, 'Open on GitHub ↗'),
+        h('button', { type: 'button', class: `btn ${isSaved ? 'on' : ''}`, onclick: () => saveSelected() }, isSaved ? '★ In your album' : '☆ Save sticker', ' ', h('kbd', null, 'E')))),
+    h('p', null, r.desc || 'No description on GitHub.'),
+    h('div', { class: 'stats' },
+      stat(`★ ${kfmt(r.stars)}`, 'Stars'),
+      stat(kfmt(r.forks), 'Forks'),
+      stat(kfmt(r.issues), 'Open issues'),
+      stat(r.lang || 'mixed', 'Language'),
+      stat(ago(r.pushed), 'Last commit'),
+      stat(p.rising ? ago(r.created) : r.created.slice(0, 4), p.rising ? 'Created' : 'Since')),
+    lic ? h('div', { class: 'full' }, `License: ${lic}`) : null,
+  );
+}
+
+function saveSelected() {
+  toggleSave(roomPlat.room.repos[sel], roomPlat);
+  renderStickerSaved();
+  renderDetail();
+}
+
+function renderStickerSaved() {
+  roomEl.querySelectorAll('.sticker').forEach((s, k) => {
+    s.querySelector('.saved')?.remove();
+    if (album.has(roomPlat.room.repos[k].name)) s.append(h('span', { class: 'saved', 'aria-label': 'saved' }, '★'));
+  });
+}
+
+function exitRoom() {
+  roomEl.hidden = true;
+  state = 'walk';
+  body.vy = -640; body.ground = -1;
+  current = -1;
+  document.activeElement?.blur?.();
+}
+
+// ---------- end of the trail ----------
+function shareText() {
+  const entered = plats.filter((p) => p.entered).length;
+  const todays = [...album.values()].filter((s) => s.day === TODAY);
+  const row = plats.map((p) => (p.rising ? (p.entered ? '✦' : '✧') : p.entered ? '◆' : p.seen ? '●' : '○')).join('');
+  return [`Repo Safari · ${TODAY}`, `${entered}/${plats.length} rooms · ${todays.length} sticker${todays.length === 1 ? '' : 's'}${todays.some((s) => s.rare) ? ' (1 rare)' : ''}`, row,
+    ...todays.slice(0, 3).map((s) => `★ ${s.name}`), ...(SHARE_URL.startsWith('http') ? [SHARE_URL] : [])].join('\n');
+}
+
+async function copy(text, done) {
+  try { await navigator.clipboard.writeText(text); toast(done); }
+  catch { toast('Copy failed. Select the text and copy it yourself.'); }
+}
+
+function showEnd() {
+  ended = true; state = 'end';
+  card.dataset.open = 'false';
+  const text = shareText();
+  endBox.replaceChildren(h('div', { class: 'summary', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'End of today’s trail' },
+    h('h2', null, 'End of today’s trail'),
+    h('p', { class: 'empty', style: 'margin:0' }, `A new trail opens at 00:00 UTC. Your stickers stay in your album.`),
+    h('pre', null, text),
+    h('div', { class: 'acts' },
+      h('button', { type: 'button', class: 'btn go', onclick: () => copy(text, 'Copied your trail') }, 'Copy my trail'),
+      h('button', { type: 'button', class: 'btn', onclick: () => { endBox.hidden = true; state = 'walk'; body.x = END_X - 140; body.vx = 0; } }, 'Keep exploring'),
+      h('button', { type: 'button', class: 'btn', onclick: () => { endBox.hidden = true; $('fb1').focus(); } }, 'Give feedback'))));
+  endBox.hidden = false;
+}
+
+// ---------- feedback ----------
+$('fb').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const entered = plats.filter((p) => p.entered).length;
+  const text = [
+    `Repo Safari feedback · trail ${TODAY} · ${entered}/${plats.length} rooms entered · ${album.size} stickers`,
+    `1. What I saved and why: ${$('fb1').value.trim() || '-'}`,
+    `2. Would I come back tomorrow: ${$('fb2').value.trim() || '-'}`,
+    `3. Slow, confusing or pointless: ${$('fb3').value.trim() || '-'}`,
+  ].join('\n');
+  const out = $('fbOut');
+  out.textContent = text; out.hidden = false;
+  copy(text, 'Feedback copied. Paste it in the thread. Thank you!');
+});
+
+// ---------- input ----------
+const keys = new Set(), pressed = new Set();
+const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'jump', KeyW: 'jump', Space: 'jump', ArrowDown: 'down', KeyS: 'down', KeyE: 'save', Escape: 'esc', Enter: 'open' };
+function roomKey(k) {
+  if (k === 'left') select(sel - 1);
+  else if (k === 'right') select(sel + 1);
+  else if (k === 'esc' || k === 'jump') exitRoom();
+  else if (k === 'save') saveSelected();
+  else if (k === 'open' || k === 'down') $('openGh')?.click();
+}
+const typing = () => /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '');
+addEventListener('keydown', (e) => {
+  const k = KEYMAP[e.code];
+  if (!k || typing()) return;
+  if (state === 'room') {
+    if (k === 'open' && e.target.closest?.('button, a')) return;
+    e.preventDefault();
+    roomKey(k);
+    return;
+  }
+  if (state !== 'walk') return;
+  if (['left', 'right', 'jump', 'down'].includes(k)) e.preventDefault();
+  if (!keys.has(k)) pressed.add(k);
+  keys.add(k);
+});
+addEventListener('keyup', (e) => { const k = KEYMAP[e.code]; if (k) keys.delete(k); });
+addEventListener('blur', () => keys.clear());
+for (const b of document.querySelectorAll('#pad button')) {
+  const k = b.dataset.k;
+  b.addEventListener('pointerdown', (e) => {
+    e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add('on');
+    if (state === 'room') { roomKey(k); return; }
+    if (!keys.has(k)) pressed.add(k); keys.add(k);
+  });
+  const up = () => { b.classList.remove('on'); keys.delete(k); };
+  b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('lostpointercapture', up);
+}
+
+// ---------- particles ----------
+const parts = [];
+function burst(px, py, color, n = 14) {
+  if (reduced) n = Math.ceil(n / 4);
+  for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = 120 + Math.random() * 220; parts.push({ x: px, y: py, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 160, t: 0, life: .5 + Math.random() * .4, color }); }
+}
+
+// ---------- simulation ----------
+const solids = () => [...plats, ...STEPS.map((s, i) => ({ ...s, i: -10 - i, h: 20 }))];
+function step(dt) {
+  if (state === 'sinking') {
+    sinkT += dt;
+    if (sinkT > (reduced ? 0.01 : 0.38)) openRoom(plats[current]);
+    return;
+  }
+  if (state !== 'walk') return;
+  const dir = (keys.has('right') ? 1 : 0) - (keys.has('left') ? 1 : 0);
+  if (dir) body.face = dir;
+  const grounded = body.ground !== -1;
+  const acc = (grounded ? 2600 : 1800) * dt;
+  const target = dir * RUN;
+  body.vx = body.vx < target ? Math.min(target, body.vx + acc) : Math.max(target, body.vx - acc);
+  body.coyote = grounded ? 0.1 : body.coyote - dt;
+  body.runT = grounded && Math.abs(body.vx) > 20 ? body.runT + dt : 0;
+
+  if (pressed.has('down') && body.ground >= 0) enterRoom();
+  if (pressed.has('save') && current >= 0) toggleSave(plats[current].flag, plats[current]);
+  if (pressed.has('jump')) {
+    if (grounded || body.coyote > 0) { body.vy = -JUMP; body.jumps = 1; body.ground = -1; body.coyote = 0; }
+    else if (body.jumps < 2) { body.vy = -JUMP * 0.9; body.jumps = 2; }
+  }
+  if (!keys.has('jump') && body.vy < -420) body.vy *= 0.55;
+  pressed.clear();
+  if (state !== 'walk') return;
+
+  body.vy = Math.min(body.vy + G * dt, 1500);
+  body.x = Math.max(BW / 2, Math.min(W - BW / 2, body.x + body.vx * dt));
+  const prev = body.y;
+  body.y += body.vy * dt;
+  const prevGround = body.ground;
+  body.ground = -1;
+  if (body.vy >= 0) {
+    let best = -1, top = Infinity;
+    if (prev <= FLOOR + 0.01 && body.y >= FLOOR) { best = -2; top = FLOOR; }
+    for (const p of solids()) {
+      if (body.x + BW / 2 <= p.x || body.x - BW / 2 >= p.x + p.w) continue;
+      if (prev <= p.y + 0.01 && body.y >= p.y && p.y < top) { top = p.y; best = p.i; }
+    }
+    if (best !== -1) { body.y = top; body.vy = 0; body.ground = best; body.jumps = 0; }
+  }
+  if (body.ground >= 0) setCurrent(body.ground);
+  else if (body.ground <= -2 || (prevGround >= 0 && body.y > plats[prevGround].y + 60)) setCurrent(-1);
+  if (!ended && body.x > END_X) showEnd();
+}
+
+// ---------- drawing ----------
+function fit() {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const w = cv.clientWidth, hgt = cv.clientHeight;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(hgt * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(hgt * dpr); }
+  scale = hgt / VIEW_H;
+  viewW = w / scale;
+  return dpr;
+}
+const hashf = (n) => { const s = Math.sin(n * 127.1) * 43758.5453; return s - Math.floor(s); };
+
+function fitLabel(text, max) {
+  if (ctx.measureText(text).width <= max) return text;
+  let s = text;
+  while (s.length > 1 && ctx.measureText(`${s}…`).width > max) s = s.slice(0, -1);
+  return `${s}…`;
+}
+
+function draw(time) {
+  const dpr = fit();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = '#0A0C14';
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  const k = scale * dpr;
+
+  ctx.setTransform(k, 0, 0, k, 0, 0);
+  const off = cam * 0.35;
+  for (let l = Math.floor(off / 120) - 1; l < Math.floor(off / 120) + viewW / 120 + 2; l++) {
+    const lx = l * 120 - off + 30;
+    ctx.strokeStyle = 'rgba(38,44,66,.55)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(lx, 0); ctx.lineTo(lx, VIEW_H); ctx.stroke();
+    for (let r = 0; r < 8; r++) {
+      const hv = hashf(l * 31 + r);
+      if (hv > .4) continue;
+      ctx.fillStyle = hv < .05 ? 'rgba(212,242,92,.3)' : 'rgba(58,66,96,.8)';
+      ctx.beginPath(); ctx.arc(lx, r * 80 + hv * 40, 5, 0, 7); ctx.fill();
+    }
+  }
+
+  ctx.setTransform(k, 0, 0, k, -cam * k, 0);
+  ctx.fillStyle = '#121626';
+  ctx.fillRect(cam - 10, FLOOR, viewW + 20, VIEW_H - FLOOR);
+  ctx.fillStyle = '#2EC4A6'; ctx.fillRect(0, FLOOR, END_X + 120, 4);
+  for (const p of plats) { ctx.fillStyle = p.color; ctx.fillRect(p.x, FLOOR, p.w, 4); }
+
+  // start sign
+  ctx.fillStyle = '#262C42'; ctx.fillRect(60, FLOOR - 92, 6, 92);
+  ctx.font = '12px Bungee, sans-serif';
+  ctx.fillStyle = '#121626'; ctx.strokeStyle = '#D4F25C'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(40, FLOOR - 124, 150, 34, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#D4F25C'; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+  ctx.fillText(`TRAIL ${TODAY.slice(5)}`, 52, FLOOR - 106);
+
+  for (const s of STEPS) {
+    ctx.beginPath(); ctx.roundRect(s.x, s.y, s.w, 20, 5); ctx.fillStyle = '#121626'; ctx.fill();
+    ctx.strokeStyle = 'rgba(212,242,92,.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  for (const p of plats) {
+    if (p.x > cam + viewW + 60 || p.x + p.w < cam - 60) continue;
+    const isHere = p.i === current;
+    const n = Math.min(5, p.room.repos.length);
+    for (let j = n - 1; j >= 1; j--) {
+      ctx.fillStyle = j % 2 ? p.paper : '#F3F4F8';
+      ctx.globalAlpha = .18 + .1 * (n - j);
+      ctx.beginPath(); ctx.roundRect(p.x + 10 + j * 4, p.y + p.h - 2 + j * 4, p.w - 20 - j * 8, 6, 3); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, p.h, 6);
+    ctx.fillStyle = p.seen ? '#16203A' : '#121626'; ctx.fill();
+    ctx.save(); ctx.clip(); ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, p.w, 5); ctx.restore();
+    ctx.lineWidth = isHere ? 2.5 : 1.5;
+    ctx.strokeStyle = isHere ? p.color : p.rising ? 'rgba(212,242,92,.7)' : '#262C42';
+    ctx.stroke();
+    if (p.rising && !reduced) { ctx.save(); ctx.shadowColor = '#D4F25C'; ctx.shadowBlur = 14 + Math.sin(time * 3) * 5; ctx.strokeStyle = 'rgba(212,242,92,.35)'; ctx.stroke(); ctx.restore(); }
+    const dx = p.x + p.w / 2;
+    ctx.fillStyle = '#05070C';
+    ctx.beginPath(); ctx.roundRect(dx - 18, p.y + 9, 36, 12, 3); ctx.fill();
+    ctx.strokeStyle = isHere ? p.color : '#262C42'; ctx.lineWidth = 1.5; ctx.stroke();
+    if (isHere) { ctx.fillStyle = p.color; ctx.font = '700 10px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('▼ ▼', dx, p.y + 15.5 + (reduced ? 0 : Math.sin(time * 6))); }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.font = '700 13px "Bricolage Grotesque", sans-serif';
+    ctx.fillStyle = p.color;
+    ctx.fillText(fitLabel(p.room.title, 210), dx, p.y + p.h + 28);
+    ctx.font = `${p.seen ? 700 : 600} 12px "JetBrains Mono", monospace`;
+    ctx.fillStyle = p.seen ? '#ECEFF7' : '#9AA3B8';
+    ctx.fillText(fitLabel(`${short(p.flag.name)} +${p.room.repos.length - 1}`, 210), dx, p.y + p.h + 46);
+    if (p.entered) { ctx.fillStyle = '#D4F25C'; ctx.font = '14px sans-serif'; ctx.textBaseline = 'alphabetic'; ctx.fillText('◆', p.x + p.w - 12, p.y - 6); }
+    if (p.rising) { ctx.fillStyle = '#D4F25C'; ctx.font = '11px Bungee, sans-serif'; ctx.textBaseline = 'alphabetic'; ctx.fillText('RARE STICKERS', dx, p.y - 12); }
+  }
+
+  ctx.strokeStyle = '#D4F25C'; ctx.lineWidth = 5;
+  ctx.strokeRect(END_X, FLOOR - 130, 90, 130);
+  ctx.fillStyle = 'rgba(212,242,92,.12)'; ctx.fillRect(END_X, FLOOR - 130, 90, 130);
+  ctx.fillStyle = '#D4F25C'; ctx.font = '13px Bungee, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText('TRAIL END', END_X + 45, FLOOR - 142);
+
+  const sink = state === 'sinking' ? Math.min(1, sinkT / .38) : 0;
+  drawWalker(ctx, body.x, body.y + sink * 30, body.face, body.runT, body.ground === -1, 1 - sink * .9, time);
+
+  for (const q of parts) { ctx.globalAlpha = Math.max(0, 1 - q.t / q.life); ctx.fillStyle = q.color; ctx.fillRect(q.x - 3, q.y - 3, 6, 6); }
+  ctx.globalAlpha = 1;
+}
+
+function drawWalker(g, x, y, face, runT, air, alpha, time) {
+  const swing = air ? .5 : runT > 0 ? Math.sin(runT * 15) * .7 : 0;
+  const bob = !air && runT === 0 && !reduced ? Math.sin(time * 2.4) * 1.2 : 0;
+  g.save(); g.globalAlpha = alpha; g.translate(x, y + bob); g.scale(face, 1);
+  for (const s of [-1, 1]) { g.save(); g.translate(s * 5, -14); g.rotate(swing * s); g.fillStyle = '#1F8F79'; g.fillRect(-3.5, 0, 7, 11); g.fillStyle = '#ECEFF7'; g.fillRect(-3.5, 10, 9, 4); g.restore(); }
+  g.fillStyle = '#2EC4A6'; g.beginPath(); g.roundRect(-12, -31, 24, 19, 5); g.fill();
+  g.fillStyle = '#D4F25C'; g.fillRect(-12, -24, 24, 3);
+  g.fillStyle = '#C9A877'; g.beginPath(); g.ellipse(0, -44, 11, 3, 0, 0, 7); g.fill();           // safari hat brim
+  g.fillStyle = '#E9C9AE'; g.beginPath(); g.arc(0, -38, 7, 0, 7); g.fill();
+  g.fillStyle = '#C9A877'; g.beginPath(); g.arc(0, -44, 7, Math.PI, 0); g.fill();                 // hat crown
+  g.fillStyle = '#0A0C14'; g.fillRect(3, -39, 2, 2);
+  g.restore();
+}
+
+// ---------- loop ----------
+let last = performance.now(), time = 0;
+function frame(now) {
+  // the first rAF timestamp can be earlier than `last`; never step backwards
+  const dt = Math.max(0, Math.min(1 / 30, (now - last) / 1000));
+  last = now; time += dt;
+  step(dt);
+  for (const q of parts) { q.t += dt; q.x += q.vx * dt; q.y += q.vy * dt; q.vy += 900 * dt; }
+  for (let i = parts.length - 1; i >= 0; i--) if (parts[i].t > parts[i].life) parts.splice(i, 1);
+  const target = Math.max(0, Math.min(W - viewW, body.x - viewW * 0.4));
+  cam += (target - cam) * (reduced ? 1 : Math.min(1, dt * 6));
+  if (state !== 'room') { draw(time); placeCard(); }
+  requestAnimationFrame(frame);
+}
+
+// first frame: standing on the first platform with its card open
+body.x = plats[0].x + plats[0].w / 2; body.y = plats[0].y; body.ground = 0;
+cam = Math.max(0, body.x - 300);
+setCurrent(0);
+setInterval(() => {
+  $('where').textContent = state === 'room' && roomPlat ? `Room · ${roomPlat.room.title}` : current >= 0 ? plats[current].room.title : 'Today’s trail';
+}, 200);
+addEventListener('resize', () => { if (state === 'room') select(sel, true); });
+document.fonts?.ready.then(() => placeCard());
+requestAnimationFrame(frame);
+</script>
