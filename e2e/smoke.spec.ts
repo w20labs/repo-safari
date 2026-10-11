@@ -5,14 +5,19 @@ test('Practice: run and jump until the first question opens, then answer it', as
   await page.getByRole('button', { name: /^Practice/ }).click();
   const question = page.locator('.question');
 
-  await page.keyboard.down('ArrowRight');
-  for (let i = 0; i < 30 && !(await question.isVisible()); i++) {
+  // Platform 0 never moves and always overlaps the start pad, so one running jump lands on it.
+  // Hold right, jump, and let go before running off the far side; retry if we came up short.
+  for (let attempt = 0; attempt < 3 && !(await question.isVisible()); attempt++) {
+    await page.keyboard.down('ArrowRight');
+    await page.waitForTimeout(250);
     await page.keyboard.down('Space');
-    await page.waitForTimeout(220);
+    await page.waitForTimeout(450);
     await page.keyboard.up('Space');
-    await page.waitForTimeout(120);
+    await page.waitForTimeout(250);
+    await page.keyboard.up('ArrowRight');
+    await page.waitForTimeout(900);
+    if (await page.locator('.results').isVisible()) throw new Error('fell into the pit instead of landing');
   }
-  await page.keyboard.up('ArrowRight');
 
   await expect(question).toBeVisible();
   await expect(page.locator('.opt')).toHaveCount(4);
