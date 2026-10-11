@@ -330,7 +330,9 @@ let roomPlat = null, sel = 0;
 const $ = (id) => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d');
 const stage = $('stage'), card = $('card'), roomEl = $('room'), endBox = $('end');
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
+let reduced = motionQuery.matches;
+motionQuery.addEventListener?.('change', (e) => { reduced = e.matches; });
 
 // ---------- sound (synthesized, nothing to download) ----------
 const SOUND_KEY = 'repo-safari-sound';
@@ -343,8 +345,9 @@ function audio() {
   if (!actx) {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
-    actx = new AC(); master = actx.createGain(); master.gain.value = 0.22; master.connect(actx.destination);
+    actx = new AC();
   }
+  if (!master) { master = actx.createGain(); master.gain.value = 0.22; master.connect(actx.destination); }
   if (actx.state === 'suspended') actx.resume();
   return actx;
 }
@@ -381,6 +384,8 @@ function renderSound() {
 }
 $('soundBtn').addEventListener('click', () => {
   soundOn = !soundOn;
+  // Cut off anything already scheduled (e.g. the end fanfare); new sounds get a fresh output.
+  if (!soundOn && master) { master.gain.setValueAtTime(0, actx.currentTime); master.disconnect(); master = null; }
   try { localStorage.setItem(SOUND_KEY, soundOn ? 'on' : 'off'); } catch { /* fine */ }
   renderSound();
   $('soundBtn').blur();
@@ -802,7 +807,7 @@ for (const b of document.querySelectorAll('#pad button')) {
 // ---------- particles ----------
 const parts = [];
 function burst(px, py, color, n = 14) {
-  if (reduced) n = Math.ceil(n / 4);
+  if (reduced) return; // particles are decoration
   for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = 120 + Math.random() * 220; parts.push({ x: px, y: py, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 160, t: 0, life: .5 + Math.random() * .4, color }); }
 }
 
