@@ -243,6 +243,30 @@ async function dailyResults(o: SoloOutcome, runId: string | null, courseRepos: R
 
 // ---------- boot ----------
 
+/** Top-bar account control: "Sign in with GitHub", or "@login · Sign out". */
+function renderAccount(available: boolean) {
+  const el = $('#account');
+  el.replaceChildren();
+  if (me.github) {
+    el.append(
+      h('span', { class: 'verified', title: 'Signed in with GitHub' }, icon('check', 14), `@${me.github}`),
+      h('button', { type: 'button', class: 'btn small ghost', onclick: signOut }, 'Sign out'),
+    );
+  } else if (available) {
+    el.append(h('a', { class: 'btn small', href: `/auth/github?return=${encodeURIComponent(location.pathname + location.search)}` }, 'Sign in with GitHub'));
+  }
+}
+
+async function signOut() {
+  try {
+    await api.logout();
+  } catch {
+    /* clear locally anyway */
+  }
+  setMe({ id: null, name: '', team: '', github: null });
+  location.href = '/';
+}
+
 function initMute() {
   const btn = $('#mute');
   const paint = (m: boolean) => {
@@ -269,13 +293,21 @@ async function init() {
   const params = new URLSearchParams(location.search);
   try {
     const m = await api.me();
-    setMe({ id: m.id, num: m.num, name: m.name || me.name, team: m.team });
+    setMe({ id: m.id, num: m.num, name: m.name || (m.github ? '' : me.name), team: m.team, github: m.github });
+    renderAccount(m.authAvailable);
     if (!m.name && me.name) void api.updateMe({ name: me.name });
     playedToday = m.playedToday;
     stats = m.stats;
     online = true;
   } catch {
     online = false;
+  }
+  if (params.get('signedin')) toast(me.github ? `Signed in as @${me.github}. Your runs now show as verified.` : 'Signed in.', 'teal', { ms: 4000 });
+  if (params.get('auth') === 'failed') toast('GitHub sign-in did not complete. Try again.', 'pink');
+  if (params.has('signedin') || params.has('auth')) {
+    params.delete('signedin');
+    params.delete('auth');
+    history.replaceState(null, '', `${location.pathname}${params.toString() ? `?${params}` : ''}`);
   }
   const teamParam = params.get('team');
   if (teamParam && online && teamParam.toLowerCase() !== me.team) await joinTeam(teamParam);

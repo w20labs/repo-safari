@@ -12,7 +12,7 @@ const who = (r: BoardRow) => r.name || `Player ${padPlayerNumber(r.num)}`;
 function row(r: BoardRow, showTeam: boolean) {
   return h('tr', { class: r.me ? 'me' : '' },
     h('td', { class: 'rank' }, String(r.rank)),
-    h('td', { class: 'who' }, who(r), r.me ? ' (you)' : '', showTeam && r.team ? h('span', { class: 'teamtag' }, r.team) : null),
+    h('td', { class: 'who' }, who(r), r.verified ? h('span', { class: 'badge', title: 'Verified GitHub account', 'aria-label': 'verified' }, icon('check', 14)) : null, r.me ? ' (you)' : '', showTeam && r.team ? h('span', { class: 'teamtag' }, r.team) : null),
     h('td', { class: 'n' }, `${r.cleared}/${r.total}`),
     h('td', { class: 'n' }, formatScore(r.score)),
   );
@@ -46,12 +46,12 @@ function teamsTable(t: TeamsResponse): HTMLElement {
 
 export const teamInviteLink = (team: string) => `${location.origin}/?team=${encodeURIComponent(team)}`;
 
-type Tab = 'all' | 'team' | 'teams';
+type Tab = 'all' | 'verified' | 'team' | 'teams';
 
 /** The leaderboard card under the stage, with Everyone / My team / Teams tabs. */
 export async function leaderboardCard(date: string, initial: Tab = 'all'): Promise<HTMLElement> {
   const body = h('div', { role: 'tabpanel', id: 'lb-panel' });
-  const tabs: [Tab, string][] = [['all', 'Everyone'], ...(me.team ? ([['team', `Team ${me.team}`]] as [Tab, string][]) : []), ['teams', 'Teams']];
+  const tabs: [Tab, string][] = [['all', 'Everyone'], ['verified', 'Verified'], ...(me.team ? ([['team', `Team ${me.team}`]] as [Tab, string][]) : []), ['teams', 'Teams']];
   const buttons = tabs.map(([id, label]) =>
     h('button', { type: 'button', class: 'tab', role: 'tab', 'aria-selected': 'false', 'aria-controls': 'lb-panel', 'data-tab': id, onclick: () => show(id) }, label));
   const card = h('div', { class: 'card', id: 'leaderboard' },
@@ -66,6 +66,12 @@ export async function leaderboardCard(date: string, initial: Tab = 'all'): Promi
       if (tab === 'all') {
         const b = await api.leaderboard(date);
         body.replaceChildren(boardTable(b, { showTeam: true }), foot(`${b.players} official run${b.players === 1 ? '' : 's'} today. Scores reset at 00:00 UTC.`));
+      } else if (tab === 'verified') {
+        const b = await api.verifiedBoard(date);
+        body.replaceChildren(
+          boardTable(b, { showTeam: true, empty: 'No runs from GitHub-verified players yet today.' }),
+          foot(`Only players signed in with GitHub. ${b.players} today.`),
+        );
       } else if (tab === 'team') {
         const b = await api.teamBoard(date, me.team);
         const link = teamInviteLink(me.team);

@@ -10,6 +10,7 @@ import { HttpError, escapeHtml, json, originOf, parseCookies, readJson, setCooki
 import {
   cleanName,
   cleanTeam,
+  displayNameOf,
   courseForDate,
   createPlayer,
   currentPool,
@@ -26,9 +27,9 @@ import {
   type PlayerRow,
 } from './store.ts';
 import { getMeta } from './db.ts';
+import { PID_COOKIE, authAvailable, finishGithubLogin, logout, startGithubLogin } from './auth.ts';
 import { playerStats, rankLine, streakAt } from './stats.ts';
 
-const PID_COOKIE = 'lcs_pid';
 const YEAR = 60 * 60 * 24 * 365;
 
 /** Finds the player from the cookie, creating one (and setting the cookie) if needed. */
@@ -47,10 +48,17 @@ const validDate = (d: unknown): d is string => typeof d === 'string' && /^\d{8}$
 type Handler = (req: IncomingMessage, res: ServerResponse, params: Record<string, string>, url: URL) => Promise<void> | void;
 
 const routes: [string, RegExp, Handler][] = [
+  ['GET', /^\/auth\/github$/, (req, res, _p, url) => startGithubLogin(req, res, url)],
+  ['GET', /^\/auth\/github\/callback$/, (req, res, _p, url) => finishGithubLogin(req, res, url)],
+  ['POST', /^\/api\/logout$/, (_req, res) => {
+    logout(res);
+    json(res, 200, { ok: true });
+  }],
+
   ['GET', /^\/api\/me$/, (req, res) => {
     const p = ensurePlayer(req, res);
     const today = dateKey();
-    json(res, 200, { id: p.id, num: p.num, name: p.name, team: p.team, today, playedToday: !!officialRun(p.id, today), stats: playerStats(p.id, today) });
+    json(res, 200, { id: p.id, num: p.num, name: p.name, team: p.team, github: p.github_login, authAvailable: authAvailable(), today, playedToday: !!officialRun(p.id, today), stats: playerStats(p.id, today) });
   }],
 
   ['POST', /^\/api\/me$/, async (req, res) => {
@@ -59,7 +67,7 @@ const routes: [string, RegExp, Handler][] = [
     if (body.name !== undefined) setPlayerName(p.id, cleanName(body.name));
     if (body.team !== undefined) setPlayerTeam(p.id, cleanTeam(body.team));
     const fresh = getPlayer(p.id)!;
-    json(res, 200, { id: fresh.id, num: fresh.num, name: fresh.name, team: fresh.team });
+    json(res, 200, { id: fresh.id, num: fresh.num, name: fresh.name, team: fresh.team, github: fresh.github_login });
   }],
 
   ['GET', /^\/api\/daily\/course$/, (_req, res, _p, url) => {
@@ -118,6 +126,7 @@ const routes: [string, RegExp, Handler][] = [
       if (!team) throw new HttpError(400, 'no team');
       return json(res, 200, { date, scope, team, ...leaderboard(date, p?.id, 10, team) });
     }
+    if (scope === 'verified') return json(res, 200, { date, scope, ...leaderboard(date, p?.id, 10, '', true) });
     json(res, 200, { date, scope: 'all', ...leaderboard(date, p?.id) });
   }],
 
@@ -192,7 +201,7 @@ function finishedRun(id: string) {
   const { players } = leaderboard(run.date, undefined, 0);
   const line = [rankLine(rank, players, streakAt(player.id, run.date)), teamLine(run.date, player.team)].filter(Boolean).join(' · ');
   const rising = course.platforms.filter((p) => p.repo.rising).map((p) => p.repo);
-  return { run, summary: summaryFor(course, run, player, line), rank, rising };
+  return { run, summary: summaryFor(course, run, { num: player.num, name: displayNameOf(player) }, line), rank, rising };
 }
 
 function sharePage(origin: string, id: string, s: ReturnType<typeof summaryFor>, rank: number, rising: Repo[]): string {

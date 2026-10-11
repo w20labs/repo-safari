@@ -62,6 +62,9 @@ function addColumn(table: string, column: string, decl: string) {
 addColumn('daily_pool', 'repos', 'TEXT');
 addColumn('players', 'team', "TEXT NOT NULL DEFAULT ''");
 db.exec('CREATE INDEX IF NOT EXISTS players_team ON players(team)');
+addColumn('players', 'github_id', 'INTEGER');
+addColumn('players', 'github_login', 'TEXT');
+db.exec('CREATE UNIQUE INDEX IF NOT EXISTS players_github ON players(github_id) WHERE github_id IS NOT NULL');
 
 export function getMeta(k: string): string | null {
   const row = db.prepare('SELECT v FROM meta WHERE k = ?').get(k) as { v: string } | undefined;

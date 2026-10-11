@@ -14,21 +14,47 @@ export interface PlayerRow {
   num: number;
   name: string;
   team: string;
+  github_id: number | null;
+  github_login: string | null;
 }
 
 export function getPlayer(id: string | undefined): PlayerRow | null {
   if (!id) return null;
-  return (db.prepare('SELECT id, num, name, team FROM players WHERE id = ?').get(id) as PlayerRow | undefined) ?? null;
+  return (db.prepare('SELECT id, num, name, team, github_id, github_login FROM players WHERE id = ?').get(id) as PlayerRow | undefined) ?? null;
 }
 
 export function createPlayer(): PlayerRow {
-  const p = { id: newId(12), num: randomInt(1, TOTAL_PLAYERS + 1), name: '', team: '' };
+  const p: PlayerRow = { id: newId(12), num: randomInt(1, TOTAL_PLAYERS + 1), name: '', team: '', github_id: null, github_login: null };
   db.prepare('INSERT INTO players (id, num, name, created_at) VALUES (?, ?, ?, ?)').run(p.id, p.num, p.name, Date.now());
   return p;
 }
 
 export function setPlayerName(id: string, name: string) {
   db.prepare('UPDATE players SET name = ? WHERE id = ?').run(name, id);
+}
+
+/** Shown name: verified accounts are always "@login". */
+export const displayNameOf = (p: Pick<PlayerRow, 'name' | 'github_login'>) => (p.github_login ? `@${p.github_login}` : p.name);
+
+/**
+ * Links a GitHub account to the browser's player, or switches the browser to the player that
+ * account already owns. Returns the player id the session cookie should now hold.
+ */
+export function linkGithub(currentId: string | null, githubId: number, login: string): { playerId: string; switched: boolean } {
+  const owner = db.prepare('SELECT id FROM players WHERE github_id = ?').get(githubId) as { id: string } | undefined;
+  if (owner) {
+    db.prepare('UPDATE players SET github_login = ? WHERE id = ?').run(login, owner.id);
+    return { playerId: owner.id, switched: owner.id !== currentId };
+  }
+  const current = currentId ? getPlayer(currentId) : null;
+  if (current && current.github_id === null) {
+    db.prepare('UPDATE players SET github_id = ?, github_login = ? WHERE id = ?').run(githubId, login, current.id);
+    return { playerId: current.id, switched: false };
+  }
+  // this browser's player belongs to another account (or there is none): start a fresh one
+  const fresh = createPlayer();
+  db.prepare('UPDATE players SET github_id = ?, github_login = ? WHERE id = ?').run(githubId, login, fresh.id);
+  return { playerId: fresh.id, switched: true };
 }
 
 export function setPlayerTeam(id: string, team: string) {
@@ -122,6 +148,7 @@ export interface BoardRow {
   runId: string;
   num: number;
   name: string;
+  verified?: boolean;
   team?: string;
   score: number;
   cleared: number;
@@ -137,26 +164,28 @@ export function leaderboard(
   playerId: string | undefined,
   limit = 10,
   team = '',
+  verifiedOnly = false,
 ): { rows: BoardRow[]; me: BoardRow | null; players: number } {
-  const teamSql = team ? 'AND p.team = ?' : '';
+  const teamSql = `${team ? 'AND p.team = ?' : ''} ${verifiedOnly ? 'AND p.github_id IS NOT NULL' : ''}`;
   const args = team ? [date, team] : [date];
   const rows = db
     .prepare(
-      `SELECT r.id, r.player_id, p.num, p.name, p.team, r.score, r.cleared, r.total, r.won
+      `SELECT r.id, r.player_id, p.num, p.name, p.team, p.github_login, r.score, r.cleared, r.total, r.won
        FROM runs r JOIN players p ON p.id = r.player_id
        WHERE r.date = ? AND r.official = 1 AND r.finished_at IS NOT NULL ${teamSql}
        ORDER BY ${ORDER} LIMIT ?`,
     )
-    .all(...args, limit) as { id: string; player_id: string; num: number; name: string; team: string; score: number; cleared: number; total: number; won: number }[];
+    .all(...args, limit) as { id: string; player_id: string; num: number; name: string; team: string; github_login: string | null; score: number; cleared: number; total: number; won: number }[];
   const players = (
     db.prepare(`SELECT COUNT(*) n FROM runs r JOIN players p ON p.id = r.player_id WHERE r.date = ? AND r.official = 1 AND r.finished_at IS NOT NULL ${teamSql}`).get(...args) as { n: number }
   ).n;
   const map = (r: (typeof rows)[number], rank: number): BoardRow => ({
-    rank, runId: r.id, num: r.num, name: r.name, team: r.team, score: r.score, cleared: r.cleared, total: r.total, won: !!r.won, me: r.player_id === playerId,
+    rank, runId: r.id, num: r.num, name: displayNameOf(r), verified: !!r.github_login, team: r.team, score: r.score, cleared: r.cleared, total: r.total, won: !!r.won, me: r.player_id === playerId,
   });
   const out = rows.map((r, i) => map(r, i + 1));
   let me = out.find((r) => r.me) ?? null;
-  if (!me && playerId && (!team || getPlayer(playerId)?.team === team)) {
+  const mePlayer = playerId ? getPlayer(playerId) : null;
+  if (!me && playerId && (!team || mePlayer?.team === team) && (!verifiedOnly || mePlayer?.github_id)) {
     const mine = officialRun(playerId, date);
     if (mine?.finished_at) me = { ...rankOf(mine), me: true };
   }
@@ -172,7 +201,7 @@ export function rankOf(run: RunRow): BoardRow {
     .get(run.date, run.score, run.score, run.cleared, run.score, run.cleared, run.finished_at) as { n: number };
   const p = getPlayer(run.player_id)!;
   return {
-    rank: better.n + 1, runId: run.id, num: p.num, name: p.name, score: run.score ?? 0,
+    rank: better.n + 1, runId: run.id, num: p.num, name: displayNameOf(p), verified: !!p.github_login, score: run.score ?? 0,
     cleared: run.cleared ?? 0, total: run.total ?? 0, won: !!run.won,
   };
 }

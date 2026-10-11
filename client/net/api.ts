@@ -40,6 +40,9 @@ export interface MeResponse {
   num: number;
   name: string;
   team: string;
+  /** linked GitHub login, if signed in */
+  github: string | null;
+  authAvailable: boolean;
   today: string;
   playedToday: boolean;
   stats: PlayerStats;
@@ -50,6 +53,8 @@ export interface BoardRow {
   runId: string;
   num: number;
   name: string;
+  /** signed in with GitHub; `name` is then "@login" */
+  verified?: boolean;
   team?: string;
   score: number;
   cleared: number;
@@ -88,6 +93,8 @@ export const api = {
   dailyFinish: (body: { runId: string; results: RunResult[]; score: number; won: boolean; outLabel: string }) =>
     call<{ ok: true; score: number; rank: number; players: number; rankLine: string; stats: PlayerStats; url: string; outLabel: string }>('POST', '/api/daily/finish', body),
   leaderboard: (date: string) => call<BoardResponse>('GET', `/api/daily/leaderboard?date=${date}`),
+  verifiedBoard: (date: string) => call<BoardResponse>('GET', `/api/daily/leaderboard?date=${date}&scope=verified`),
+  logout: () => call<{ ok: true }>('POST', '/api/logout'),
   teamBoard: (date: string, team: string) => call<BoardResponse & { team: string }>('GET', `/api/daily/leaderboard?date=${date}&scope=team&team=${encodeURIComponent(team)}`),
   teams: (date: string) => call<TeamsResponse>('GET', `/api/daily/leaderboard?date=${date}&scope=teams`),
   rising: () => call<RisingPool & { asOf: string | null }>('GET', '/api/rising'),

@@ -5,6 +5,8 @@ export function cleanName(raw: unknown): string {
     .replace(/[\u0000-\u001f\u007f<>]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
+    // "@name" is reserved for verified GitHub accounts
+    .replace(/^@+\s*/, '')
     .slice(0, 24);
 }
 

@@ -3,7 +3,7 @@ import { WebSocket, WebSocketServer } from 'ws';
 import { ARENA, makeRoomCode } from '../../shared/arena.ts';
 import type { ClientMsg, ServerMsg } from '../../shared/protocol.ts';
 import { parseCookies } from '../http.ts';
-import { cleanName, getPlayer } from '../store.ts';
+import { cleanName, displayNameOf, getPlayer } from '../store.ts';
 import { Room } from './room.ts';
 
 const rooms = new Map<string, Room>();
@@ -35,7 +35,7 @@ function handleConnection(ws: WebSocket, req: IncomingMessage) {
   const player = getPlayer(cookiePid);
   // identity key for reconnects: the player cookie, or a per-socket key for cookieless clients
   let key = player?.id ?? `anon:${Math.random().toString(36).slice(2)}`;
-  let name = player?.name ?? '';
+  let name = player ? displayNameOf(player) : '';
   let room: Room | null = null;
   let memberId: string | null = null;
   let budget = MAX_MSGS_PER_SEC;
@@ -67,7 +67,8 @@ function handleConnection(ws: WebSocket, req: IncomingMessage) {
     switch (msg.t) {
       case 'hello':
         if (!player && typeof msg.pid === 'string' && msg.pid.length <= 40) key = `anon:${msg.pid}`;
-        name = cleanName(msg.name) || name;
+        // verified accounts keep their @login; others may pick a name
+        if (!player?.github_login) name = cleanName(msg.name) || name;
         break;
       case 'ping':
         conn.send({ t: 'pong', c: Number(msg.c) || 0, s: Date.now() });

@@ -307,3 +307,6 @@ kbd { font-family: var(--mono); font-size: 11px; background: var(--sunken); bord
 .icon-btn { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; flex: none; }
 .icon-btn:hover { color: var(--text); border-color: #3a4364; }
 .icon-btn[aria-pressed='true'] { color: var(--pink); }
+.verified { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 13px; color: var(--teal); white-space: nowrap; }
+#account { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 560px) { #account .btn { padding: 6px 8px; font-size: 12px; } .who .name { display: none; } }
