@@ -6,8 +6,8 @@
  * 1. Candidates: the 1,000 most-starred repos, plus a search per promising topic.
  * 2. Rooms: one per specific topic (umbrella topics like "python" or "ai" are skipped);
  *    topics whose repo sets overlap a lot are merged into one room.
- * 3. Clean-up: a repo stays in a room only if its description mentions the room's subject or it
- *    carries two of the room's topics; unsafe repos are dropped (same filter as rising repos);
+ * 3. Clean-up: a repo stays in a room only if the subject is in its name or the first 8 words of its
+ *    description (it is about the subject, not just listing it), or it carries two of the room's topics; unsafe repos are dropped (same filter as rising repos);
  *    each repo sits in at most two rooms; rooms need 4+ repos and keep the top 8 by stars.
  *
  * Output: shared/data/rooms.json, with every number as returned by the API on the as-of date.
@@ -73,6 +73,12 @@ async function search(q: string, perPage: number, page = 1): Promise<Repo[]> {
 /** Words that tell us a description is about the topic: the topic's own words, minus filler. */
 const FILLER = new Set(['and', 'the', 'for', 'of', 'to', 'in', 'on', 'with', 'a', 'an', 'js', 'app', 'apps']);
 const topicWords = (t: string) => t.split('-').filter((w) => w.length >= 2 && !FILLER.has(w));
+/** The repo is about the subject: it's in the repo name or in the first 8 words of the description. */
+function about(r: { name: string; description: string | null }, words: string[]): boolean {
+  const lead = (r.description ?? '').split(/\s+/).slice(0, 8).join(' ');
+  return mentions(`${r.name.replace(/[-_.]/g, ' ')} ${lead}`, words);
+}
+
 function mentions(desc: string, words: string[]): boolean {
   const d = desc.toLowerCase();
   return words.some((w) => new RegExp(`(^|[^a-z0-9])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(d));
@@ -142,11 +148,11 @@ function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<strin
       .map((id) => all.get(id)!)
       .filter((r) => {
         const own = (r.topics ?? []).filter((t) => group.includes(t)).length;
-        return own >= 2 || mentions(`${r.description ?? ''} ${r.name.replace(/[-_]/g, ' ')}`, words);
+        return own >= 2 || about(r, words);
       })
       .sort((a, b) => b.stargazers_count - a.stargazers_count);
     // coherence: most of the room has to be about the room's subject, not just tagged with it
-    const onTopic = repos.filter((r) => mentions(`${r.description ?? ''} ${r.name.replace(/[-_]/g, ' ')}`, words)).length;
+    const onTopic = repos.filter((r) => about(r, words)).length;
     if (repos.length >= 4 && onTopic / repos.length >= 0.5) rooms.push({ id: main, title: titleOf(main), topics: group, repos });
   }
 
@@ -165,7 +171,8 @@ function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<strin
     const words = stem(room.title);
     const sameName = kept.some((k) => {
       const kw = stem(k.title);
-      return words.every((w) => kw.includes(w)) || kw.every((w) => words.includes(w));
+      const same = (a: string, b: string) => a === b || (Math.min(a.length, b.length) >= 5 && (a.startsWith(b) || b.startsWith(a)));
+      return words.every((w) => kw.some((x) => same(w, x))) || kw.every((x) => words.some((w) => same(w, x)));
     });
     if (!dup && !sameName) kept.push(room);
   }

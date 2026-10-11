@@ -55,7 +55,7 @@ canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: bl
   border-top: 4px solid var(--c, var(--teal)); border-radius: 12px; padding: 12px 14px; box-shadow: 0 16px 40px rgba(0,0,0,.5);
   transform-origin: var(--ox, 50%) 100%; transition: transform .18s cubic-bezier(.2,.9,.3,1.2), opacity .14s; z-index: 2;
 }
-.rs-card.below { transform-origin: var(--ox, 50%) 0%; }
+.rs-card.flip-down { transform-origin: var(--ox, 50%) 0%; }
 .rs-card[data-open="false"] { opacity: 0; transform: scale(.55); pointer-events: none; }
 .rs-card > * { display: block; grid-column: auto; width: auto; float: none; }
 .rs-card .eyebrow { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
@@ -353,7 +353,7 @@ function placeCard() {
   const left = Math.max(12, Math.min(sw - cw - 12, cx - cw / 2));
   const above = topY - (BH + 20) * scale - chh;
   const below = above < 48;
-  card.classList.toggle('below', below);
+  card.classList.toggle('flip-down', below);
   card.style.left = `${left}px`;
   card.style.top = `${below ? Math.min(sh - chh - 10, topY + (p.h + 30) * scale) : above}px`;
   card.style.setProperty('--ox', `${Math.max(10, Math.min(cw - 10, cx - left))}px`);
