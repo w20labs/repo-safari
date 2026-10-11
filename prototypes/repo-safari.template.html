@@ -608,6 +608,7 @@ async function share() {
     endBox.hidden = false;
     state = 'end';
   }
+  pre.textContent = text; // the end screen's copy may be stale if the album changed since
   pre.focus();
   getSelection().selectAllChildren(pre);
   toast('Copy failed. The text is selected: copy it yourself.');
