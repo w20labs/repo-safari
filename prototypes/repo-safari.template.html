@@ -36,7 +36,7 @@ header.top { display: flex; align-items: end; justify-content: space-between; ga
 .today { display: flex; gap: 8px; flex-wrap: wrap; }
 .tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); border: 1px solid rgba(242,181,68,.45); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
 .tag.lime { color: var(--lime); border-color: rgba(212,242,92,.45); }
-.progress { display: flex; gap: 6px; align-items: center; }
+.progress { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; align-items: center; max-width: 100%; }
 .btn.share[hidden] { display: none; }
 .btn.share { min-height: 0; padding: 4px 12px; font-size: 12.5px; border-radius: 999px; pointer-events: auto; }
 
@@ -594,13 +594,30 @@ async function share() {
     try { await navigator.share({ text }); return; }
     catch (e) { if (e?.name === 'AbortError') return; }
   }
-  copy(text, 'Copied! Paste it anywhere');
+  if (await copy(text, 'Copied! Paste it anywhere')) return;
+  // Copy failed: put the text on screen, selected, so it can be copied by hand.
+  let pre = endBox.hidden ? null : endBox.querySelector('pre');
+  if (!pre) {
+    const before = state;
+    const close = () => { endBox.hidden = true; state = before; $('shareBtn').focus(); };
+    pre = h('pre', { tabindex: '0' }, text);
+    endBox.replaceChildren(h('div', { class: 'summary', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Your trail' },
+      h('h2', null, 'Your trail'),
+      pre,
+      h('div', { class: 'acts' }, h('button', { type: 'button', class: 'btn', onclick: close }, 'Close'))));
+    endBox.hidden = false;
+    state = 'end';
+  }
+  pre.focus();
+  getSelection().selectAllChildren(pre);
+  toast('Copy failed. The text is selected: copy it yourself.');
 }
 $('shareBtn').addEventListener('click', () => { $('shareBtn').blur(); share(); });
 
+/** Copies and toasts `done`; returns false if the clipboard refused. */
 async function copy(text, done) {
-  try { await navigator.clipboard.writeText(text); toast(done); }
-  catch { toast('Copy failed. Select the text and copy it yourself.'); }
+  try { await navigator.clipboard.writeText(text); toast(done); return true; }
+  catch { toast('Copy failed. Select the text and copy it yourself.'); return false; }
 }
 
 function showEnd() {
