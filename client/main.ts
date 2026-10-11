@@ -15,6 +15,7 @@ import { icon } from './ui/icons.ts';
 import { boardTable, leaderboardCard, teamInviteLink } from './ui/leaderboard.ts';
 import { howToCard, menuPanel } from './ui/menu.ts';
 import { statsCard } from './ui/stats.ts';
+import { risingReveal } from './ui/rising.ts';
 import { hideOverlay, showOverlay } from './ui/overlay.ts';
 import { showResults } from './ui/results.ts';
 import { clearToasts, toast } from './ui/toast.ts';
@@ -184,13 +185,13 @@ async function startDaily() {
     playerNum: me.num,
     name: me.name || undefined,
     official,
-    onEnd: (o) => void dailyResults(o, official ? runId : null),
+    onEnd: (o) => void dailyResults(o, official ? runId : null, course.platforms.map((p) => p.repo), pool),
   });
   stage.run(run);
   hideOverlay();
 }
 
-async function dailyResults(o: SoloOutcome, runId: string | null) {
+async function dailyResults(o: SoloOutcome, runId: string | null, courseRepos: Repo[], pool: RisingPool | null) {
   let rank: number | null = null;
   let permalink: string | undefined;
   let note: string | undefined;
@@ -206,10 +207,10 @@ async function dailyResults(o: SoloOutcome, runId: string | null) {
     }
   } else note = online ? `Replays don't count toward the leaderboard.` : `Offline run. It isn't on the leaderboard.`;
 
-  let extra: HTMLElement | null = null;
+  const extra = h('div', null, risingReveal(courseRepos, pool));
   try {
     const b = await api.leaderboard(dateKey());
-    extra = h('div', { class: 'card', style: { marginTop: '16px', textAlign: 'left' } }, h('h2', null, icon('trophy'), `Today's top 10`), boardTable(b));
+    extra.append(h('div', { class: 'card', style: { marginTop: '16px', textAlign: 'left' } }, h('h2', null, icon('trophy'), `Today's top 10`), boardTable(b)));
   } catch {
     /* no board offline */
   }

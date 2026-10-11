@@ -12,6 +12,7 @@ export function risingToRepo(r: RisingRepo, asOf: string): Repo {
     band: 'rising',
     clues: [r.desc, r.desc],
     what: r.desc,
+    about: r.about ?? r.desc,
     rising: { desc: r.desc, stars: r.stars, asOf },
   };
 }

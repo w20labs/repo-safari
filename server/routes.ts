@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { Repo } from '../shared/types.ts';
 import { padPlayerNumber } from '../shared/constants.ts';
 import { dateKey } from '../shared/rng.ts';
 import { formatScore } from '../shared/scoring.ts';
@@ -139,7 +140,7 @@ const routes: [string, RegExp, Handler][] = [
       res.end(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Run not found · Last Commit Standing</title><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#0A0C14;color:#ECEFF7;font-family:system-ui,sans-serif;text-align:center;padding:16px"><div><h1 style="font-size:22px">This run doesn't exist, or it isn't finished yet.</h1><p><a href="/?play=daily" style="color:#2EC4A6">Play today's course</a></p></div>`);
       return;
     }
-    const html = sharePage(originOf(req), params.id, found.summary, found.rank);
+    const html = sharePage(originOf(req), params.id, found.summary, found.rank, found.rising);
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' });
     res.end(html);
   }],
@@ -160,10 +161,11 @@ function finishedRun(id: string) {
   const { rank } = rankOf(run);
   const { players } = leaderboard(run.date, undefined, 0);
   const line = [rankLine(rank, players, streakAt(player.id, run.date)), teamLine(run.date, player.team)].filter(Boolean).join(' · ');
-  return { run, summary: summaryFor(course, run, player, line), rank };
+  const rising = course.platforms.filter((p) => p.repo.rising).map((p) => p.repo);
+  return { run, summary: summaryFor(course, run, player, line), rank, rising };
 }
 
-function sharePage(origin: string, id: string, s: ReturnType<typeof summaryFor>, rank: number): string {
+function sharePage(origin: string, id: string, s: ReturnType<typeof summaryFor>, rank: number, rising: Repo[]): string {
   const who = s.name ? `${s.name} (Player ${padPlayerNumber(s.playerNum)})` : `Player ${padPlayerNumber(s.playerNum)}`;
   const status = s.standing ? 'STILL STANDING' : 'ELIMINATED';
   const title = `${who} · ${status} · Last Commit Standing`;
@@ -197,6 +199,9 @@ function sharePage(origin: string, id: string, s: ReturnType<typeof summaryFor>,
   img{width:100%;height:auto;aspect-ratio:1200/630;border-radius:14px;border:1px solid #262C42;background:#0B0E19}
   p{color:#9AA3B8;margin:0;font-size:17px} .stats{font-family:'JetBrains Mono',monospace;color:#ECEFF7}
   .cta{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:12px 26px;border-radius:12px;background:#FF3E8A;color:#12040a;font-weight:700;font-size:18px;text-decoration:none}
+  .rise{width:100%;text-align:left;display:grid;gap:8px} .rise h2{font-family:Bungee,sans-serif;font-weight:400;font-size:16px;margin:8px 0 0}
+  .rise a{display:grid;gap:2px;padding:10px 14px;border-radius:10px;background:#121626;border:1px solid #262C42;border-left:3px solid #D4F25C;color:#ECEFF7;text-decoration:none}
+  .rise b{font-family:'JetBrains Mono',monospace;color:#D4F25C} .rise span{color:#9AA3B8;font-size:14px}
   .cta:hover{background:#ff5c9d} .cta:focus-visible{outline:3px solid #2EC4A6;outline-offset:3px}
 </style></head>
 <body><main>
@@ -205,6 +210,7 @@ function sharePage(origin: string, id: string, s: ReturnType<typeof summaryFor>,
 <p class="stats">Daily ${e(s.date)} · ${e(formatScore(s.score))} pts · ${e(s.statLine)} · rank #${rank}</p>
 <p>${e(s.standing ? 'Made it through the gate.' : s.outLine)}</p>
 <a class="cta" href="/?play=daily"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Play today's course</a>
+${rising.length ? `<section class="rise"><h2>Rising repos on this course</h2>${rising.map((r) => `<a href="https://github.com/${e(r.name)}" rel="noopener"><b>${e(r.name)}</b><span>${e(r.about ?? r.rising?.desc ?? '')}</span></a>`).join('')}</section>` : ''}
 <p style="font-size:14px">One course a day, the same for everyone. Your first run is the one that counts.</p>
 </main></body></html>`;
 }
