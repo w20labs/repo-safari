@@ -14,6 +14,7 @@ import { kv, setHud, setHudCenter } from '../ui/hud.ts';
 import { announce, hideOverlay } from '../ui/overlay.ts';
 import { openQuestion, type QuestionHandle } from '../ui/question.ts';
 import { toast } from '../ui/toast.ts';
+import { sfx } from '../sound.ts';
 
 const INTERP_DELAY_MS = 110;
 const SUITS = ['#E07A9B', '#E2B65A', '#8FC8E8', '#B79CFF', '#FF8A65', '#9BE07A'];
@@ -103,6 +104,7 @@ export class ArenaRun implements Mode {
         break;
       }
       case 'bell':
+        sfx.bell();
         this.eliminate(m.out);
         if (m.question && this.alive) this.ask(m.question);
         break;
@@ -143,6 +145,7 @@ export class ArenaRun implements Mode {
         const ph = arenaPhase(this.o.t0, this.sock.serverNow());
         this.outAtBell = 'bell' in ph ? ph.bell : this.bellsSurvived;
         this.stage.particles.puff(this.body.x, this.body.y - 20);
+        sfx.eliminated();
         toast(`You're out: ${e.reason.toLowerCase()}. Watching the rest.`, 'pink', { ms: 4000 });
         announce(`You are eliminated. ${e.reason}.`);
       } else {
@@ -152,6 +155,7 @@ export class ArenaRun implements Mode {
         others.push(e.id);
       }
     }
+    if (others.length) sfx.otherOut();
     if (others.length === 1) toast(`${this.nameOf(others[0])} is out`, 'pink');
     else if (others.length > 1) toast(`${others.length} players are out`, 'pink');
   }
@@ -180,6 +184,7 @@ export class ArenaRun implements Mode {
     const now = this.sock.serverNow();
     const ph = arenaPhase(this.o.t0, now);
     const { gone, crumbling } = platformStates(this.o.seed, this.o.t0, now);
+    if (crumbling.size && !this.world.crumbling.size) sfx.crumble();
     this.world.gone.clear();
     gone.forEach((i) => this.world.gone.add(i));
     this.world.crumbling.clear();
@@ -190,7 +195,11 @@ export class ArenaRun implements Mode {
       const c = input.sample();
       const frozen = ph.kind === 'countdown' || ph.kind === 'question';
       const r = stepBody(this.body, frozen ? NO_CONTROLS : c, dt, this.world);
+      if (r.jumped === 1) sfx.jump();
+      else if (r.jumped === 2) sfx.doubleJump();
+      if (r.touchedDown) sfx.land();
       if (r.fell) {
+        sfx.fall();
         this.stage.particles.burst(this.body.x, PHYS.floorY + 20, [COLORS.pink], 18);
         this.body = makeBody(60 + Math.random() * 220, PHYS.floorY);
         toast('Into the merge conflict. Back to the start pad. Hurry.', 'pink', { key: 'fell', throttleMs: 1500 });

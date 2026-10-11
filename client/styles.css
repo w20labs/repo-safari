@@ -303,3 +303,7 @@ kbd { font-family: var(--mono); font-size: 11px; background: var(--sunken); bord
 .rise-meta { display: flex; gap: 12px; font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 6px; flex-wrap: wrap; }
 .rise-more { margin-top: 10px; }
 .rise-more summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-bottom: 8px; }
+.top-right { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.icon-btn { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--muted); cursor: pointer; flex: none; }
+.icon-btn:hover { color: var(--text); border-color: #3a4364; }
+.icon-btn[aria-pressed='true'] { color: var(--pink); }

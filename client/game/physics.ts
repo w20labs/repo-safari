@@ -44,12 +44,16 @@ export interface StepResult {
   blockedByGate: boolean;
   /** body overlaps the open gate */
   inGate: boolean;
+  /** 1 = jumped from the ground, 2 = double jump */
+  jumped: 0 | 1 | 2;
+  /** touched down this step after being airborne */
+  touchedDown: boolean;
 }
 
 const approach = (v: number, target: number, step: number) => (v < target ? Math.min(target, v + step) : Math.max(target, v - step));
 
 export function stepBody(b: Body, c: Controls, dt: number, world: World): StepResult {
-  const res: StepResult = { landed: null, fell: false, blockedByGate: false, inGate: false };
+  const res: StepResult = { landed: null, fell: false, blockedByGate: false, inGate: false, jumped: 0, touchedDown: false };
   const half = PHYS.bodyW / 2;
   const grounded = b.ground !== NONE;
 
@@ -84,10 +88,12 @@ export function stepBody(b: Body, c: Controls, dt: number, world: World): StepRe
       b.ground = NONE;
       b.coyote = 0;
       b.buffer = 0;
+      res.jumped = 1;
     } else if (b.jumps < 2) {
       b.vy = -PHYS.jumpV * PHYS.doubleJumpMul;
       b.jumps = 2;
       b.buffer = 0;
+      res.jumped = 2;
     }
   }
   if (c.jumpReleased && b.vy < PHYS.jumpCutVy) b.vy *= PHYS.jumpCutMul;
@@ -147,6 +153,7 @@ export function stepBody(b: Body, c: Controls, dt: number, world: World): StepRe
       b.vy = 0;
       b.ground = best;
       b.jumps = 0;
+      if (prevGround === NONE && !grounded) res.touchedDown = true;
       if (best !== prevGround && best >= 0) res.landed = best;
     }
   }

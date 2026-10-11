@@ -4,6 +4,7 @@ import type { Question, Region } from '../../shared/types.ts';
 import { isTyping } from '../game/input.ts';
 import { h } from './dom.ts';
 import { announce, showOverlay } from './overlay.ts';
+import { sfx } from '../sound.ts';
 
 export interface QuestionOpts {
   question: Omit<Question, 'answer'>;
@@ -82,8 +83,12 @@ export function openQuestion(o: QuestionOpts): QuestionHandle {
   }
   window.addEventListener('keydown', onKey);
 
+  let lastSecond = Math.ceil(o.msLeft() / 1000);
   function frame() {
     const left = Math.max(0, o.msLeft());
+    const sec = Math.ceil(left / 1000);
+    if (sec !== lastSecond && picked === null && sec > 0 && sec <= 4) sfx.tick(sec <= 2);
+    lastSecond = sec;
     bar.style.transform = `scaleX(${left / o.totalMs})`;
     timer.classList.toggle('low', left < 4000);
     timer.setAttribute('aria-valuenow', String(Math.ceil(left / 1000)));
@@ -93,6 +98,7 @@ export function openQuestion(o: QuestionOpts): QuestionHandle {
   }
 
   showOverlay(panel);
+  sfx.question();
   announce(`${KIND_LABELS[q.kind]} question. ${q.prompt} ${q.clue ?? ''}`);
   buttons[0].focus({ preventScroll: true });
   frame();
@@ -106,6 +112,8 @@ export function openQuestion(o: QuestionOpts): QuestionHandle {
         else if (i === picked) b.classList.add('wrong');
       });
       const ok = picked === answer;
+      if (ok) sfx.correct();
+      else sfx.wrong();
       const msg = text ?? (picked === -1 || picked === null ? 'Time is up.' : ok ? 'Correct.' : `Wrong. It was ${q.options[answer]}.`);
       note.textContent = msg;
       announce(msg);

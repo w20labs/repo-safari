@@ -23,6 +23,7 @@ import { clearHud, kv, setHud } from '../ui/hud.ts';
 import { announce, hideOverlay } from '../ui/overlay.ts';
 import { openQuestion } from '../ui/question.ts';
 import { toast } from '../ui/toast.ts';
+import { sfx } from '../sound.ts';
 
 export interface SoloConfig {
   kind: 'daily' | 'practice';
@@ -98,6 +99,9 @@ export class SoloRun implements Mode {
     const c = input.sample();
     this.world.advance(dt);
     const r = stepBody(this.body, c, dt, this.world);
+    if (r.jumped === 1) sfx.jump();
+    else if (r.jumped === 2) sfx.doubleJump();
+    if (r.touchedDown) sfx.land();
     this.bots?.update(dt);
     if (r.landed !== null && !this.world.cleared.has(r.landed) && !this.asked.has(r.landed)) this.ask(r.landed);
     else if (r.inGate) this.win();
@@ -187,12 +191,14 @@ export class SoloRun implements Mode {
           this.state = 'playing';
           if (this.world.hasGate && !this.world.gateOpen && this.unlockLeft === 0) {
             this.world.gateOpen = true;
+            sfx.gateOpen();
             toast('Gate open. Head for the exit on the far right.', 'teal', { ms: 3200 });
             announce('The exit gate is open.');
             this.updateHud();
           }
         } else {
           this.stage.particles.puff(this.body.x, this.body.y - 20);
+          sfx.eliminated();
           const reason = choice === null ? `Time ran out on ${p.repo.short}.` : `Wrong answer on ${p.repo.short}.`;
           this.end(false, reason, outOnLabel(this.cfg.course, i, q.kind), i);
         }
@@ -207,12 +213,14 @@ export class SoloRun implements Mode {
     const gone = this.bots?.eliminateNearest(this.body.x, this.body.y);
     if (gone) {
       this.stage.particles.puff(gone.x, gone.y - 20);
+      setTimeout(sfx.otherOut, 300);
       toast(`Player ${padPlayerNumber(gone.num)} eliminated, along with ${drop - 1} others`, 'pink');
     } else toast(`${drop} more players eliminated`, 'pink');
   }
 
   private fell() {
     this.state = 'over';
+    sfx.fall();
     this.stage.particles.burst(this.body.x, PHYS.floorY + 20, [COLORS.pink, '#7A1238'], 30, 420);
     const at = fallIndex(this.cfg.course, this.world.cleared);
     setTimeout(() => this.end(false, 'You fell into the merge conflict.', FELL_LABEL, at), 650);
@@ -220,6 +228,7 @@ export class SoloRun implements Mode {
 
   private win() {
     this.won = true;
+    sfx.win();
     this.score += GATE_BONUS;
     this.stage.particles.burst(this.body.x, this.body.y - 30, [COLORS.teal, COLORS.amber, COLORS.lime, COLORS.green], 60, 480);
     this.updateHud();

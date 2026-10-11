@@ -20,6 +20,9 @@ import { hideOverlay, showOverlay } from './ui/overlay.ts';
 import { showResults } from './ui/results.ts';
 import { clearToasts, toast } from './ui/toast.ts';
 import { initTouchpad } from './ui/touchpad.ts';
+import { iconSvg } from './ui/icons.ts';
+import { isMuted, onMuteChange, setMuted } from './sound.ts';
+import { isTyping } from './game/input.ts';
 
 const stage = new Stage($('#world') as HTMLCanvasElement);
 let run: SoloRun | null = null;
@@ -240,8 +243,24 @@ async function dailyResults(o: SoloOutcome, runId: string | null, courseRepos: R
 
 // ---------- boot ----------
 
+function initMute() {
+  const btn = $('#mute');
+  const paint = (m: boolean) => {
+    btn.innerHTML = iconSvg(m ? 'mute' : 'sound', 18);
+    btn.setAttribute('aria-pressed', String(m));
+    btn.setAttribute('aria-label', m ? 'Unmute sound' : 'Mute sound');
+  };
+  paint(isMuted());
+  onMuteChange(paint);
+  btn.addEventListener('click', () => setMuted(!isMuted()));
+  window.addEventListener('keydown', (e) => {
+    if ((e.key === 'm' || e.key === 'M') && !isTyping() && !e.metaKey && !e.ctrlKey) setMuted(!isMuted());
+  });
+}
+
 async function init() {
   renderWho();
+  initMute();
   initTouchpad();
   $('#below').replaceChildren(howToCard());
   document.addEventListener('keydown', (e) => {
