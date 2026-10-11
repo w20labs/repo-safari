@@ -4,70 +4,6 @@
  "activeDays": 183,
  "rooms": [
   {
-   "id": "curriculum",
-   "title": "Curriculum",
-   "topics": [
-    "curriculum"
-   ],
-   "repos": [
-    {
-     "name": "freeCodeCamp/freeCodeCamp",
-     "desc": "freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming, and computer science for free.",
-     "lang": "TypeScript",
-     "stars": 456842,
-     "forks": 48837,
-     "issues": 223,
-     "created": "2014-12-24",
-     "pushed": "2026-10-11",
-     "license": "BSD-3-Clause"
-    },
-    {
-     "name": "TheOdinProject/curriculum",
-     "desc": "The open curriculum for learning web development",
-     "lang": "JavaScript",
-     "stars": 13132,
-     "forks": 16831,
-     "issues": 68,
-     "created": "2013-06-11",
-     "pushed": "2026-10-09",
-     "license": null
-    },
-    {
-     "name": "bootdotdev/curriculum",
-     "desc": "An open roadmap for Boot.dev's backend development curriculum",
-     "lang": null,
-     "stars": 3953,
-     "forks": 123,
-     "issues": 48,
-     "created": "2021-01-26",
-     "pushed": "2026-09-10",
-     "license": null
-    },
-    {
-     "name": "Anil-matcha/ai-creator-academy",
-     "desc": "Free, open-source curriculum for making money with generative AI image, video, and audio — for creators and agencies.",
-     "lang": null,
-     "stars": 2081,
-     "forks": 389,
-     "issues": 0,
-     "created": "2023-05-05",
-     "pushed": "2026-08-21",
-     "license": "MIT"
-    },
-    {
-     "name": "enkidevs/curriculum",
-     "desc": "👩‍🏫 👨‍🏫 The open-source curriculum of Enki!",
-     "lang": null,
-     "stars": 832,
-     "forks": 1659,
-     "issues": 90,
-     "created": "2016-11-29",
-     "pushed": "2026-07-25",
-     "license": null
-    }
-   ]
-  },
-  {
    "id": "design-patterns",
    "title": "Design patterns",
    "topics": [
@@ -420,17 +356,6 @@
      "license": "MIT"
     },
     {
-     "name": "TheAlgorithms/Rust",
-     "desc": " All Algorithms implemented in Rust ",
-     "lang": "Rust",
-     "stars": 26080,
-     "forks": 2596,
-     "issues": 11,
-     "created": "2018-09-13",
-     "pushed": "2026-10-08",
-     "license": "MIT"
-    },
-    {
      "name": "keon/algorithms",
      "desc": "Minimal examples of data structures and algorithms in Python",
      "lang": "Python",
@@ -453,17 +378,6 @@
      "license": "MIT"
     },
     {
-     "name": "TheAlgorithms/Go",
-     "desc": "Algorithms and Data Structures implemented in Go for beginners, following best practices.",
-     "lang": "Go",
-     "stars": 18230,
-     "forks": 2826,
-     "issues": 9,
-     "created": "2016-08-20",
-     "pushed": "2026-08-03",
-     "license": "MIT"
-    },
-    {
      "name": "ashishps1/awesome-leetcode-resources",
      "desc": "Awesome LeetCode resources to learn Data Structures and Algorithms and prepare for Coding Interviews.",
      "lang": "Java",
@@ -473,6 +387,28 @@
      "created": "2023-10-25",
      "pushed": "2026-06-06",
      "license": "GPL-3.0"
+    },
+    {
+     "name": "seanprashad/leetcode-patterns",
+     "desc": "A pattern-based approach to learn technical interview questions",
+     "lang": "TypeScript",
+     "stars": 14159,
+     "forks": 2283,
+     "issues": 2,
+     "created": "2018-12-31",
+     "pushed": "2026-10-04",
+     "license": null
+    },
+    {
+     "name": "AkashSingh3031/The-Complete-FAANG-Preparation",
+     "desc": "Dive into this repository, a comprehensive resource covering Data Structures, Algorithms, 450 DSA by Love Babbar, Striver DSA sheet, Apna College DSA Sheet, and FAANG Questions! 🚀 That's not all! We've got Technical Subjects like Operating Systems, DBMS, SQL, Computer Networks, and Object-Oriented Programming, all waiting for you.",
+     "lang": "Jupyter Notebook",
+     "stars": 12285,
+     "forks": 2629,
+     "issues": 33,
+     "created": "2021-05-29",
+     "pushed": "2026-10-07",
+     "license": "MIT"
     }
    ]
   },
@@ -570,59 +506,6 @@
      "created": "2025-02-19",
      "pushed": "2026-10-02",
      "license": "GPL-3.0"
-    }
-   ]
-  },
-  {
-   "id": "flutter",
-   "title": "Flutter",
-   "topics": [
-    "flutter"
-   ],
-   "repos": [
-    {
-     "name": "flutter/flutter",
-     "desc": "Flutter makes it easy and fast to build beautiful apps for mobile and beyond",
-     "lang": "Dart",
-     "stars": 179622,
-     "forks": 33619,
-     "issues": 13336,
-     "created": "2015-03-06",
-     "pushed": "2026-10-11",
-     "license": "BSD-3-Clause"
-    },
-    {
-     "name": "Solido/awesome-flutter",
-     "desc": "An awesome list that curates the best Flutter libraries, tools, tutorials, articles and more.",
-     "lang": "Dart",
-     "stars": 61457,
-     "forks": 6925,
-     "issues": 38,
-     "created": "2017-05-07",
-     "pushed": "2026-09-03",
-     "license": null
-    },
-    {
-     "name": "cfug/dio",
-     "desc": "A powerful HTTP client for Dart and Flutter, which supports global settings, Interceptors, FormData, aborting and canceling a request, files uploading and downloading, requests timeout, custom adapters, etc.",
-     "lang": "Dart",
-     "stars": 12839,
-     "forks": 1564,
-     "issues": 46,
-     "created": "2018-04-20",
-     "pushed": "2026-09-06",
-     "license": "MIT"
-    },
-    {
-     "name": "flame-engine/flame",
-     "desc": "A Flutter based game engine.",
-     "lang": "Dart",
-     "stars": 10782,
-     "forks": 1051,
-     "issues": 83,
-     "created": "2017-10-22",
-     "pushed": "2026-10-11",
-     "license": "MIT"
     }
    ]
   },
@@ -1403,104 +1286,6 @@
    ]
   },
   {
-   "id": "windows-10",
-   "title": "Windows 10",
-   "topics": [
-    "windows-10",
-    "windows-11"
-   ],
-   "repos": [
-    {
-     "name": "microsoft/PowerToys",
-     "desc": "Microsoft PowerToys is a collection of utilities that supercharge productivity and customization on Windows",
-     "lang": "C",
-     "stars": 139173,
-     "forks": 8636,
-     "issues": 7725,
-     "created": "2019-05-01",
-     "pushed": "2026-10-11",
-     "license": "MIT"
-    },
-    {
-     "name": "Raphire/Win11Debloat",
-     "desc": "A simple, lightweight PowerShell script that allows you to remove pre-installed apps, disable telemetry, as well as perform various other changes to declutter and customize your Windows experience. Win11Debloat works for both Windows 10 and Windows 11.",
-     "lang": "PowerShell",
-     "stars": 59008,
-     "forks": 2556,
-     "issues": 41,
-     "created": "2020-10-27",
-     "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "files-community/Files",
-     "desc": "A modern file manager that helps users organize their files and folders.",
-     "lang": "C#",
-     "stars": 45896,
-     "forks": 2953,
-     "issues": 461,
-     "created": "2019-01-04",
-     "pushed": "2026-10-09",
-     "license": "MIT"
-    },
-    {
-     "name": "DevToys-app/DevToys",
-     "desc": "A Swiss Army knife for developers.",
-     "lang": "C#",
-     "stars": 32070,
-     "forks": 1762,
-     "issues": 338,
-     "created": "2021-09-29",
-     "pushed": "2026-09-29",
-     "license": "MIT"
-    },
-    {
-     "name": "microsoft/calculator",
-     "desc": "Windows Calculator: A simple yet powerful calculator that ships with Windows",
-     "lang": "C#",
-     "stars": 31075,
-     "forks": 5820,
-     "issues": 475,
-     "created": "2019-01-28",
-     "pushed": "2026-10-02",
-     "license": "MIT"
-    },
-    {
-     "name": "Devolutions/UniGetUI",
-     "desc": "UniGetUI: The Graphical Interface for your package managers. Could be terribly described as a package manager manager to manage your package managers",
-     "lang": "C#",
-     "stars": 26485,
-     "forks": 944,
-     "issues": 452,
-     "created": "2021-06-15",
-     "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "TranslucentTB/TranslucentTB",
-     "desc": "A lightweight utility that makes the Windows taskbar translucent/transparent.",
-     "lang": "C++",
-     "stars": 20531,
-     "forks": 1263,
-     "issues": 332,
-     "created": "2017-01-10",
-     "pushed": "2026-10-04",
-     "license": "GPL-3.0"
-    },
-    {
-     "name": "lively-community/lively",
-     "desc": "Free and open-source software that allows users to set animated desktop wallpapers and screensavers powered by WinUI 3.",
-     "lang": "C#",
-     "stars": 19789,
-     "forks": 1377,
-     "issues": 393,
-     "created": "2019-08-08",
-     "pushed": "2026-09-30",
-     "license": "GPL-3.0"
-    }
-   ]
-  },
-  {
    "id": "stable-diffusion",
    "title": "Stable diffusion",
    "topics": [
@@ -1695,103 +1480,6 @@
    ]
   },
   {
-   "id": "react-native",
-   "title": "React native",
-   "topics": [
-    "react-native"
-   ],
-   "repos": [
-    {
-     "name": "react/react-native",
-     "desc": "A framework for building native applications using React",
-     "lang": "C++",
-     "stars": 126619,
-     "forks": 25304,
-     "issues": 1152,
-     "created": "2015-01-09",
-     "pushed": "2026-10-09",
-     "license": "MIT"
-    },
-    {
-     "name": "enaqx/awesome-react",
-     "desc": "A collection of awesome things regarding React ecosystem",
-     "lang": null,
-     "stars": 74849,
-     "forks": 7671,
-     "issues": 22,
-     "created": "2014-08-06",
-     "pushed": "2026-09-04",
-     "license": null
-    },
-    {
-     "name": "expo/expo",
-     "desc": "An open-source framework for making universal native apps with React. Expo runs on Android, iOS, and the web.",
-     "lang": "TypeScript",
-     "stars": 52631,
-     "forks": 14471,
-     "issues": 877,
-     "created": "2016-08-15",
-     "pushed": "2026-10-11",
-     "license": "MIT"
-    },
-    {
-     "name": "sudheerj/reactjs-interview-questions",
-     "desc": "List of top 500 ReactJS Interview Questions & Answers....Coding exercise questions are coming soon!!",
-     "lang": "JavaScript",
-     "stars": 44867,
-     "forks": 10391,
-     "issues": 13,
-     "created": "2018-05-31",
-     "pushed": "2026-10-02",
-     "license": "MIT"
-    },
-    {
-     "name": "react-hook-form/react-hook-form",
-     "desc": "📋 React Hooks for form state management and validation (Web + React Native)",
-     "lang": "TypeScript",
-     "stars": 44861,
-     "forks": 2484,
-     "issues": 10,
-     "created": "2019-03-05",
-     "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "jondot/awesome-react-native",
-     "desc": "Awesome React Native components, news, tools, and learning material!",
-     "lang": null,
-     "stars": 35707,
-     "forks": 4043,
-     "issues": 28,
-     "created": "2015-03-26",
-     "pushed": "2026-08-26",
-     "license": null
-    },
-    {
-     "name": "vercel/swr",
-     "desc": "React Hooks for Data Fetching",
-     "lang": "TypeScript",
-     "stars": 32494,
-     "forks": 1395,
-     "issues": 232,
-     "created": "2019-10-28",
-     "pushed": "2026-09-22",
-     "license": "MIT"
-    },
-    {
-     "name": "react-native-elements/react-native-elements",
-     "desc": "Cross-Platform React Native UI Toolkit",
-     "lang": "MDX",
-     "stars": 25874,
-     "forks": 4667,
-     "issues": 159,
-     "created": "2016-09-08",
-     "pushed": "2026-05-21",
-     "license": "MIT"
-    }
-   ]
-  },
-  {
    "id": "knowledge-graph",
    "title": "Knowledge graph",
    "topics": [
@@ -1885,167 +1573,6 @@
      "created": "2023-07-20",
      "pushed": "2026-10-11",
      "license": null
-    }
-   ]
-  },
-  {
-   "id": "electron",
-   "title": "Electron",
-   "topics": [
-    "electron"
-   ],
-   "repos": [
-    {
-     "name": "electron/electron",
-     "desc": ":electron: Build cross-platform desktop apps with JavaScript, HTML, and CSS",
-     "lang": "C++",
-     "stars": 123267,
-     "forks": 17592,
-     "issues": 745,
-     "created": "2013-04-12",
-     "pushed": "2026-10-11",
-     "license": "MIT"
-    },
-    {
-     "name": "sindresorhus/awesome-electron",
-     "desc": "Useful resources for creating apps with Electron [SUBMISSIONS ARE TEMPORARILY PAUSED BECAUSE I'M TIRED OF REVIEWING LOW-QUALITY STUFF]",
-     "lang": null,
-     "stars": 27306,
-     "forks": 2060,
-     "issues": 7,
-     "created": "2015-04-23",
-     "pushed": "2026-05-03",
-     "license": "CC0-1.0"
-    },
-    {
-     "name": "mihomo-party-org/clash-party",
-     "desc": ":electron: Another Mihomo GUI. ",
-     "lang": "TypeScript",
-     "stars": 26771,
-     "forks": 2108,
-     "issues": 217,
-     "created": "2024-08-02",
-     "pushed": "2026-10-10",
-     "license": "GPL-3.0"
-    },
-    {
-     "name": "electron-react-boilerplate/electron-react-boilerplate",
-     "desc": "A Foundation for Scalable Cross-Platform Apps",
-     "lang": "TypeScript",
-     "stars": 24254,
-     "forks": 3965,
-     "issues": 9,
-     "created": "2015-05-18",
-     "pushed": "2026-09-15",
-     "license": "MIT"
-    },
-    {
-     "name": "yang991178/fluent-reader",
-     "desc": "Modern desktop RSS reader built with Electron, React, and Fluent UI",
-     "lang": "TypeScript",
-     "stars": 9706,
-     "forks": 543,
-     "issues": 393,
-     "created": "2020-05-31",
-     "pushed": "2026-09-16",
-     "license": "BSD-3-Clause"
-    },
-    {
-     "name": "vastsa/PI-Desktop",
-     "desc": "Local-first AI coding agent desktop: Electron + Rust host core + pi Agent Harness + user-installable plugins",
-     "lang": "TypeScript",
-     "stars": 6641,
-     "forks": 618,
-     "issues": 188,
-     "created": "2023-03-22",
-     "pushed": "2026-10-11",
-     "license": "LGPL-3.0"
-    },
-    {
-     "name": "electron/apps",
-     "desc": "A collection of apps built on Electron",
-     "lang": "JavaScript",
-     "stars": 1724,
-     "forks": 1497,
-     "issues": 13,
-     "created": "2016-08-31",
-     "pushed": "2026-10-10",
-     "license": "MIT"
-    }
-   ]
-  },
-  {
-   "id": "microsoft-for-beginners",
-   "title": "Microsoft for beginners",
-   "topics": [
-    "microsoft-for-beginners"
-   ],
-   "repos": [
-    {
-     "name": "microsoft/generative-ai-for-beginners",
-     "desc": "21 Lessons, Get Started Building with Generative AI ",
-     "lang": "Jupyter Notebook",
-     "stars": 121154,
-     "forks": 63854,
-     "issues": 19,
-     "created": "2023-06-19",
-     "pushed": "2026-10-08",
-     "license": "MIT"
-    },
-    {
-     "name": "microsoft/Web-Dev-For-Beginners",
-     "desc": "24 Lessons, 12 Weeks, Get Started as a Web Developer",
-     "lang": "JavaScript",
-     "stars": 96932,
-     "forks": 16021,
-     "issues": 136,
-     "created": "2020-11-10",
-     "pushed": "2026-10-01",
-     "license": "MIT"
-    },
-    {
-     "name": "microsoft/ML-For-Beginners",
-     "desc": "12 weeks, 26 lessons, 52 quizzes, classic Machine Learning for all",
-     "lang": "Jupyter Notebook",
-     "stars": 91401,
-     "forks": 22588,
-     "issues": 14,
-     "created": "2021-03-03",
-     "pushed": "2026-09-15",
-     "license": "MIT"
-    },
-    {
-     "name": "microsoft/AI-For-Beginners",
-     "desc": "12 Weeks, 24 Lessons, AI for All!",
-     "lang": "Jupyter Notebook",
-     "stars": 69666,
-     "forks": 13502,
-     "issues": 21,
-     "created": "2021-03-03",
-     "pushed": "2026-09-16",
-     "license": "MIT"
-    },
-    {
-     "name": "microsoft/Data-Science-For-Beginners",
-     "desc": "10 Weeks, 20 Lessons, Data Science for All!",
-     "lang": "Jupyter Notebook",
-     "stars": 37556,
-     "forks": 7580,
-     "issues": 20,
-     "created": "2021-03-03",
-     "pushed": "2026-09-13",
-     "license": "MIT"
-    },
-    {
-     "name": "microsoft/IoT-For-Beginners",
-     "desc": "12 Weeks, 24 Lessons, IoT for All!",
-     "lang": "Jupyter Notebook",
-     "stars": 17146,
-     "forks": 2925,
-     "issues": 4,
-     "created": "2021-03-03",
-     "pushed": "2026-05-26",
-     "license": "MIT"
     }
    ]
   },
@@ -2148,59 +1675,6 @@
    ]
   },
   {
-   "id": "d3",
-   "title": "D3",
-   "topics": [
-    "d3"
-   ],
-   "repos": [
-    {
-     "name": "d3/d3",
-     "desc": "Bring data to life with SVG, Canvas and HTML. :bar_chart::chart_with_upwards_trend::tada:",
-     "lang": "Shell",
-     "stars": 113728,
-     "forks": 22638,
-     "issues": 19,
-     "created": "2010-09-27",
-     "pushed": "2026-05-28",
-     "license": "ISC"
-    },
-    {
-     "name": "recharts/recharts",
-     "desc": "Redefined chart library built with React and D3",
-     "lang": "TypeScript",
-     "stars": 27623,
-     "forks": 2007,
-     "issues": 462,
-     "created": "2015-08-07",
-     "pushed": "2026-10-11",
-     "license": "MIT"
-    },
-    {
-     "name": "c3js/c3",
-     "desc": ":bar_chart: A D3-based reusable chart library",
-     "lang": "JavaScript",
-     "stars": 9351,
-     "forks": 1359,
-     "issues": 771,
-     "created": "2013-07-18",
-     "pushed": "2026-09-14",
-     "license": "MIT"
-    },
-    {
-     "name": "britecharts/britecharts",
-     "desc": "Composable Charting Library based on reusable D3.js components.",
-     "lang": "HTML",
-     "stars": 3719,
-     "forks": 215,
-     "issues": 1,
-     "created": "2015-05-19",
-     "pushed": "2026-10-10",
-     "license": "Apache-2.0"
-    }
-   ]
-  },
-  {
    "id": "data-visualization",
    "title": "Data visualization",
    "topics": [
@@ -2239,6 +1713,17 @@
      "created": "2015-07-21",
      "pushed": "2026-10-10",
      "license": "Apache-2.0"
+    },
+    {
+     "name": "microsoft/Data-Science-For-Beginners",
+     "desc": "10 Weeks, 20 Lessons, Data Science for All!",
+     "lang": "Jupyter Notebook",
+     "stars": 37556,
+     "forks": 7580,
+     "issues": 20,
+     "created": "2021-03-03",
+     "pushed": "2026-09-13",
+     "license": "MIT"
     },
     {
      "name": "academic/awesome-datascience",
@@ -2283,17 +1768,6 @@
      "created": "2022-02-18",
      "pushed": "2026-08-10",
      "license": "Apache-2.0"
-    },
-    {
-     "name": "terkelg/awesome-creative-coding",
-     "desc": "Creative Coding: Generative Art, Data visualization, Interaction Design, Resources.",
-     "lang": "HTML",
-     "stars": 15425,
-     "forks": 984,
-     "issues": 15,
-     "created": "2016-11-01",
-     "pushed": "2026-07-21",
-     "license": null
     }
    ]
   },
@@ -2682,103 +2156,6 @@
      "created": "2020-04-28",
      "pushed": "2026-08-27",
      "license": "Apache-2.0"
-    }
-   ]
-  },
-  {
-   "id": "vim",
-   "title": "Vim",
-   "topics": [
-    "vim"
-   ],
-   "repos": [
-    {
-     "name": "neovim/neovim",
-     "desc": "Vim-fork focused on extensibility and usability",
-     "lang": "Vim Script",
-     "stars": 102979,
-     "forks": 7167,
-     "issues": 1958,
-     "created": "2014-01-31",
-     "pushed": "2026-10-11",
-     "license": null
-    },
-    {
-     "name": "vim/vim",
-     "desc": "The official Vim repository",
-     "lang": "Vim Script",
-     "stars": 41189,
-     "forks": 6157,
-     "issues": 1672,
-     "created": "2015-08-18",
-     "pushed": "2026-10-10",
-     "license": "Vim"
-    },
-    {
-     "name": "junegunn/vim-plug",
-     "desc": ":hibiscus: Minimalist Vim Plugin Manager",
-     "lang": "Vim Script",
-     "stars": 35775,
-     "forks": 1930,
-     "issues": 86,
-     "created": "2013-09-10",
-     "pushed": "2026-10-05",
-     "license": "MIT"
-    },
-    {
-     "name": "ycm-core/YouCompleteMe",
-     "desc": "A code-completion engine for Vim",
-     "lang": "Python",
-     "stars": 25871,
-     "forks": 2746,
-     "issues": 38,
-     "created": "2012-04-16",
-     "pushed": "2026-10-09",
-     "license": "GPL-3.0"
-    },
-    {
-     "name": "neoclide/coc.nvim",
-     "desc": "Nodejs extension host for vim & neovim, load extensions like VSCode and host language servers.",
-     "lang": "TypeScript",
-     "stars": 25159,
-     "forks": 951,
-     "issues": 11,
-     "created": "2018-05-01",
-     "pushed": "2026-10-07",
-     "license": "MIT"
-    },
-    {
-     "name": "vim-airline/vim-airline",
-     "desc": "lean & mean status/tabline for vim that's light as air",
-     "lang": "Vim Script",
-     "stars": 17971,
-     "forks": 1100,
-     "issues": 37,
-     "created": "2013-06-30",
-     "pushed": "2026-09-09",
-     "license": "MIT"
-    },
-    {
-     "name": "ranger/ranger",
-     "desc": "A VIM-inspired filemanager for the console",
-     "lang": "Python",
-     "stars": 17423,
-     "forks": 939,
-     "issues": 897,
-     "created": "2009-06-04",
-     "pushed": "2026-09-09",
-     "license": "GPL-3.0"
-    },
-    {
-     "name": "fatih/vim-go",
-     "desc": "Go development plugin for Vim",
-     "lang": "Vim Script",
-     "stars": 16220,
-     "forks": 1424,
-     "issues": 44,
-     "created": "2014-03-24",
-     "pushed": "2026-08-23",
-     "license": null
     }
    ]
   },
@@ -3590,59 +2967,6 @@
    ]
   },
   {
-   "id": "vite",
-   "title": "Vite",
-   "topics": [
-    "vite"
-   ],
-   "repos": [
-    {
-     "name": "vitejs/vite",
-     "desc": "Next generation frontend tooling. It's fast!",
-     "lang": "TypeScript",
-     "stars": 83278,
-     "forks": 8845,
-     "issues": 763,
-     "created": "2020-04-21",
-     "pushed": "2026-10-09",
-     "license": "MIT"
-    },
-    {
-     "name": "vuejs/vitepress",
-     "desc": "Vite & Vue powered static site generator.",
-     "lang": "TypeScript",
-     "stars": 18400,
-     "forks": 2748,
-     "issues": 328,
-     "created": "2020-04-30",
-     "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "vitest-dev/vitest",
-     "desc": "Next generation testing framework powered by Vite.",
-     "lang": "TypeScript",
-     "stars": 17197,
-     "forks": 2074,
-     "issues": 345,
-     "created": "2021-12-03",
-     "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "antfu-collective/vitesse",
-     "desc": "🏕 Opinionated Vite + Vue Starter Template",
-     "lang": "TypeScript",
-     "stars": 9440,
-     "forks": 955,
-     "issues": 32,
-     "created": "2020-08-09",
-     "pushed": "2026-10-06",
-     "license": "MIT"
-    }
-   ]
-  },
-  {
    "id": "reverse-engineering",
    "title": "Reverse engineering",
    "topics": [
@@ -3996,70 +3320,6 @@
      "created": "2020-12-01",
      "pushed": "2026-09-22",
      "license": "MIT"
-    }
-   ]
-  },
-  {
-   "id": "redis",
-   "title": "Redis",
-   "topics": [
-    "redis"
-   ],
-   "repos": [
-    {
-     "name": "redis/redis",
-     "desc": "For developers, who are building real-time data-driven applications, Redis is the preferred, fastest, and most feature-rich cache, data structure server, and document and vector query engine.",
-     "lang": "C",
-     "stars": 76708,
-     "forks": 24852,
-     "issues": 3019,
-     "created": "2009-03-21",
-     "pushed": "2026-10-10",
-     "license": null
-    },
-    {
-     "name": "qishibo/AnotherRedisDesktopManager",
-     "desc": "🚀🚀🚀A faster, better and more stable Redis desktop manager [GUI client], compatible with Linux, Windows, Mac.",
-     "lang": "JavaScript",
-     "stars": 34797,
-     "forks": 2711,
-     "issues": 164,
-     "created": "2019-01-08",
-     "pushed": "2026-08-20",
-     "license": "MIT"
-    },
-    {
-     "name": "dragonflydb/dragonfly",
-     "desc": "A modern replacement for Redis and Memcached",
-     "lang": "C++",
-     "stars": 31775,
-     "forks": 1279,
-     "issues": 331,
-     "created": "2021-12-11",
-     "pushed": "2026-10-11",
-     "license": null
-    },
-    {
-     "name": "redisson/redisson",
-     "desc": "Redisson: Valkey & Redis Java Client and Real-Time Data Platform. Sync/Async/RxJava/Reactive API. Over 50 Valkey and Redis based Java objects and services: Set, Multimap, SortedSet, Map, List, Queue, Deque, Semaphore, Lock, AtomicLong, Map Reduce, Bloom filter, Spring, Tomcat, Scheduler, JCache API, Hibernate, RPC, local cache..",
-     "lang": "Java",
-     "stars": 24413,
-     "forks": 5494,
-     "issues": 253,
-     "created": "2014-01-11",
-     "pushed": "2026-10-09",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "RediSearch/RediSearch",
-     "desc": "A query and indexing engine for Redis, providing secondary indexing, full-text search, vector similarity search and aggregations.",
-     "lang": "Rust",
-     "stars": 6243,
-     "forks": 602,
-     "issues": 729,
-     "created": "2016-05-05",
-     "pushed": "2026-10-10",
-     "license": null
     }
    ]
   },
@@ -5259,59 +4519,6 @@
    ]
   },
   {
-   "id": "powershell",
-   "title": "Powershell",
-   "topics": [
-    "powershell"
-   ],
-   "repos": [
-    {
-     "name": "Raphire/Win11Debloat",
-     "desc": "A simple, lightweight PowerShell script that allows you to remove pre-installed apps, disable telemetry, as well as perform various other changes to declutter and customize your Windows experience. Win11Debloat works for both Windows 10 and Windows 11.",
-     "lang": "PowerShell",
-     "stars": 59008,
-     "forks": 2556,
-     "issues": 41,
-     "created": "2020-10-27",
-     "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "PowerShell/PowerShell",
-     "desc": "PowerShell for every system!",
-     "lang": "C#",
-     "stars": 55667,
-     "forks": 8474,
-     "issues": 1601,
-     "created": "2016-01-13",
-     "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "farag2/Sophia-Script-for-Windows",
-     "desc": ":zap: The most powerful PowerShell module for fine-tuning Windows 10 & Windows 11 on GitHub",
-     "lang": "PowerShell",
-     "stars": 9788,
-     "forks": 643,
-     "issues": 0,
-     "created": "2018-10-17",
-     "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "psmux/psmux",
-     "desc": "Tmux on Windows Powershell - tmux for PowerShell, Windows Terminal, cmd.exe. Includes psmux, pmux, and tmux commands. This is native High-Performance Tmux designed for Windows in Rust 🦀",
-     "lang": "PowerShell",
-     "stars": 3644,
-     "forks": 223,
-     "issues": 44,
-     "created": "2025-11-30",
-     "pushed": "2026-10-11",
-     "license": "MIT"
-    }
-   ]
-  },
-  {
    "id": "local-first",
    "title": "Local first",
    "topics": [
@@ -5396,15 +4603,15 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "KunAgent/Kun",
-     "desc": "Local-first AI agent workspace for coding, writing, design, research, and automation — one runtime for desktop GUI and TUI.",
+     "name": "vastsa/PI-Desktop",
+     "desc": "Local-first AI coding agent desktop: Electron + Rust host core + pi Agent Harness + user-installable plugins",
      "lang": "TypeScript",
-     "stars": 6321,
-     "forks": 594,
-     "issues": 7,
-     "created": "2026-05-21",
-     "pushed": "2026-10-07",
-     "license": null
+     "stars": 6641,
+     "forks": 618,
+     "issues": 188,
+     "created": "2023-03-22",
+     "pushed": "2026-10-11",
+     "license": "LGPL-3.0"
     }
    ]
   },

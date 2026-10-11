@@ -11,6 +11,8 @@
  *    each repo sits in at most two rooms; rooms need 4+ repos and keep the top 8 by stars.
  *
  * Only active repos count: a commit in the last ~6 months and not archived.
+ * Rooms compare alternatives: a room named after one of its own top projects ("Vite") is dropped,
+ * and no owner gets more than two repos in a room.
  *
  * Output: shared/data/rooms.json, with every number as returned by the API on the as-of date.
  */
@@ -88,6 +90,8 @@ function mentions(desc: string, words: string[]): boolean {
 }
 
 const CACHE = 'data/rooms-cache.json';
+/** At most this many repos from one owner in a room. */
+const MAX_PER_OWNER = 2;
 /** A repo must have a commit this recent to be in a room. */
 const ACTIVE_DAYS = 183;
 
@@ -158,9 +162,20 @@ function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<strin
         return own >= 2 || about(r, words);
       })
       .sort((a, b) => b.stargazers_count - a.stargazers_count);
+    // a room compares alternatives: if its topic is the name of one of its top two repos
+    // ("vite" with vitejs/vite), it's one project's family, not a category
+    const norm = (x: string) => x.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (repos.slice(0, 2).some((r) => group.some((t) => norm(t) === norm(r.name)))) continue;
+    // owner variety: at most two repos from the same owner, the most-starred ones
+    const perOwner = new Map<string, number>();
+    const varied = repos.filter((r) => {
+      const o = r.owner.login.toLowerCase();
+      perOwner.set(o, (perOwner.get(o) ?? 0) + 1);
+      return perOwner.get(o)! <= MAX_PER_OWNER;
+    });
     // coherence: most of the room has to be about the room's subject, not just tagged with it
-    const onTopic = repos.filter((r) => about(r, words)).length;
-    if (repos.length >= 4 && onTopic / repos.length >= 0.5) rooms.push({ id: main, title: titleOf(main), topics: group, repos });
+    const onTopic = varied.filter((r) => about(r, words)).length;
+    if (varied.length >= 4 && onTopic / varied.length >= 0.5) rooms.push({ id: main, title: titleOf(main), topics: group, repos: varied });
   }
 
   // near-duplicates (e.g. "Algorithm" and "Algorithms"): when two rooms share 30%+ of their top repos, keep the bigger one
