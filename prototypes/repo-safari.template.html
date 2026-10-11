@@ -33,7 +33,7 @@ header.top { display: flex; align-items: end; justify-content: space-between; ga
 .brand { font-family: var(--display); font-size: clamp(26px, 4.4vw, 38px); line-height: 1; margin: 0; }
 .brand span { color: var(--lime); }
 .pitch { color: var(--muted); margin: 6px 0 0; max-width: 64ch; text-wrap: pretty; }
-.today { display: flex; gap: 8px; flex-wrap: wrap; }
+.today { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); border: 1px solid rgba(242,181,68,.45); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
 .tag.lime { color: var(--lime); border-color: rgba(212,242,92,.45); }
 .progress { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; align-items: center; max-width: 100%; }
@@ -101,7 +101,7 @@ canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: bl
 .sticker .st { font-family: var(--mono); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .sticker .bar { height: 6px; border-radius: 6px; background: rgba(18,20,28,.15); overflow: hidden; }
 .sticker .bar span { display: block; height: 100%; background: var(--ink); }
-.sticker .mine { position: absolute; left: 10px; top: -12px; background: var(--ink); color: var(--paper); font: 700 10px var(--mono); padding: 2px 7px; border-radius: 999px; letter-spacing: .04em; }
+.sticker .mine { position: absolute; left: 10px; bottom: -11px; background: var(--ink); color: var(--paper); font: 700 10px var(--mono); padding: 2px 7px; border-radius: 999px; letter-spacing: .04em; }
 .sticker .saved { position: absolute; right: 26px; top: 8px; font-size: 14px; }
 .sticker .newtag { justify-self: start; background: var(--ink); color: var(--lime); font: 700 9.5px var(--mono); letter-spacing: .06em; padding: 2px 6px; border-radius: 4px; }
 .rs-card .newtag { color: var(--lime); }
@@ -169,7 +169,20 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
   .sticker { width: 128px; }
   .detail p { font-size: 13.5px; }
 }
-@media (prefers-reduced-motion: reduce) { .rs-card, .sticker, canvas.walker { transition: none; } }
+/* ---------- feel: sticker slap, album pop, counter bump, confetti ---------- */
+@keyframes slap { 0%, 100% { transform: rotate(0deg) translateY(-14px) scale(1.06); } 35% { transform: rotate(-3deg) translateY(-4px) scale(.94); } 70% { transform: rotate(1deg) translateY(-12px) scale(1.04); } }
+.sticker.slap { animation: slap .34s ease-out; }
+@keyframes pop-in { 0% { transform: rotate(var(--rot)) scale(.3); opacity: 0; } 60% { transform: rotate(calc(var(--rot) * -2)) scale(1.12); opacity: 1; } 100% { transform: rotate(var(--rot)) scale(1); } }
+.mini.pop { animation: pop-in .45s cubic-bezier(.3,1.5,.5,1); }
+@keyframes bump { 50% { transform: scale(1.45); color: var(--lime); } }
+.chip b.bump { display: inline-block; animation: bump .35s ease; }
+.confetti { position: absolute; inset: 0; z-index: 5; pointer-events: none; width: 100%; height: 100%; }
+.btn.sound { min-height: 0; padding: 3px 11px; font: 600 11.5px var(--mono); letter-spacing: .04em; border-radius: 999px; color: var(--muted); }
+.btn.sound[aria-pressed="true"] { color: var(--text); }
+@media (prefers-reduced-motion: reduce) {
+  .rs-card, .sticker, canvas.walker { transition: none; }
+  .sticker.slap, .mini.pop, .chip b.bump { animation: none; }
+}
 </style>
 
 <div class="wrap">
@@ -178,7 +191,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
       <h1 class="brand">REPO <span>SAFARI</span></h1>
       <p class="pitch">A new trail through open source every day. Each platform is a category. Drop into its room to compare its leading active repos, ranked by stars, with the new ones marked. Save the ones you like as stickers.</p>
     </div>
-    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag" id="nextTag">New trail at 00:00 UTC</span></div>
+    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag" id="nextTag">New trail at 00:00 UTC</span><button type="button" class="btn sound" id="soundBtn" aria-pressed="true">♪ Sound on</button></div>
   </header>
 
   <section class="stage" id="stage" aria-label="Today's trail">
@@ -187,7 +200,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
       <span class="chip" id="where">Today's trail</span>
       <div class="minimap" id="minimap" aria-label="Trail map"></div>
       <div class="progress">
-        <span class="chip"><b id="visited">0</b>/<span id="total">0</span> rooms · <b id="savedToday">0</b> stickers today</span>
+        <span class="chip"><b id="visited">0</b>/<span id="total">0</span> rooms · <b id="savedToday">0</b> <span id="stickerWord">stickers</span> today</span>
         <button type="button" class="btn go share" id="shareBtn" hidden>Share</button>
       </div>
     </div>
@@ -317,7 +330,95 @@ let roomPlat = null, sel = 0;
 const $ = (id) => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d');
 const stage = $('stage'), card = $('card'), roomEl = $('room'), endBox = $('end');
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
+let reduced = motionQuery.matches;
+motionQuery.addEventListener?.('change', (e) => { reduced = e.matches; });
+
+// ---------- sound (synthesized, nothing to download) ----------
+const SOUND_KEY = 'repo-safari-sound';
+let soundOn = true;
+try { soundOn = localStorage.getItem(SOUND_KEY) !== 'off'; } catch { /* default on */ }
+let actx = null, master = null;
+/** The audio context can only start after a user gesture, so it's created on the first sound. */
+function audio() {
+  if (!soundOn) return null;
+  if (!actx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    actx = new AC();
+  }
+  if (!master) { master = actx.createGain(); master.gain.value = 0.22; master.connect(actx.destination); }
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function tone(freq, { at = 0, dur = 0.12, type = 'triangle', vol = 1, to = 0 } = {}) {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + at, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(master); o.start(t); o.stop(t + dur + 0.02);
+}
+function noise({ at = 0, dur = 0.08, vol = 0.8, freq = 1800 } = {}) {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + at, len = Math.ceil(a.sampleRate * dur), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) ** 3;
+  const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  src.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; g.gain.value = vol;
+  src.connect(f).connect(g).connect(master); src.start(t);
+}
+const sfx = {
+  jump: () => tone(330, { to: 520, dur: 0.09, type: 'square', vol: 0.18 }),
+  jump2: () => tone(520, { to: 880, dur: 0.11, type: 'square', vol: 0.18 }),
+  drop: () => tone(520, { to: 150, dur: 0.28, vol: 0.5 }),
+  out: () => tone(200, { to: 600, dur: 0.2, vol: 0.4 }),
+  slap: () => { noise({ dur: 0.07, vol: 1.2, freq: 2400 }); tone(160, { to: 70, dur: 0.12, type: 'sine', vol: 0.9 }); tone(784, { at: 0.05, dur: 0.12, vol: 0.35 }); },
+  rare: () => { sfx.slap(); [988, 1319, 1568, 1976].forEach((f, i) => tone(f, { at: 0.08 + i * 0.06, dur: 0.18, type: 'sine', vol: 0.4 })); },
+  remove: () => tone(440, { to: 220, dur: 0.14, type: 'sine', vol: 0.4 }),
+  end: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, { at: i * 0.1, dur: i === 5 ? 0.45 : 0.14, vol: 0.45 })),
+};
+function renderSound() {
+  const b = $('soundBtn');
+  b.setAttribute('aria-pressed', String(soundOn));
+  b.textContent = soundOn ? '♪ Sound on' : '♪ Sound off';
+}
+$('soundBtn').addEventListener('click', () => {
+  soundOn = !soundOn;
+  // Cut off anything already scheduled (e.g. the end fanfare); new sounds get a fresh output.
+  if (!soundOn && master) { master.gain.setValueAtTime(0, actx.currentTime); master.disconnect(); master = null; }
+  try { localStorage.setItem(SOUND_KEY, soundOn ? 'on' : 'off'); } catch { /* fine */ }
+  renderSound();
+  $('soundBtn').blur();
+  if (soundOn) tone(660, { dur: 0.1, vol: 0.4 });
+});
+renderSound();
+
+/** Restart a one-shot CSS animation class on an element. */
+function replay(el, cls) { if (!el || reduced) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); el.addEventListener('animationend', () => el.classList.remove(cls), { once: true }); }
+
+// ---------- confetti (end of the trail) ----------
+const CONFETTI = ['#D4F25C', '#F28DB2', '#7FD3F0', '#F2B544', '#B79CF2', '#2EC4A6'];
+function confetti() {
+  const c = h('canvas', { class: 'confetti', 'aria-hidden': 'true' });
+  stage.append(c);
+  const dpr = Math.min(devicePixelRatio || 1, 2), w = stage.clientWidth, ht = stage.clientHeight;
+  c.width = w * dpr; c.height = ht * dpr;
+  const g = c.getContext('2d'); g.scale(dpr, dpr);
+  const bits = Array.from({ length: reduced ? 0 : 140 }, (_, i) => ({
+    x: w * (i % 2 ? 0.15 : 0.85), y: ht * 0.75, vx: (i % 2 ? 1 : -1) * (120 + Math.random() * 380), vy: -(520 + Math.random() * 520),
+    r: Math.random() * 6, vr: (Math.random() - 0.5) * 14, s: 5 + Math.random() * 6, color: CONFETTI[i % CONFETTI.length],
+  }));
+  let last = performance.now(), t = 0;
+  (function tick(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt;
+    g.clearRect(0, 0, w, ht);
+    for (const b of bits) {
+      b.vy += 900 * dt; b.vx *= 1 - dt * 0.8; b.x += b.vx * dt; b.y += b.vy * dt; b.r += b.vr * dt;
+      g.save(); g.translate(b.x, b.y); g.rotate(b.r); g.globalAlpha = Math.max(0, 1 - t / 3); g.fillStyle = b.color; g.fillRect(-b.s / 2, -b.s / 4, b.s, b.s / 2); g.restore();
+    }
+    if (t < 3 && bits.length) requestAnimationFrame(tick); else c.remove();
+  })(last);
+}
 $('total').textContent = plats.length;
 $('asOf').textContent = AS_OF;
 $('dayTag').textContent = `Trail for ${new Date(TODAY + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
@@ -404,7 +505,9 @@ function setCurrent(i) {
 
 function updateCounts() {
   $('visited').textContent = plats.filter((p) => p.entered).length;
-  $('savedToday').textContent = [...album.values()].filter((s) => s.day === TODAY).length;
+  const today = [...album.values()].filter((s) => s.day === TODAY).length;
+  $('savedToday').textContent = today;
+  $('stickerWord').textContent = today === 1 ? 'sticker' : 'stickers';
   // Nothing to share until you've dropped into a room or saved a sticker today.
   $('shareBtn').hidden = $('visited').textContent === '0' && $('savedToday').textContent === '0';
   for (const p of plats) {
@@ -416,6 +519,7 @@ function updateCounts() {
 }
 
 const ROTS = [-3, 2, -1.5, 2.5, -2, 1];
+let justSaved = null;
 function renderAlbum() {
   const list = [...album.values()].sort((a, b) => (a.day === b.day ? 0 : a.day < b.day ? 1 : -1));
   $('album').replaceChildren(...list.map((s, k) => h('div', { class: 'mini-wrap', 'data-name': s.name },
@@ -424,6 +528,7 @@ function renderAlbum() {
       style: `--paper:${s.paper}; --rot:${ROTS[k % ROTS.length]}deg`, title: `${s.name} · ${s.room}`,
     }, h('b', null, short(s.name)), h('span', null, `★ ${kfmt(s.stars)}`), h('span', null, s.room)),
     h('button', { type: 'button', class: 'mini-x', 'aria-label': `Remove ${s.name} from your album`, title: 'Remove', onclick: () => removeSticker(s.name) }, '×'))));
+  if (justSaved) { replay(document.querySelector(`#album .mini-wrap[data-name="${CSS.escape(justSaved)}"] .mini`), 'pop'); justSaved = null; }
   $('albumEmpty').hidden = album.size > 0;
   const rare = list.filter((s) => s.rare).length;
   $('albumCount').textContent = `${album.size} sticker${album.size === 1 ? '' : 's'}${rare ? ` · ${rare} rare` : ''}`;
@@ -436,6 +541,7 @@ function removeSticker(name) {
   const order = [...document.querySelectorAll('#album .mini-wrap')].map((el) => el.dataset.name);
   const next = order[order.indexOf(name) + 1] ?? order[order.indexOf(name) - 1];
   album.delete(name);
+  sfx.remove();
   afterAlbumChange();
   const nextBtn = next && document.querySelector(`#album .mini-wrap[data-name="${CSS.escape(next)}"] .mini-x`);
   (nextBtn || $('albumCount')).focus?.({ preventScroll: true });
@@ -450,13 +556,16 @@ function afterAlbumChange() {
 }
 
 function toggleSave(repo, p) {
-  if (album.has(repo.name)) { album.delete(repo.name); toast(`Removed ${short(repo.name)} from your album`); }
+  if (album.has(repo.name)) { album.delete(repo.name); toast(`Removed ${short(repo.name)} from your album`); sfx.remove(); }
   else {
     album.set(repo.name, { name: repo.name, stars: repo.stars, room: p.room.title, paper: p.paper, rare: p.rising, day: TODAY });
     toast(p.rising ? `Rare sticker! ${short(repo.name)} is in your album` : `${short(repo.name)} is in your album`);
+    (p.rising ? sfx.rare : sfx.slap)();
+    justSaved = repo.name;
   }
   saveAlbum();
   updateCounts();
+  replay($('savedToday'), 'bump');
 }
 
 // ---------- the room ----------
@@ -464,6 +573,7 @@ function enterRoom() {
   if (current < 0 || state !== 'walk') return;
   state = 'sinking'; sinkT = 0;
   card.dataset.open = 'false';
+  sfx.drop();
 }
 
 function openRoom(p) {
@@ -545,9 +655,11 @@ function renderDetail() {
 }
 
 function saveSelected() {
+  const was = album.has(roomPlat.room.repos[sel].name);
   toggleSave(roomPlat.room.repos[sel], roomPlat);
   renderStickerSaved();
   renderDetail();
+  if (!was) replay(roomEl.querySelectorAll('.sticker')[sel], 'slap');
 }
 
 function renderStickerSaved() {
@@ -559,6 +671,7 @@ function renderStickerSaved() {
 
 function exitRoom() {
   roomEl.hidden = true;
+  sfx.out();
   state = 'walk';
   body.vy = -640; body.ground = -1;
   current = -1;
@@ -634,6 +747,8 @@ function showEnd() {
       h('button', { type: 'button', class: 'btn', onclick: () => { endBox.hidden = true; state = 'walk'; body.x = END_X - 140; body.vx = 0; } }, 'Keep exploring'),
       h('button', { type: 'button', class: 'btn', onclick: () => { endBox.hidden = true; $('fb1').focus(); } }, 'Give feedback'))));
   endBox.hidden = false;
+  sfx.end();
+  confetti();
 }
 
 // ---------- feedback ----------
@@ -692,7 +807,7 @@ for (const b of document.querySelectorAll('#pad button')) {
 // ---------- particles ----------
 const parts = [];
 function burst(px, py, color, n = 14) {
-  if (reduced) n = Math.ceil(n / 4);
+  if (reduced) return; // particles are decoration
   for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = 120 + Math.random() * 220; parts.push({ x: px, y: py, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 160, t: 0, life: .5 + Math.random() * .4, color }); }
 }
 
@@ -717,8 +832,8 @@ function step(dt) {
   if (pressed.has('down') && body.ground >= 0) enterRoom();
   if (pressed.has('save') && current >= 0) toggleSave(plats[current].flag, plats[current]);
   if (pressed.has('jump')) {
-    if (grounded || body.coyote > 0) { body.vy = -JUMP; body.jumps = 1; body.ground = -1; body.coyote = 0; }
-    else if (body.jumps < 2) { body.vy = -JUMP * 0.9; body.jumps = 2; }
+    if (grounded || body.coyote > 0) { body.vy = -JUMP; body.jumps = 1; body.ground = -1; body.coyote = 0; sfx.jump(); }
+    else if (body.jumps < 2) { body.vy = -JUMP * 0.9; body.jumps = 2; sfx.jump2(); burst(body.x, body.y, '#F3F4F8', 6); }
   }
   if (!keys.has('jump') && body.vy < -420) body.vy *= 0.55;
   pressed.clear();
