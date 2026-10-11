@@ -122,6 +122,8 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .summary pre, .fb-out { margin: 0; background: var(--sunken); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font: 13px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
 .toast { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 5; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--lime); border-radius: 10px; padding: 7px 14px; font-size: 14px; pointer-events: none; max-width: calc(100% - 24px); }
 .toast[hidden] { display: none; }
+.toast.actionable { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
+.toast .undo { background: none; border: 0; color: var(--lime); font: 700 14px var(--ui); cursor: pointer; padding: 2px 4px; text-decoration: underline; text-underline-offset: 3px; }
 
 .pad { display: none; justify-content: center; gap: 10px; flex-wrap: wrap; }
 .pad button { width: 60px; height: 60px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); color: var(--text); font: 700 15px var(--mono); touch-action: none; display: grid; place-items: center; }
@@ -140,6 +142,14 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
   box-shadow: 0 0 0 3px #F3F4F8; text-decoration: none; transform: rotate(var(--rot)); min-width: 0; min-height: 84px;
 }
 .mini:hover { transform: rotate(0deg) translateY(-2px); }
+.mini-wrap { position: relative; min-width: 0; display: grid; }
+.mini-x {
+  position: absolute; top: -9px; right: -9px; z-index: 1; width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center; padding: 0; cursor: pointer; font: 700 15px/1 var(--ui);
+  background: var(--panel); color: var(--muted); border: 1px solid var(--line); box-shadow: 0 2px 8px rgba(0,0,0,.4);
+}
+.mini-x:hover, .mini-x:focus-visible { color: var(--text); border-color: #ff8a8a; background: #2a1620; }
+
 .mini b { font-family: var(--display); font-weight: 400; font-size: 12.5px; line-height: 1.15; overflow-wrap: anywhere; }
 .mini span { font: 600 10.5px var(--mono); opacity: .75; overflow-wrap: anywhere; }
 .mini.rare { box-shadow: 0 0 0 3px #F3F4F8, 0 0 0 6px var(--lime), 0 0 18px rgba(212,242,92,.5); background: linear-gradient(135deg, #EDF9B8, #BFE9F5 50%, #F8DFA6); }
@@ -201,10 +211,10 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 
   <section class="below">
     <div class="box">
-      <h2>Your sticker album <small id="albumCount">0 stickers</small></h2>
+      <h2>Your sticker album <small id="albumCount" tabindex="-1">0 stickers</small></h2>
       <div class="album" id="album"></div>
       <p class="empty" id="albumEmpty">No stickers yet. In any room, press <kbd>E</kbd> on a repo to keep it. Rising repos are rare stickers: they're only on the trail for a week.</p>
-      <p class="fine">Your album is saved in this browser only.</p>
+      <p class="fine">Your album is saved in this browser only. Use × on a sticker to remove it.</p>
     </div>
     <form class="box fb" id="fb">
       <h2>Tell us what you think</h2>
@@ -327,11 +337,15 @@ const mm = $('minimap');
 for (const p of plats) { p.dot = h('i', { style: `--c:${p.color}`, title: p.room.title }); mm.append(p.dot); }
 
 let toastTimer = 0;
-function toast(msg) {
+/** Short message over the stage; pass an action to show a button (e.g. Undo) and keep it up longer. */
+function toast(msg, action) {
   const t = $('toast');
-  t.textContent = msg; t.hidden = false;
+  t.replaceChildren(msg);
+  t.classList.toggle('actionable', !!action);
+  if (action) t.append(h('button', { type: 'button', class: 'undo', onclick: () => { t.hidden = true; action.run(); } }, action.label));
+  t.hidden = false;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => (t.hidden = true), 2000);
+  toastTimer = setTimeout(() => (t.hidden = true), action ? 6000 : 2000);
 }
 
 // ---------- trail card ----------
@@ -394,13 +408,35 @@ function updateCounts() {
 const ROTS = [-3, 2, -1.5, 2.5, -2, 1];
 function renderAlbum() {
   const list = [...album.values()].sort((a, b) => (a.day === b.day ? 0 : a.day < b.day ? 1 : -1));
-  $('album').replaceChildren(...list.map((s, k) => h('a', {
-    class: `mini ${s.rare ? 'rare' : ''} ${s.day === TODAY ? 'new' : ''}`, href: `https://github.com/${s.name}`, target: '_blank', rel: 'noopener',
-    style: `--paper:${s.paper}; --rot:${ROTS[k % ROTS.length]}deg`, title: `${s.name} · ${s.room}`,
-  }, h('b', null, short(s.name)), h('span', null, `★ ${kfmt(s.stars)}`), h('span', null, s.room))));
+  $('album').replaceChildren(...list.map((s, k) => h('div', { class: 'mini-wrap', 'data-name': s.name },
+    h('a', {
+      class: `mini ${s.rare ? 'rare' : ''} ${s.day === TODAY ? 'new' : ''}`, href: `https://github.com/${s.name}`, target: '_blank', rel: 'noopener',
+      style: `--paper:${s.paper}; --rot:${ROTS[k % ROTS.length]}deg`, title: `${s.name} · ${s.room}`,
+    }, h('b', null, short(s.name)), h('span', null, `★ ${kfmt(s.stars)}`), h('span', null, s.room)),
+    h('button', { type: 'button', class: 'mini-x', 'aria-label': `Remove ${s.name} from your album`, title: 'Remove', onclick: () => removeSticker(s.name) }, '×'))));
   $('albumEmpty').hidden = album.size > 0;
   const rare = list.filter((s) => s.rare).length;
   $('albumCount').textContent = `${album.size} sticker${album.size === 1 ? '' : 's'}${rare ? ` · ${rare} rare` : ''}`;
+}
+
+/** Remove one sticker, keep focus in the album, and offer Undo. */
+function removeSticker(name) {
+  const entry = album.get(name);
+  if (!entry) return;
+  const order = [...document.querySelectorAll('#album .mini-wrap')].map((el) => el.dataset.name);
+  const next = order[order.indexOf(name) + 1] ?? order[order.indexOf(name) - 1];
+  album.delete(name);
+  afterAlbumChange();
+  const nextBtn = next && document.querySelector(`#album .mini-wrap[data-name="${CSS.escape(next)}"] .mini-x`);
+  (nextBtn || $('albumCount')).focus?.({ preventScroll: true });
+  toast(`Removed ${short(name)}`, { label: 'Undo', run: () => { album.set(name, entry); afterAlbumChange(); } });
+}
+
+/** Save, refresh counts and the album, and keep an open room in sync. */
+function afterAlbumChange() {
+  saveAlbum();
+  updateCounts();
+  if (state === 'room' && roomPlat) { renderStickerSaved(); renderDetail(); }
 }
 
 function toggleSave(repo, p) {
