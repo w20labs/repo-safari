@@ -44,9 +44,9 @@ a { color: var(--teal); }
 .brand { font-family: var(--display); font-size: 20px; text-decoration: none; letter-spacing: 0.02em; white-space: nowrap; }
 .brand-a { color: var(--text); }
 .brand-b { color: var(--pink); }
-.who { font-family: var(--mono); font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; min-width: 0; }
-.who b { color: var(--teal); font-weight: 700; }
-.who .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 30vw; }
+.topbar .who { font-family: var(--mono); font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: center; min-width: 0; }
+.topbar .who b { color: var(--teal); font-weight: 700; }
+.topbar .who .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 30vw; }
 
 .stage {
   position: relative;
@@ -309,4 +309,9 @@ kbd { font-family: var(--mono); font-size: 11px; background: var(--sunken); bord
 .icon-btn[aria-pressed='true'] { color: var(--pink); }
 .verified { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 13px; color: var(--teal); white-space: nowrap; }
 #account { display: inline-flex; align-items: center; gap: 6px; }
-@media (max-width: 560px) { #account .btn { padding: 6px 8px; font-size: 12px; } .who .name { display: none; } }
+@media (max-width: 560px) { #account .btn { padding: 6px 8px; font-size: 12px; } .topbar .who .name { display: none; } }
+.lb { table-layout: fixed; }
+.lb th:nth-child(1) { width: 2.6em; }
+.lb th:nth-child(3) { width: 5.5em; }
+.lb th:nth-child(4) { width: 6.5em; }
+.lb td.who { max-width: none; width: auto; }

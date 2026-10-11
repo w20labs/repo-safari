@@ -22,6 +22,7 @@ Open http://localhost:5173. That's it; the SQLite file is created at `data/lcs.d
 | `npm run build` | Typecheck and bundle the client to `dist/client` |
 | `npm start` | Production server: API, Arena and the built client on `$PORT` (default 8787) |
 | `npm run refresh-rising` | Refresh the rising-repo pool from GitHub (`-- --dry` to preview) |
+| `npm run build-catalog` | Rebuild `shared/data/catalog.json` from the GitHub API (`GITHUB_TOKEN=$(gh auth token) npm run build-catalog`) |
 
 To try the Arena alone, create a room in the browser and add scripted players:
 `npx tsx scripts/dev/arena-bot.ts <code> --name "Bot"` (stands on a safe platform, answers at random).
@@ -39,11 +40,41 @@ scripts/  refresh-rising.ts, dev/arena-bot.ts
 tests/    Vitest        e2e/  Playwright
 ```
 
+## Content
+
+- **24 classic repos** (`shared/data/classic.ts`), hand-written clues and trivia from the original brief.
+- **215 catalog repos** (`shared/data/catalog-list.ts` → `catalog.json`). Only the name, display name
+  and region are hand-picked. Every fact used in a question (description, primary language and its
+  share of the code, license, creation year, stars) comes from the GitHub API with an as-of date.
+  Questions: identify (name-free clue), what it does, language (only when one language is 60%+ of
+  the code), year the repository was created, license, and star range.
+- Clues are the repo's own description with the name removed. When that leaves a hole, a reworded
+  version lives in `shared/data/catalog-clues.ts` (same facts, no name); repos whose description is
+  just their name get no clue and skip identify/what. A test checks no clue leaks its repo's name.
+- **Rising repos** refresh weekly (see below). The Daily mixes 10 classic/catalog repos with 2 rising.
+
+## Social features
+
+- **Streaks and stats:** played, made-the-gate rate, current and best streak, best score, and the
+  last 14 days, all from official Daily runs.
+- **Share text and cards** add rank, top percent, streak, team rank and fastest answer, e.g.
+  `#212 of 5,310 · top 4% · streak 5 · team acme #2 of 31 · fastest 1.4s`.
+- **Teams:** set a team (or open `/?team=acme`). A team's daily score is its best 3 official runs
+  added up. Leaderboard tabs: Everyone, Verified, My team, Teams.
+- **Rising reveal:** after a Daily, the results list today's rising repos with links (also on the
+  `/r/:id` share page), plus the whole weekly pool.
+- **Arena:** private rooms, or *Quick match* into a public room that starts 15 s after the first
+  player arrives (sooner when 12+ are waiting). Empty seats are filled with clearly labeled bots
+  (about 70% accurate). Invite links are `/a/<code>`, with a preview card for chat apps.
+- **Sign in with GitHub** (optional): verified players show as `@login` with a check mark, and the
+  Verified tab shows only them. Display names can't start with `@`.
+- **Sound:** small synthesized effects (no audio files); mute with the speaker button or `M`.
+
 ## How the rules are enforced
 
 - **Daily:** the course comes from `FNV-1a("lcs-YYYYMMDD")` → mulberry32, and each question from
-  `YYYYMMDD-q-<n>`. The rising pool used for a date is frozen the first time anyone loads that
-  date, so a refresh partway through the day can't change the course.
+  `YYYYMMDD-q-<n>`. The day's rising pool and its 12 repos are stored the first time anyone loads
+  that date, so a weekly refresh or a catalog rebuild can't change a course (or old share cards).
 - **Official run:** `POST /api/daily/start` creates at most one official run per player per UTC
   day (enforced by a unique index). Players are identified by an anonymous `lcs_pid` cookie.
 - **Finish validation:** the server recomputes the score from the seeded course and the claimed
@@ -65,10 +96,15 @@ fly launch --no-deploy --copy-config      # pick an app name; it updates fly.tom
 fly volumes create lcs_data --size 1 --region iad
 fly secrets set PUBLIC_URL=https://<app>.fly.dev \
                 GITHUB_TOKEN=<read-only token> \
-                ANTHROPIC_API_KEY=<optional, for better rising clues>
+                ANTHROPIC_API_KEY=<optional, for better rising clues> \
+                GITHUB_CLIENT_ID=<optional, OAuth app> GITHUB_CLIENT_SECRET=<optional>
 fly deploy
 fly ssh console -C "sh -c 'cd /app && npm run refresh-rising'"   # first rising pool
 ```
+
+**GitHub sign-in (optional):** create an OAuth app at github.com/settings/developers with the
+callback URL `<PUBLIC_URL>/auth/github/callback`, then set `GITHUB_CLIENT_ID` and
+`GITHUB_CLIENT_SECRET`. Without them the sign-in button is hidden and everything else works.
 
 `PUBLIC_URL` is used for absolute links in share pages and Open Graph tags. Set it to your custom
 domain if you add one.
@@ -93,8 +129,9 @@ and return to the Arena screen. Daily runs are unaffected.
 
 ## Known limits
 
-- Identity is a cookie. Clearing cookies gives a new player number and another official run.
-  Adding real accounts would close that gap.
+- Anonymous identity is a cookie, so clearing cookies gives an anonymous player another official
+  run. GitHub-verified players can't do that, which is what the Verified tab is for.
+- Anyone can join any team by typing its name. Teams are for friendly rivalry, not access control.
 - The client is trusted for *when* it answered within the timer (it reports `ceil(secondsLeft)`).
   The server bounds it by the timer and total run time, but a modified client could still claim
   fast answers. Arena answers are fully server-timed.
