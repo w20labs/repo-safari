@@ -7,13 +7,14 @@ import type { Repo, RisingPool } from '../shared/types.ts';
 import { Stage } from './game/stage.ts';
 import { me, renderWho, setMe } from './identity.ts';
 import { Backdrop } from './modes/backdrop.ts';
-import { SoloRun, type SoloOutcome } from './modes/solo.ts';
-import { api } from './net/api.ts';
+import { SoloRun, fastestLabel, type SoloOutcome } from './modes/solo.ts';
+import { api, type PlayerStats } from './net/api.ts';
 import { $, h } from './ui/dom.ts';
 import { clearHud } from './ui/hud.ts';
 import { icon } from './ui/icons.ts';
 import { boardTable, leaderboardCard } from './ui/leaderboard.ts';
 import { howToCard, menuPanel } from './ui/menu.ts';
+import { statsCard } from './ui/stats.ts';
 import { hideOverlay, showOverlay } from './ui/overlay.ts';
 import { showResults } from './ui/results.ts';
 import { clearToasts, toast } from './ui/toast.ts';
@@ -24,6 +25,7 @@ let run: SoloRun | null = null;
 let risingPool: RisingPool | null = null;
 let playedToday = false;
 let online = false;
+let stats: PlayerStats | null = null;
 
 function stopRun() {
   run?.dispose();
@@ -44,7 +46,9 @@ function showMenu() {
     menuPanel({
       playerNum: String(me.num).padStart(3, '0'),
       name: me.name,
-      dailyTag: !online ? '' : playedToday ? 'Played today · replays only' : 'Official run ready',
+      dailyTag: !online
+        ? ''
+        : [stats && stats.currentStreak >= 1 ? `Streak ${stats.currentStreak}` : '', playedToday ? 'Played today · replays only' : 'Official run ready'].filter(Boolean).join(' · '),
       onName: (name) => {
         setMe({ name });
         api.setName(name).then((r) => setMe({ name: r.name })).catch(() => undefined);
@@ -60,7 +64,7 @@ function showMenu() {
 async function refreshBoard() {
   const below = $('#below');
   const board = await leaderboardCard(dateKey());
-  below.replaceChildren(board, howToCard());
+  below.replaceChildren(board, statsCard(stats), howToCard());
 }
 
 // ---------- Arena ----------
@@ -180,6 +184,8 @@ async function dailyResults(o: SoloOutcome, runId: string | null) {
     try {
       const r = await api.dailyFinish({ runId, results: o.results, score: o.score, won: o.won, outLabel: o.summary.outLine });
       rank = r.rank;
+      stats = r.stats;
+      o.summary.rankLine = [r.rankLine, fastestLabel(o.fastestMs)].filter(Boolean).join(' · ');
       permalink = `${location.origin}/r/${runId}`;
     } catch (e) {
       note = `This run couldn't be saved: ${(e as Error).message}.`;
@@ -202,6 +208,7 @@ async function dailyResults(o: SoloOutcome, runId: string | null) {
         { label: 'Score', value: formatScore(o.score), cls: 'score' },
         { label: 'Cleared', value: o.summary.statLine.replace(' cleared', '') },
         { label: runId ? 'Rank today' : 'Run', value: rank ? `#${rank}` : runId ? '–' : 'Replay' },
+        ...(runId && stats ? [{ label: 'Streak', value: String(stats.currentStreak), cls: 'hot' }] : []),
       ],
       url: permalink ?? location.origin,
       permalink,
@@ -231,6 +238,7 @@ async function init() {
     setMe({ id: m.id, num: m.num, name: m.name || me.name });
     if (!m.name && me.name) void api.setName(me.name);
     playedToday = m.playedToday;
+    stats = m.stats;
     online = true;
   } catch {
     online = false;

@@ -47,8 +47,12 @@ export interface SoloOutcome {
   results: RunResult[];
   diedAt: number | null;
   playersLeft: number | null;
+  /** quickest correct answer in ms, or null */
+  fastestMs: number | null;
   summary: ResultSummary;
 }
+
+export const fastestLabel = (ms: number | null) => (ms === null ? '' : `fastest ${(ms / 1000).toFixed(1)}s`);
 
 /** Daily and Practice runs: land on a platform, answer, clear it, reach the gate. */
 export class SoloRun implements Mode {
@@ -61,6 +65,7 @@ export class SoloRun implements Mode {
   private bots: Bots | null = null;
   private playersLeft: number | null = null;
   private won = false;
+  private fastestMs: number | null = null;
 
   constructor(private stage: Stage, private cfg: SoloConfig) {
     this.world = new World(cfg.course);
@@ -163,6 +168,8 @@ export class SoloRun implements Mode {
         this.results.push({ i, ok, s });
         let note: string | undefined;
         if (ok) {
+          const took = total - Math.max(0, secondsLeft * 1000);
+          this.fastestMs = this.fastestMs === null ? took : Math.min(this.fastestMs, took);
           const pts = answerScore(s, p.mult);
           this.score += pts;
           this.world.cleared.add(i);
@@ -235,8 +242,9 @@ export class SoloRun implements Mode {
       squares: squaresFor(c.course, cleared, won ? null : diedAt),
       standing: won,
       outLine,
+      rankLine: fastestLabel(this.fastestMs) || undefined,
     };
-    c.onEnd({ won, reason, score: this.score, cleared, results: this.results, diedAt, playersLeft: this.playersLeft, summary });
+    c.onEnd({ won, reason, score: this.score, cleared, results: this.results, diedAt, playersLeft: this.playersLeft, fastestMs: this.fastestMs, summary });
   }
 
   dispose() {

@@ -18,12 +18,30 @@ async function call<T>(method: 'GET' | 'POST', path: string, body?: unknown): Pr
   return data;
 }
 
+export interface DayEntry {
+  date: string;
+  score: number;
+  cleared: number;
+  total: number;
+  won: boolean;
+}
+
+export interface PlayerStats {
+  played: number;
+  wins: number;
+  bestScore: number;
+  currentStreak: number;
+  bestStreak: number;
+  recent: (DayEntry | null)[];
+}
+
 export interface MeResponse {
   id: string;
   num: number;
   name: string;
   today: string;
   playedToday: boolean;
+  stats: PlayerStats;
 }
 
 export interface BoardRow {
@@ -51,7 +69,7 @@ export const api = {
   dailyCourse: (date: string) => call<{ date: string; pool: RisingPool | null; repos: Repo[] }>('GET', `/api/daily/course?date=${date}`),
   dailyStart: () => call<{ runId: string | null; official: boolean; date: string; pool: RisingPool | null; repos: Repo[] }>('POST', '/api/daily/start'),
   dailyFinish: (body: { runId: string; results: RunResult[]; score: number; won: boolean; outLabel: string }) =>
-    call<{ ok: true; score: number; rank: number; url: string; outLabel: string }>('POST', '/api/daily/finish', body),
+    call<{ ok: true; score: number; rank: number; players: number; rankLine: string; stats: PlayerStats; url: string; outLabel: string }>('POST', '/api/daily/finish', body),
   leaderboard: (date: string) => call<BoardResponse>('GET', `/api/daily/leaderboard?date=${date}`),
   rising: () => call<RisingPool & { asOf: string | null }>('GET', '/api/rising'),
 };

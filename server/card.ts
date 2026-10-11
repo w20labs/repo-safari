@@ -11,8 +11,9 @@ GlobalFonts.registerFromPath(resolve(FONTS, 'JetBrainsMono.ttf'), 'JetBrains Mon
 const cache = new Map<string, Buffer>();
 const MAX_CACHED = 300;
 
-/** Renders (and caches) the PNG card. Finished runs never change, so the key can be the run id. */
-export function cardPng(key: string, summary: ResultSummary): Buffer {
+/** Renders (and caches for 10 minutes; the rank on the card moves as more people finish) the PNG card. */
+export function cardPng(id: string, summary: ResultSummary): Buffer {
+  const key = `${id}:${Math.floor(Date.now() / 600_000)}`;
   const hit = cache.get(key);
   if (hit) return hit;
   const canvas = createCanvas(CARD_W, CARD_H);

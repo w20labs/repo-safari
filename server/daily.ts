@@ -50,6 +50,7 @@ export function summaryFor(
   course: Course,
   run: { date: string; score: number | null; cleared: number | null; total: number | null; won: number | null; died_at: number | null; out_label: string | null; results: string | null },
   player: { num: number; name: string },
+  rankLine?: string,
 ): ResultSummary {
   const results = (run.results ? JSON.parse(run.results) : []) as RunResult[];
   const cleared = results.filter((r) => r.ok).map((r) => r.i);
@@ -63,5 +64,6 @@ export function summaryFor(
     squares: squaresFor(course, cleared, run.won ? null : run.died_at),
     standing: !!run.won,
     outLine: run.out_label ?? '',
+    rankLine,
   };
 }

@@ -17,6 +17,7 @@ const PATHS: Record<string, string> = {
   refresh: '<path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/>',
   trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4M12 13v4m-4 3h8"/>',
   check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  bolt: '<path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/>',
   x: '<path d="M6 6l12 12M18 6 6 18"/>',
 };
 

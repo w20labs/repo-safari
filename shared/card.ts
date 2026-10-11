@@ -88,7 +88,7 @@ export function drawCard(ctx: Ctx2D, r: ResultSummary) {
     for (let row = 0; row < 8; row++) {
       const hsh = fnv1a(`card${l}:${row}`) / 4294967296;
       const dy = 40 + row * 80 + hsh * 30;
-      if (hsh > 0.35 || (dy > 395 && dy < 490)) continue;
+      if (hsh > 0.35 || (dy > 405 && dy < 500)) continue;
       ctx.fillStyle = hsh < 0.05 ? 'rgba(46,196,166,0.3)' : 'rgba(58,66,96,0.6)';
       ctx.beginPath();
       ctx.arc(x, dy, 6, 0, Math.PI * 2);
@@ -151,12 +151,17 @@ export function drawCard(ctx: Ctx2D, r: ResultSummary) {
   ctx.font = `700 64px ${MONO}`;
   ctx.fillStyle = COLORS.amber;
   const scoreText = formatScore(r.score);
-  ctx.fillText(scoreText, CARD_W - 120, 340);
+  ctx.fillText(scoreText, CARD_W - 120, 326);
   ctx.font = `600 26px ${MONO}`;
   ctx.fillStyle = COLORS.muted;
-  ctx.fillText('pts', CARD_W - 64, 340);
+  ctx.fillText('pts', CARD_W - 64, 326);
   ctx.fillStyle = COLORS.text;
-  ctx.fillText(r.statLine, CARD_W - 64, 382);
+  ctx.fillText(r.statLine, CARD_W - 64, 364);
+  if (r.rankLine) {
+    fitFont(ctx, r.rankLine, MONO, '600', 22, 560);
+    ctx.fillStyle = COLORS.lime;
+    ctx.fillText(r.rankLine, CARD_W - 64, 396);
+  }
 
   // squares row
   const n = Math.max(1, r.squares.length);
@@ -164,7 +169,7 @@ export function drawCard(ctx: Ctx2D, r: ResultSummary) {
   const size = Math.min(64, Math.floor(avail / n));
   const rowW = size * n;
   const sx = 64 + (avail - rowW) / 2;
-  r.squares.forEach((sq, i) => drawSquare(ctx, sq, sx + i * size, 410, size));
+  r.squares.forEach((sq, i) => drawSquare(ctx, sq, sx + i * size, 424, size));
 
   // footer band
   ctx.fillStyle = COLORS.panel;

@@ -15,12 +15,15 @@ export interface ResultSummary {
   standing: boolean;
   /** out reason, or "Still standing" */
   outLine: string;
+  /** optional extras: "#212 of 5,310 · top 4% · streak 5 · fastest 1.4s" */
+  rankLine?: string;
 }
 
 export function shareText(r: ResultSummary, url: string): string {
   return [
     `Last Commit Standing · ${r.mode} ${r.date}`,
     `Player ${padPlayerNumber(r.playerNum)} · ${formatScore(r.score)} pts · ${r.statLine}`,
+    ...(r.rankLine ? [r.rankLine] : []),
     r.squares.map((s) => SQUARE_CHARS[s]).join(''),
     r.outLine,
     url,

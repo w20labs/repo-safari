@@ -21,6 +21,7 @@ import {
   type PlayerRow,
 } from './store.ts';
 import { getMeta } from './db.ts';
+import { playerStats, rankLine, streakAt } from './stats.ts';
 
 const PID_COOKIE = 'lcs_pid';
 const YEAR = 60 * 60 * 24 * 365;
@@ -44,7 +45,7 @@ const routes: [string, RegExp, Handler][] = [
   ['GET', /^\/api\/me$/, (req, res) => {
     const p = ensurePlayer(req, res);
     const today = dateKey();
-    json(res, 200, { id: p.id, num: p.num, name: p.name, today, playedToday: !!officialRun(p.id, today) });
+    json(res, 200, { id: p.id, num: p.num, name: p.name, today, playedToday: !!officialRun(p.id, today), stats: playerStats(p.id, today) });
   }],
 
   ['POST', /^\/api\/me$/, async (req, res) => {
@@ -84,12 +85,18 @@ const routes: [string, RegExp, Handler][] = [
     finishRun(run.id, check);
     const done = getRun(run.id)!;
     const origin = originOf(req);
+    const { rank } = rankOf(done);
+    const { players } = leaderboard(run.date, p.id, 0);
+    const stats = playerStats(p.id, run.date);
     json(res, 200, {
       ok: true,
       score: check.score,
       cleared: check.cleared,
       outLabel: check.outLabel,
-      rank: rankOf(done).rank,
+      rank,
+      players,
+      rankLine: rankLine(rank, players, stats.currentStreak),
+      stats,
       url: `${origin}/r/${run.id}`,
     });
   }],
@@ -110,7 +117,7 @@ const routes: [string, RegExp, Handler][] = [
     const found = finishedRun(params.id);
     if (!found) throw new HttpError(404, 'no such run');
     const png = cardPng(params.id, found.summary);
-    res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400, immutable', 'Content-Length': png.length });
+    res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=600', 'Content-Length': png.length });
     res.end(png);
   }],
 
@@ -132,7 +139,10 @@ function finishedRun(id: string) {
   if (!run?.finished_at || !run.official) return null;
   const player = getPlayer(run.player_id)!;
   const { course } = courseForDate(run.date);
-  return { run, summary: summaryFor(course, run, player), rank: rankOf(run).rank };
+  const { rank } = rankOf(run);
+  const { players } = leaderboard(run.date, undefined, 0);
+  const line = rankLine(rank, players, streakAt(player.id, run.date));
+  return { run, summary: summaryFor(course, run, player, line), rank };
 }
 
 function sharePage(origin: string, id: string, s: ReturnType<typeof summaryFor>, rank: number): string {
