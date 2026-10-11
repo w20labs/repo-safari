@@ -6,6 +6,8 @@ export type ClientMsg =
   | { t: 'hello'; pid: string; name: string }
   | { t: 'ping'; c: number }
   | { t: 'create' }
+  /** join (or open) a public room that starts on its own */
+  | { t: 'quick' }
   | { t: 'join'; code: string }
   | { t: 'start' }
   | { t: 'leave' }
@@ -19,6 +21,8 @@ export interface LobbyPlayer {
   name: string;
   state: 'alive' | 'out' | 'spectator';
   connected: boolean;
+  /** server-run filler player in a public room */
+  bot?: boolean;
 }
 
 /** Question as sent to clients: no answer index. */
@@ -29,7 +33,16 @@ export type Elimination = { id: string; reason: string };
 export type ServerMsg =
   | { t: 'welcome'; id: string; num: number }
   | { t: 'pong'; c: number; s: number }
-  | { t: 'room'; code: string; hostId: string; phase: 'lobby' | 'running' | 'over'; players: LobbyPlayer[] }
+  | {
+      t: 'room';
+      code: string;
+      hostId: string;
+      phase: 'lobby' | 'running' | 'over';
+      players: LobbyPlayer[];
+      isPublic: boolean;
+      /** public rooms: server time the next match starts */
+      autoStartAt: number | null;
+    }
   | { t: 'start'; seed: number; t0: number }
   /** relayed positions: [id, x, y, facing, grounded] */
   | { t: 'snap'; s: number; p: [string, number, number, number, number][] }

@@ -1,5 +1,5 @@
 import { randomBytes, randomInt } from 'node:crypto';
-import { ARENA, arenaEndsAt, bellAt, platformStates, questionEndsAt } from '../../shared/arena.ts';
+import { ARENA, arenaEndsAt, bellAt, crumblePlan, platformStates, questionEndsAt } from '../../shared/arena.ts';
 import { ARENA_PLATFORMS, arenaCourse, type Course } from '../../shared/course.ts';
 import { SURVIVOR_BONUS, TOTAL_PLAYERS } from '../../shared/constants.ts';
 import type { ClientMsg, Elimination, LobbyPlayer, PublicQuestion, ServerMsg } from '../../shared/protocol.ts';
@@ -15,6 +15,7 @@ export interface Conn {
 interface Member {
   /** public id shown to other players (never the identity cookie) */
   id: string;
+  bot?: BotBrain;
   /** private identity, used to re-attach after a reconnect */
   key: string;
   num: number;
@@ -28,6 +29,17 @@ interface Member {
   standMult: Map<number, number>;
   score: number;
   bellsSurvived: number;
+}
+
+/** Server-side filler player: hops to a platform, answers with ~70% accuracy. */
+interface BotBrain {
+  /** where the current hop started and when */
+  from: { x: number; y: number; at: number };
+  target: number;
+  targetX: number;
+  wakeAt: number;
+  answerAt: number | null;
+  answerChoice: number;
 }
 
 interface BellState {
@@ -52,9 +64,22 @@ export class Room {
   private bells = new Map<number, BellState>();
   private nextBell = 0;
   emptySince: number | null = null;
+  readonly isPublic: boolean;
+  autoStartAt: number | null = null;
 
-  constructor(code: string, private now: () => number = Date.now) {
+  constructor(code: string, private now: () => number = Date.now, opts: { isPublic?: boolean } = {}) {
     this.code = code;
+    this.isPublic = !!opts.isPublic;
+  }
+
+  /** Connected humans. */
+  get humans() {
+    return [...this.members.values()].filter((m) => !m.bot && m.conn).length;
+  }
+
+  /** Public rooms accept quick-match players until a match starts. */
+  get joinable() {
+    return this.isPublic && this.phase !== 'running' && this.members.size < MAX_PLAYERS;
   }
 
   // ---------- membership ----------
@@ -114,8 +139,8 @@ export class Room {
     if (!m) return;
     this.members.delete(id);
     if (this.phase === 'running' && m.state === 'alive') this.broadcast({ t: 'elim', out: [{ id, reason: 'Left the room' }] });
-    if (this.hostId === id) this.hostId = [...this.members.values()].find((x) => x.conn)?.id ?? [...this.members.keys()][0] ?? '';
-    if (!this.members.size) this.emptySince = this.now();
+    if (this.hostId === id) this.hostId = [...this.members.values()].find((x) => x.conn)?.id ?? '';
+    if (!this.humans) this.emptySince = this.now();
     this.broadcastRoom();
     this.checkOver();
   }
@@ -133,16 +158,23 @@ export class Room {
       const next = [...this.members.values()].find((x) => x.conn);
       if (next) this.hostId = next.id;
     }
-    if (![...this.members.values()].some((x) => x.conn)) this.emptySince = this.now();
+    if (!this.humans) this.emptySince = this.now();
     this.broadcastRoom();
   }
 
   // ---------- match ----------
 
   start(byId: string): string | null {
+    if (this.isPublic) return 'Public matches start on their own.';
     if (byId !== this.hostId) return 'Only the host can start.';
     if (this.phase === 'running') return 'Already running.';
+    this.startNow();
+    return null;
+  }
+
+  private startNow() {
     const now = this.now();
+    this.autoStartAt = null;
     this.seed = randomInt(1, 2 ** 31);
     this.qseed = randomBytes(12).toString('hex');
     this.t0 = now + ARENA.leadMs;
@@ -151,18 +183,96 @@ export class Room {
     this.nextBell = 0;
     this.phase = 'running';
     for (const m of this.members.values()) {
-      if (!m.conn) {
+      if (!m.conn && !m.bot) {
         this.members.delete(m.id);
         continue;
       }
       Object.assign(m, { state: 'alive', pos: null, score: 0, bellsSurvived: 0 });
       m.answers.clear();
       m.standMult.clear();
+      if (m.bot) this.resetBot(m);
     }
     // room state first, so clients know who is alive when `start` arrives
     this.broadcastRoom();
     this.broadcast({ t: 'start', seed: this.seed, t0: this.t0 });
-    return null;
+  }
+
+  // ---------- public rooms & bots ----------
+
+  private addBot() {
+    const taken = new Set([...this.members.values()].map((m) => m.num));
+    let n = randomInt(1, TOTAL_PLAYERS + 1);
+    while (taken.has(n)) n = randomInt(1, TOTAL_PLAYERS + 1);
+    const m: Member = {
+      id: `bot-${randomBytes(4).toString('base64url')}`, key: `bot:${n}`, num: n, name: `bot ${String(n).padStart(3, '0')}`, conn: null,
+      state: 'alive', disconnectedAt: null, pos: null, answers: new Map(), standMult: new Map(), score: 0, bellsSurvived: 0,
+    };
+    m.bot = { from: { x: 0, y: 0, at: 0 }, target: -1, targetX: 0, wakeAt: 0, answerAt: null, answerChoice: 0 };
+    this.members.set(m.id, m);
+  }
+
+  private resetBot(m: Member) {
+    const x = 60 + Math.random() * 240;
+    m.pos = { x, y: 1320, f: 1, g: -1, at: this.now() };
+    m.bot = { from: { x, y: 1320, at: this.t0 }, target: -1, targetX: x, wakeAt: this.t0 + 400 + Math.random() * 2500, answerAt: null, answerChoice: 0 };
+  }
+
+  /** Public lobby clock: start after a wait, fill empty seats with bots, start early when busy. */
+  private tickPublic(now: number) {
+    if (!this.isPublic || this.phase === 'running') return;
+    if (!this.humans) {
+      if (this.autoStartAt !== null) {
+        this.autoStartAt = null;
+        this.broadcastRoom();
+      }
+      return;
+    }
+    if (this.autoStartAt === null) {
+      this.autoStartAt = now + (this.phase === 'over' ? ARENA.publicNextMatchMs : ARENA.publicWaitMs);
+      this.broadcastRoom();
+    }
+    if (this.humans >= ARENA.publicFullStart && this.autoStartAt - now > 3000) {
+      this.autoStartAt = now + 3000;
+      this.broadcastRoom();
+    }
+    if (now >= this.autoStartAt) {
+      for (const m of [...this.members.values()]) if (m.bot) this.members.delete(m.id);
+      while (this.members.size < ARENA.botFill) this.addBot();
+      this.startNow();
+    }
+  }
+
+  /** Moves bots between platforms and has them answer. */
+  private tickBots(now: number) {
+    const course = this.course!;
+    const { gone } = platformStates(this.seed, this.t0, now);
+    const k = this.nextBell - 1;
+    const plan = crumblePlan(this.seed);
+    const willCrumble = new Set(plan.slice(Math.max(0, k + (this.bells.get(k)?.judged ? 1 : 0))).flat());
+    for (const m of this.members.values()) {
+      const b = m.bot;
+      if (!b || m.state !== 'alive' || now < b.wakeAt) continue;
+      // pick a new platform when we have none or ours is going away
+      if (b.target < 0 || gone.has(b.target) || (willCrumble.has(b.target) && Math.random() < 0.02)) {
+        const standing = course.platforms.filter((p) => !gone.has(p.i));
+        const safe = standing.filter((p) => !willCrumble.has(p.i));
+        const pool = safe.length && Math.random() < 0.85 ? safe : standing;
+        const p = pool[Math.floor(Math.random() * pool.length)];
+        b.from = { x: m.pos?.x ?? 100, y: m.pos?.y ?? 1320, at: now };
+        b.target = p.i;
+        b.targetX = p.cx + (Math.random() - 0.5) * (p.w - 30);
+      }
+      const p = course.platforms[b.target];
+      const dur = Math.min(2400, 500 + Math.abs(b.targetX - b.from.x) * 1.6);
+      const u = Math.min(1, (now - b.from.at) / dur);
+      const x = b.from.x + (b.targetX - b.from.x) * u;
+      const y = b.from.y + (p.baseY - b.from.y) * u - Math.sin(u * Math.PI) * 140;
+      m.pos = { x, y, f: b.targetX >= b.from.x ? 1 : -1, g: u >= 1 ? b.target : -1, at: now };
+      if (b.answerAt !== null && now >= b.answerAt) {
+        this.answer(m.id, k, b.answerChoice);
+        b.answerAt = null;
+      }
+    }
   }
 
   pos(id: string, msg: Extract<ClientMsg, { t: 'pos' }>) {
@@ -196,8 +306,10 @@ export class Room {
 
   /** Advances bells, judging and disconnect eliminations. Call often (e.g. every 50 ms). */
   tick() {
-    if (this.phase !== 'running' || !this.course) return;
     const now = this.now();
+    this.tickPublic(now);
+    if (this.phase !== 'running' || !this.course) return;
+    this.tickBots(now);
     const out: Elimination[] = [];
     for (const m of this.members.values()) {
       if (m.state === 'alive' && m.disconnectedAt !== null && now - m.disconnectedAt > ARENA.disconnectGraceMs) {
@@ -237,6 +349,13 @@ export class Room {
     const repo = pick(rng, standing.length ? standing : course.platforms).repo;
     this.bells.set(k, { question: makeQuestion(repo, rng, defaultContext()), repoShort: repo.short, judged: false });
     const pq = this.publicQuestion(k);
+    const q = this.bells.get(k)!.question;
+    for (const m of this.members.values()) {
+      if (m.bot && m.state === 'alive') {
+        m.bot.answerAt = now + 1500 + Math.random() * 6000;
+        m.bot.answerChoice = Math.random() < ARENA.botAccuracy ? q.answer : (q.answer + 1 + Math.floor(Math.random() * 3)) % 4;
+      }
+    }
     for (const m of this.members.values()) m.conn?.send({ t: 'bell', bell: k, out, question: m.state === 'alive' ? pq : null });
     this.broadcastRoom();
   }
@@ -288,6 +407,8 @@ export class Room {
       bellsSurvived[m.id] = m.bellsSurvived;
     }
     this.broadcast({ t: 'over', winners, scores, bellsSurvived });
+    if (this.isPublic) for (const m of [...this.members.values()]) if (m.bot) this.members.delete(m.id);
+    this.autoStartAt = null;
     this.broadcastRoom();
   }
 
@@ -304,11 +425,11 @@ export class Room {
   }
 
   lobby(): LobbyPlayer[] {
-    return [...this.members.values()].map((m) => ({ id: m.id, num: m.num, name: m.name, state: m.state, connected: !!m.conn }));
+    return [...this.members.values()].map((m) => ({ id: m.id, num: m.num, name: m.name, state: m.state, connected: !!m.conn || !!m.bot, ...(m.bot ? { bot: true } : {}) }));
   }
 
   broadcastRoom() {
-    this.broadcast({ t: 'room', code: this.code, hostId: this.hostId, phase: this.phase, players: this.lobby() });
+    this.broadcast({ t: 'room', code: this.code, hostId: this.hostId, phase: this.phase, players: this.lobby(), isPublic: this.isPublic, autoStartAt: this.autoStartAt });
   }
 
   broadcast(msg: ServerMsg) {

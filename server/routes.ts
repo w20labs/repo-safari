@@ -3,7 +3,8 @@ import type { Repo } from '../shared/types.ts';
 import { padPlayerNumber } from '../shared/constants.ts';
 import { dateKey } from '../shared/rng.ts';
 import { formatScore } from '../shared/scoring.ts';
-import { cardPng } from './card.ts';
+import { cardPng, inviteCardPng } from './card.ts';
+import { roomInfo } from './arena/index.ts';
 import { checkFinish, summaryFor, type FinishBody } from './daily.ts';
 import { HttpError, escapeHtml, json, originOf, parseCookies, readJson, setCookie } from './http.ts';
 import {
@@ -131,6 +132,35 @@ const routes: [string, RegExp, Handler][] = [
     const png = cardPng(params.id, found.summary);
     res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=600', 'Content-Length': png.length });
     res.end(png);
+  }],
+
+  ['GET', /^\/card\/arena\/(?<code>[a-z0-9]{4})\.png$/, (_req, res, params) => {
+    const info = roomInfo(params.code);
+    const png = inviteCardPng(params.code, info?.players ?? 0);
+    res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=60', 'Content-Length': png.length });
+    res.end(png);
+  }],
+
+  ['GET', /^\/a\/(?<code>[a-zA-Z0-9]{4})$/, (req, res, params) => {
+    const code = params.code.toLowerCase();
+    const info = roomInfo(code);
+    const origin = originOf(req);
+    const e = escapeHtml;
+    const title = `Join Arena room ${code.toUpperCase()} · Last Commit Standing`;
+    const desc = info
+      ? `${info.players} player${info.players === 1 ? '' : 's'} in the room. Six bells, one question each. Last ones standing win.`
+      : 'Six bells, one question each. Last ones standing win.';
+    const target = `/?room=${code}`;
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
+    res.end(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${e(title)}</title><meta name="description" content="${e(desc)}">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Last Commit Standing">
+<meta property="og:title" content="${e(title)}"><meta property="og:description" content="${e(desc)}">
+<meta property="og:image" content="${e(`${origin}/card/arena/${code}.png`)}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:url" content="${e(`${origin}/a/${code}`)}"><meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${e(title)}"><meta name="twitter:description" content="${e(desc)}"><meta name="twitter:image" content="${e(`${origin}/card/arena/${code}.png`)}">
+<meta http-equiv="refresh" content="0; url=${e(target)}"></head>
+<body style="background:#0A0C14;color:#ECEFF7;font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0"><a href="${e(target)}" style="color:#2EC4A6">Join room ${e(code)}</a></body></html>`);
   }],
 
   ['GET', /^\/r\/(?<id>[\w-]+)$/, (req, res, params) => {

@@ -279,7 +279,7 @@ export class ArenaRun implements Mode {
       const p = this.o.players().find((x) => x.id === id);
       actors.push({
         x: s.x, y: s.y, facing: s.f === -1 ? -1 : 1, num: p?.num ?? 0, suit: SUITS[k++ % SUITS.length],
-        runT: prefs.reducedMotion ? 0 : r.runT, airborne: !s.g, tag: p ? p.name || padPlayerNumber(p.num) : '', alpha: 0.95,
+        runT: prefs.reducedMotion ? 0 : r.runT, airborne: !s.g, tag: p ? (p.bot ? `BOT ${padPlayerNumber(p.num)}` : p.name || padPlayerNumber(p.num)) : '', alpha: p?.bot ? 0.75 : 0.95,
       });
     }
     if (this.alive) {

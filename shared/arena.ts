@@ -16,6 +16,14 @@ export const ARENA = {
   posHz: 15,
   codeAlphabet: 'abcdefghjkmnpqrstuvwxyz23456789',
   codeLength: 4,
+  /** public rooms: wait this long after the first player arrives (or after a match) */
+  publicWaitMs: 15000,
+  publicNextMatchMs: 20000,
+  /** start early once this many people are waiting */
+  publicFullStart: 12,
+  /** bots fill public matches up to this many players */
+  botFill: 4,
+  botAccuracy: 0.7,
 } as const;
 
 /** Bell k (0-based) rings at t0 + 9 s + k * 20 s. Shown to players as "Bell k+1". */

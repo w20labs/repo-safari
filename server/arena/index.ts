@@ -10,12 +10,24 @@ const rooms = new Map<string, Room>();
 const ROOM_IDLE_MS = 60_000;
 const MAX_MSGS_PER_SEC = 60;
 
-function newRoom(): Room {
+function newRoom(isPublic = false): Room {
   let code = makeRoomCode();
   while (rooms.has(code)) code = makeRoomCode();
-  const room = new Room(code);
+  const room = new Room(code, Date.now, { isPublic });
   rooms.set(code, room);
   return room;
+}
+
+/** A public room that's waiting for players, or a fresh one. Prefers the fullest. */
+function quickRoom(): Room {
+  const open = [...rooms.values()].filter((r) => r.joinable).sort((a, b) => b.humans - a.humans);
+  return open[0] ?? newRoom(true);
+}
+
+/** For invite-link previews. */
+export function roomInfo(code: string): { code: string; players: number; phase: Room['phase']; isPublic: boolean } | null {
+  const r = rooms.get(code.toLowerCase());
+  return r ? { code: r.code, players: r.humans, phase: r.phase, isPublic: r.isPublic } : null;
 }
 
 function handleConnection(ws: WebSocket, req: IncomingMessage) {
@@ -62,6 +74,9 @@ function handleConnection(ws: WebSocket, req: IncomingMessage) {
         break;
       case 'create':
         enter(newRoom());
+        break;
+      case 'quick':
+        enter(quickRoom());
         break;
       case 'join': {
         const r = rooms.get(String(msg.code ?? '').toLowerCase().trim());

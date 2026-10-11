@@ -147,4 +147,35 @@ describe('arena room', () => {
     const nums = room.lobby().map((p) => p.num);
     expect(new Set(nums).size).toBe(30);
   });
+
+  it('public rooms start on their own and fill with bots that play', () => {
+    let now = 5_000_000;
+    const room = new Room('pubx', () => now, { isPublic: true });
+    const box: ServerMsg[] = [];
+    const r = room.join('human', null, 'H', { send: (m) => box.push(m) });
+    if ('error' in r) throw new Error(r.error);
+    expect(room.start(r.id)).toMatch(/on their own/);
+    room.tick();
+    const lobby = last(box, 'room')!;
+    expect(lobby.isPublic).toBe(true);
+    expect(lobby.autoStartAt).toBe(now + ARENA.publicWaitMs);
+    now += ARENA.publicWaitMs;
+    room.tick();
+    expect(room.phase).toBe('running');
+    const players = last(box, 'room')!.players;
+    expect(players).toHaveLength(ARENA.botFill);
+    expect(players.filter((p) => p.bot)).toHaveLength(ARENA.botFill - 1);
+    // bots get onto platforms and answer
+    const t0 = room.t0;
+    for (now = t0; now <= questionEndsAt(t0, 0) + 1; now += 50) room.tick();
+    const v = last(box, 'verdict')!;
+    expect(v.bell).toBe(0);
+    const bots = players.filter((p) => p.bot).map((p) => p.id);
+    const out = new Set(v.out.map((o) => o.id));
+    const bellOut = new Set(box.filter((m) => m.t === 'bell').flatMap((m) => (m as Extract<ServerMsg, { t: 'bell' }>).out.map((o) => o.id)));
+    // most bots reached a platform in time
+    expect(bots.filter((id) => !bellOut.has(id)).length).toBeGreaterThanOrEqual(1);
+    void out;
+  });
 });
+

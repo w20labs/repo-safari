@@ -189,3 +189,55 @@ export function drawCard(ctx: Ctx2D, r: ResultSummary) {
   ctx.fillStyle = COLORS.muted;
   ctx.fillText(r.standing ? 'Your turn.' : 'Can you outlast me?', CARD_W - 64, 560);
 }
+
+/** 1200x630 Arena invite card: big room code, player count, the pitch. */
+export function drawInviteCard(ctx: Ctx2D, o: { code: string; players: number }) {
+  ctx.fillStyle = COLORS.bg;
+  ctx.fillRect(0, 0, CARD_W, CARD_H);
+  ctx.strokeStyle = COLORS.line;
+  ctx.lineWidth = 2;
+  for (let l = 0; l < 11; l++) {
+    ctx.beginPath();
+    ctx.moveTo(60 + l * 112, 0);
+    ctx.lineTo(60 + l * 112, CARD_H);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.roundRect(24, 24, CARD_W - 48, CARD_H - 48, 22);
+  ctx.stroke();
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = `400 34px ${DISPLAY}`;
+  ctx.fillStyle = COLORS.text;
+  ctx.fillText('LAST COMMIT', 64, 98);
+  const w1 = ctx.measureText('LAST COMMIT ').width;
+  ctx.fillStyle = COLORS.pink;
+  ctx.fillText('STANDING', 64 + w1, 98);
+  ctx.textAlign = 'right';
+  ctx.font = `600 24px ${MONO}`;
+  ctx.fillStyle = COLORS.amber;
+  ctx.fillText('ARENA · LIVE ROOM', CARD_W - 64, 96);
+
+  ctx.textAlign = 'center';
+  ctx.font = `600 26px ${MONO}`;
+  ctx.fillStyle = COLORS.muted;
+  ctx.fillText('ROOM CODE', CARD_W / 2, 200);
+  ctx.font = `400 180px ${DISPLAY}`;
+  ctx.fillStyle = COLORS.lime;
+  ctx.fillText(o.code.toUpperCase().split('').join(' '), CARD_W / 2, 370);
+  ctx.font = `700 34px ${UI}`;
+  ctx.fillStyle = COLORS.text;
+  ctx.fillText(o.players === 1 ? '1 player in the room. Get in.' : `${o.players} players in the room. Get in.`, CARD_W / 2, 440);
+
+  ctx.fillStyle = COLORS.panel;
+  ctx.beginPath();
+  ctx.roundRect(25, 510, CARD_W - 50, 95, [0, 0, 21, 21]);
+  ctx.fill();
+  ctx.fillStyle = COLORS.amber;
+  ctx.fillRect(25, 510, CARD_W - 50, 3);
+  ctx.textBaseline = 'middle';
+  ctx.font = `700 30px ${UI}`;
+  ctx.fillStyle = COLORS.text;
+  ctx.fillText('Six bells. Be on a platform when each one rings.', CARD_W / 2, 560);
+}

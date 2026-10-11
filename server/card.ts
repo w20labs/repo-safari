@@ -1,6 +1,6 @@
 import { GlobalFonts, createCanvas } from '@napi-rs/canvas';
 import { resolve } from 'node:path';
-import { CARD_H, CARD_W, drawCard, type Ctx2D } from '../shared/card.ts';
+import { CARD_H, CARD_W, drawCard, drawInviteCard, type Ctx2D } from '../shared/card.ts';
 import type { ResultSummary } from '../shared/share.ts';
 
 const FONTS = resolve('assets/fonts');
@@ -18,6 +18,18 @@ export function cardPng(id: string, summary: ResultSummary): Buffer {
   if (hit) return hit;
   const canvas = createCanvas(CARD_W, CARD_H);
   drawCard(canvas.getContext('2d') as unknown as Ctx2D, summary);
+  const png = canvas.toBuffer('image/png');
+  if (cache.size >= MAX_CACHED) cache.delete(cache.keys().next().value!);
+  cache.set(key, png);
+  return png;
+}
+
+export function inviteCardPng(code: string, players: number): Buffer {
+  const key = `invite:${code}:${players}`;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const canvas = createCanvas(CARD_W, CARD_H);
+  drawInviteCard(canvas.getContext('2d') as unknown as Ctx2D, { code, players });
   const png = canvas.toBuffer('image/png');
   if (cache.size >= MAX_CACHED) cache.delete(cache.keys().next().value!);
   cache.set(key, png);

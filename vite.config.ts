@@ -12,6 +12,7 @@ export default defineConfig({
       '/api': SERVER,
       '/card': SERVER,
       '/r/': SERVER,
+      '/a/': SERVER,
       '/arena': { target: SERVER.replace('http', 'ws'), ws: true },
     },
   },
