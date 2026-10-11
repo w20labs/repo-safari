@@ -1,0 +1,39 @@
+# Fly.io config. Set `app` to your app name (fly launch --no-deploy --copy-config picks it up).
+app = "last-commit-standing"
+primary_region = "iad"
+
+[build]
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8787"
+  DB_PATH = "/data/lcs.db"
+
+# SQLite lives on this volume: fly volumes create lcs_data --size 1 --region iad
+[mounts]
+  source = "lcs_data"
+  destination = "/data"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  # Arena rooms live in memory and SQLite is a local file: run exactly one machine, always on.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "connections"
+    soft_limit = 800
+    hard_limit = 1000
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/rising"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

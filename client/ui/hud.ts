@@ -32,7 +32,7 @@ export function setHud(left: HudChip[], right: HudChip[]) {
 export function setHudCenter(text: string, urgent: boolean) {
   const hud = $('#hud');
   if (!centerEl || !hud.contains(centerEl)) {
-    centerEl = h('div', { class: 'hud-center' }, h('span', { class: 'chip bell' }));
+    centerEl = h('div', { class: 'hud-center', 'aria-hidden': 'true' }, h('span', { class: 'chip bell' }));
     hud.append(centerEl);
   }
   const chip = centerEl.firstElementChild as HTMLElement;

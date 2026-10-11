@@ -1,0 +1,17 @@
+name: Refresh rising repos
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      # Runs inside the live machine so it writes to the app's SQLite volume.
+      # GITHUB_TOKEN / ANTHROPIC_API_KEY come from `fly secrets`, not from this workflow.
+      - run: flyctl ssh console --app "${{ vars.FLY_APP || 'last-commit-standing' }}" -C "sh -c 'cd /app && npm run refresh-rising'"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

@@ -116,7 +116,11 @@ const routes: [string, RegExp, Handler][] = [
 
   ['GET', /^\/r\/(?<id>[\w-]+)$/, (req, res, params) => {
     const found = finishedRun(params.id);
-    if (!found) throw new HttpError(404, 'no such run');
+    if (!found) {
+      res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+      res.end(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Run not found · Last Commit Standing</title><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#0A0C14;color:#ECEFF7;font-family:system-ui,sans-serif;text-align:center;padding:16px"><div><h1 style="font-size:22px">This run doesn't exist, or it isn't finished yet.</h1><p><a href="/?play=daily" style="color:#2EC4A6">Play today's course</a></p></div>`);
+      return;
+    }
     const html = sharePage(originOf(req), params.id, found.summary, found.rank);
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=300' });
     res.end(html);
