@@ -79,6 +79,11 @@ export class SoloRun implements Mode {
     this.updateHud();
   }
 
+  /** official daily runs can't be abandoned with Escape */
+  get official() {
+    return !!this.cfg.official;
+  }
+
   get unlockLeft() {
     return Math.max(0, (this.cfg.course.unlock ?? 0) - this.world.cleared.size);
   }

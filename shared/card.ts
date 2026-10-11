@@ -87,10 +87,11 @@ export function drawCard(ctx: Ctx2D, r: ResultSummary) {
     ctx.stroke();
     for (let row = 0; row < 8; row++) {
       const hsh = fnv1a(`card${l}:${row}`) / 4294967296;
-      if (hsh > 0.35) continue;
+      const dy = 40 + row * 80 + hsh * 30;
+      if (hsh > 0.35 || (dy > 395 && dy < 490)) continue;
       ctx.fillStyle = hsh < 0.05 ? 'rgba(46,196,166,0.3)' : 'rgba(58,66,96,0.6)';
       ctx.beginPath();
-      ctx.arc(x, 40 + row * 80 + hsh * 30, 6, 0, Math.PI * 2);
+      ctx.arc(x, dy, 6, 0, Math.PI * 2);
       ctx.fill();
     }
   }
