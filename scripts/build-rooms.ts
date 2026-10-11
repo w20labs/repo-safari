@@ -65,9 +65,11 @@ async function search(q: string, perPage: number, page = 1): Promise<Repo[]> {
   for (let attempt = 0; attempt < 3; attempt++) {
     const res = await fetch(url, { headers });
     if (res.ok) return ((await res.json()) as { items: Repo[] }).items;
-    if (res.status === 403 || res.status === 429) {
+    const retryAfter = Number(res.headers.get('retry-after') ?? 0);
+    const limited = res.status === 429 || (res.status === 403 && (retryAfter > 0 || res.headers.get('x-ratelimit-remaining') === '0'));
+    if (limited) {
       const reset = Number(res.headers.get('x-ratelimit-reset') ?? 0) * 1000;
-      await sleep(Math.max(5000, reset - Date.now() + 1000));
+      await sleep(retryAfter > 0 ? retryAfter * 1000 + 500 : Math.max(5000, reset - Date.now() + 1000));
       continue;
     }
     throw new Error(`search "${q}" failed: ${res.status} ${await res.text()}`);
@@ -75,19 +77,33 @@ async function search(q: string, perPage: number, page = 1): Promise<Repo[]> {
   throw new Error(`search "${q}" kept hitting the rate limit`);
 }
 
-/** Words that tell us a description is about the topic: the topic's own words, minus filler. */
-const FILLER = new Set(['and', 'the', 'for', 'of', 'to', 'in', 'on', 'with', 'a', 'an', 'js', 'app', 'apps']);
-const topicWords = (t: string) => t.split('-').filter((w) => w.length >= 2 && !FILLER.has(w));
-/** The repo is about the subject: it's in the repo name or in the first 8 words of the description. */
-function about(r: { name: string; description: string | null }, words: string[]): boolean {
-  const lead = (r.description ?? '').split(/\s+/).slice(0, 8).join(' ');
-  return mentions(`${r.name.replace(/[-_.]/g, ' ')} ${lead}`, words);
+/** Topic words too generic to place a repo on their own ("design" in "design-system"). */
+const GENERIC = new Set(['and', 'the', 'for', 'of', 'to', 'in', 'on', 'with', 'a', 'an', 'js', 'app', 'apps', 'design', 'system', 'systems',
+  'data', 'web', 'text', 'real', 'time', 'open', 'source', 'code', 'coding', 'ui', 'ai', 'multi', 'tool', 'tools', 'management', 'based', 'new']);
+const esc = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/**
+ * A topic word as a whole word. Short words (4 letters or fewer) must match exactly, plus a plural:
+ * "rag" matches "RAG" and "rags", never "rage". Longer words may vary in their ending:
+ * "scraping" also matches "scraper" and "scrapes".
+ */
+function word(w: string): string {
+  if (w.length <= 4) return `(^|[^a-z0-9])${esc(w)}(s|es)?($|[^a-z0-9])`;
+  const stem = w.replace(/(ing|ers|er|ion|ions|es|s|e)$/, '');
+  return `(^|[^a-z0-9])${esc(stem)}[a-z]{0,4}($|[^a-z0-9])`;
 }
 
-function mentions(desc: string, words: string[]): boolean {
-  const d = desc.toLowerCase();
-  return words.some((w) => new RegExp(`(^|[^a-z0-9])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(d));
-}
+/**
+ * Patterns for a topic's specific (non-generic) words. A topic made only of generic words
+ * ("app", "coding") gets none, so it places repos only through their GitHub topics.
+ */
+const topicMatch = (t: string): RegExp[] =>
+  t.split('-').filter((w) => w.length >= 2 && !GENERIC.has(w)).map((w) => new RegExp(word(w), 'i'));
+
+/** The text that says what a repo is: its name and the first 8 words of its description. */
+const leadText = (r: { name: string; description: string | null }) =>
+  `${r.name.replace(/[-_.]/g, ' ')} ${(r.description ?? '').split(/\s+/).slice(0, 8).join(' ')}`;
+/** The repo is about the subject: a specific topic word is in its name or the first 8 words of its description. */
+const about = (r: { name: string; description: string | null }, ms: RegExp[][]) => ms.some((m) => m.some((re) => re.test(leadText(r))));
 
 const CACHE = 'data/rooms-cache.json';
 /** At most this many repos from one owner in a room. */
@@ -153,13 +169,13 @@ function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<strin
   let rooms: Room[] = [];
   for (const group of groups.values()) {
     const main = group.sort((a, b) => members.get(b)!.size - members.get(a)!.size)[0];
-    const words = [...new Set(group.flatMap(topicWords))];
+    const matches = group.map(topicMatch);
+    const ownTopics = (r: Repo) => (r.topics ?? []).filter((t) => group.includes(t)).length;
     const ids = new Set(group.flatMap((t) => [...members.get(t)!]));
     const repos = [...ids]
       .map((id) => all.get(id)!)
       .filter((r) => {
-        const own = (r.topics ?? []).filter((t) => group.includes(t)).length;
-        return own >= 2 || about(r, words);
+        return ownTopics(r) >= 2 || about(r, matches);
       })
       .sort((a, b) => b.stargazers_count - a.stargazers_count);
     // a room compares alternatives: if its topic is the name of one of its top two repos
@@ -174,7 +190,7 @@ function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<strin
       return perOwner.get(o)! <= MAX_PER_OWNER;
     });
     // coherence: most of the room has to be about the room's subject, not just tagged with it
-    const onTopic = varied.filter((r) => about(r, words)).length;
+    const onTopic = varied.filter((r) => about(r, matches)).length;
     if (varied.length >= 4 && onTopic / varied.length >= 0.5) rooms.push({ id: main, title: titleOf(main), topics: group, repos: varied });
   }
 
@@ -204,12 +220,15 @@ function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<strin
   const placed = new Map<string, number>();
   rooms.sort((a, b) => a.repos.length - b.repos.length);
   for (const room of rooms) {
-    room.repos = room.repos.filter((r) => {
+    const shown: Repo[] = [];
+    for (const r of room.repos) {
+      if (shown.length >= 8) break;
       const n = placed.get(r.full_name) ?? 0;
-      if (n >= 2) return false;
+      if (n >= 2) continue;
       placed.set(r.full_name, n + 1);
-      return true;
-    });
+      shown.push(r);
+    }
+    room.repos = shown;
   }
   rooms = rooms.filter((r) => r.repos.length >= 4).map((r) => ({ ...r, repos: r.repos.slice(0, 8) }));
   rooms.sort((a, b) => b.repos[0].stargazers_count - a.repos[0].stargazers_count);

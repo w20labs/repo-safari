@@ -20,11 +20,12 @@ const EXCLUDE: [string, RegExp][] = [
   ['watermark or provenance stripping', /watermark|provenance|c2pa|synthid|metadata strip|strip(s|ping)? metadata/i],
   ['account or credential abuse', /credential|password (crack|dump|steal)|stealer|token grabber|account (gen|creator|farm|checker)|\bcombo ?list|brute[- ]?force|phish|captcha (solver|bypass)|spam ?bot|mass (dm|report)|cookie (steal|grab)/i],
   ['adult content', /\bnsfw\b|\bporn|\bhentai|\badult\b|onlyfans|\bnude|\bxxx\b|\berotic/i],
-  ['leaked prompts or free access to paid AI', /prompts?[_ -]?leaks?|leak(ed|s)? (system )?prompts?|cl4r1t4s|gpt4free|free (gpt|chatgpt|claude|ai) (api|access)|reverse[- ]engineered (api|chatgpt|openai)/i],
-  ['piracy or licence bypass', /activation[- ]scripts?|\bkms\b|keygen|\bcrack(ed|s)?\b|piracy|warez|license bypass/i],
+  ['leaked prompts or free access to paid AI', /prompts?[_ -]?leaks?|leak(ed|s)? (system )?prompts?|cl4r1t4s|gpt4free|\bfree\b[^.]{0,40}\b(gpt|chatgpt|claude|gemini|codex|openai)\b[^.]{0,40}\b(api|access|model)|without (using )?[^.]{0,20}quota|reverse[- ]engineered (api|chatgpt|openai)|(wrap|turn|expose)s?\b[^.]{0,40}\b(claude|chatgpt|gemini|codex)\b[^.]{0,40}\bas an? (openai[- ]compatible )?api/i],
+  ['piracy or licence bypass', /activation[- ]scripts?|\bkms[- ]?(activator|activation|server emulator)|keygen|\bcrack(ed|s)?\b|piracy|warez|license bypass/i],
+  ['tracking, spoofing or attack tooling', /browser fingerprint|fingerprint(ing)? (library|visitors|users)|\bspyware\b|trojan (horse|malware|virus)|remote access trojan|\bddos\b|deepfake|jailbreak(s|ing)? (prompts?|llms?|chatgpt|gpt|claude|ai\b)|(llm|chatgpt|gpt|ai) jailbreak|play integrity|integrity (spoof|bypass)|\bspoof(ing|er)?\b|vulnerable (by design|environments?|docker|apps?)/i],
   ['tracking people', /\bosint\b|people[- ]tracker|track (people|anyone|someone)|doxx|stalk/i],
   ['offensive tooling', /post[- ]exploitation|offensive (security|powershell)|red[- ]team(ing)? (framework|toolkit)|\bc2 (framework|server)/i],
-  ['cheats or malware', /\bcheat(s|ing)?\b|aimbot|\bmalware|\bransomware|\bkeylogger|\bbotnet|\brat\b/i],
+  ['cheats or malware', /\bcheat(s|ing)?\b(?![- ]?sheets?)|aimbot|\bmalware|\bransomware|\bkeylogger|\bbotnet|\brat\b/i],
 ];
 
 export function exclusionReason(r: GhRepo): string | null {

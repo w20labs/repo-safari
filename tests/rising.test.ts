@@ -33,4 +33,17 @@ describe('rising filters', () => {
     expect(mentionsName('A tool for rockets', r)).toBe(false);
     expect(mentionsName('Rocket CLI makes launching easy', r)).toBe(true);
   });
+
+  it('catches free-access-to-paid-AI wording and tracking/spoofing tools', () => {
+    expect(exclusionReason(repo('a/x', 'Wrap Gemini CLI and Claude Code as an OpenAI-compatible API service so you can enjoy the free Claude model through API'))).toMatch(/paid AI/);
+    expect(exclusionReason(repo('a/x', 'Use ChatGPT on the web without using Codex quota at all'))).toMatch(/paid AI/);
+    expect(exclusionReason(repo('a/x', 'The most advanced browser fingerprinting library for identifying visitors'))).toMatch(/tracking/);
+    expect(exclusionReason(repo('a/x', 'Module that helps pass Play Integrity checks on rooted phones'))).toMatch(/tracking/);
+  });
+
+  it('does not block ordinary tools that share a word with a blocked category', () => {
+    expect(exclusionReason(repo('a/x', 'Cheat sheets for every language you use at work'))).toBeNull();
+    expect(exclusionReason(repo('a/x', 'Envelope encryption helpers for AWS KMS keys'))).toBeNull();
+  });
 });
+
