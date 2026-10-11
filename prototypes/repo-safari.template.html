@@ -36,6 +36,8 @@ header.top { display: flex; align-items: end; justify-content: space-between; ga
 .today { display: flex; gap: 8px; flex-wrap: wrap; }
 .tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); border: 1px solid rgba(242,181,68,.45); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
 .tag.lime { color: var(--lime); border-color: rgba(212,242,92,.45); }
+.today { align-items: center; }
+.btn.share { min-height: 28px; padding: 3px 12px; font-size: 12.5px; border-radius: 999px; }
 
 /* ---------- stage ---------- */
 .stage { position: relative; height: clamp(420px, 68vh, 640px); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--bg); }
@@ -175,7 +177,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
       <h1 class="brand">REPO <span>SAFARI</span></h1>
       <p class="pitch">A new trail through open source every day. Each platform is a category. Drop into its room to compare its leading active repos, ranked by stars, with the new ones marked. Save the ones you like as stickers.</p>
     </div>
-    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag" id="nextTag">New trail at 00:00 UTC</span></div>
+    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag" id="nextTag">New trail at 00:00 UTC</span><button type="button" class="btn share" id="shareBtn">Share my trail</button></div>
   </header>
 
   <section class="stage" id="stage" aria-label="Today's trail">
@@ -275,6 +277,8 @@ function trailFor(date) {
   return order.slice(start, start + per).map((i) => pool[i]);
 }
 const trail = trailFor(TODAY);
+/** Trail number for share text: #1 is the launch day, 2026-10-12. */
+const TRAIL_NO = Math.max(1, Math.floor((Date.parse(TODAY) - Date.parse('2026-10-12')) / DAY) + 1);
 const colorOf = (id) => PALETTE[fnv(id) % PALETTE.length];
 
 // ---------- world ----------
@@ -556,13 +560,37 @@ function exitRoom() {
 }
 
 // ---------- end of the trail ----------
+/**
+ * Wordle-style summary of today's walk. One square per room, in trail order:
+ * 🟩 saved a sticker there, 🟨 dropped in, ⬜ walked past. The rising room ends the row: ✨ rare saved, 💎 dropped in.
+ */
 function shareText() {
-  const entered = plats.filter((p) => p.entered).length;
   const todays = [...album.values()].filter((s) => s.day === TODAY);
-  const row = plats.map((p) => (p.rising ? (p.entered ? '✦' : '✧') : p.entered ? '◆' : p.seen ? '●' : '○')).join('');
-  return [`Repo Safari · ${TODAY}`, `${entered}/${plats.length} rooms · ${todays.length} sticker${todays.length === 1 ? '' : 's'}${todays.some((s) => s.rare) ? ' (1 rare)' : ''}`, row,
-    ...todays.slice(0, 3).map((s) => `★ ${s.name}`), ...(SHARE_URL.startsWith('http') ? [SHARE_URL] : [])].join('\n');
+  const savedIn = new Set(todays.map((s) => s.room));
+  const cell = (p) => (savedIn.has(p.room.title) ? (p.rising ? '✨' : '🟩') : p.entered ? (p.rising ? '💎' : '🟨') : '⬜');
+  const main = plats.filter((p) => !p.rising), rise = plats.find((p) => p.rising);
+  const entered = plats.filter((p) => p.entered).length;
+  const rare = todays.filter((s) => s.rare).length;
+  const picks = [...todays].sort((a, b) => b.rare - a.rare).slice(0, 3);
+  return [
+    `Repo Safari #${TRAIL_NO} 🧭`,
+    main.map(cell).join('') + (rise ? ` ${cell(rise)}` : ''),
+    `${entered}/${plats.length} rooms · ${todays.length} sticker${todays.length === 1 ? '' : 's'}${rare ? ` · ${rare} rare` : ''}`,
+    ...picks.map((s) => `★ ${s.name}`),
+    ...(SHARE_URL.startsWith('http') ? [SHARE_URL] : []),
+  ].join('\n');
 }
+
+/** Phones get the native share sheet; everything else copies to the clipboard. */
+async function share() {
+  const text = shareText();
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+    try { await navigator.share({ text }); return; }
+    catch (e) { if (e?.name === 'AbortError') return; }
+  }
+  copy(text, 'Copied! Paste it anywhere');
+}
+$('shareBtn').addEventListener('click', () => { $('shareBtn').blur(); share(); });
 
 async function copy(text, done) {
   try { await navigator.clipboard.writeText(text); toast(done); }
@@ -578,7 +606,7 @@ function showEnd() {
     h('p', { class: 'empty', style: 'margin:0' }, `A new trail opens at 00:00 UTC. Your stickers stay in your album.`),
     h('pre', null, text),
     h('div', { class: 'acts' },
-      h('button', { type: 'button', class: 'btn go', onclick: () => copy(text, 'Copied your trail') }, 'Copy my trail'),
+      h('button', { type: 'button', class: 'btn go', onclick: () => share() }, 'Share my trail'),
       h('button', { type: 'button', class: 'btn', onclick: () => { endBox.hidden = true; state = 'walk'; body.x = END_X - 140; body.vx = 0; } }, 'Keep exploring'),
       h('button', { type: 'button', class: 'btn', onclick: () => { endBox.hidden = true; $('fb1').focus(); } }, 'Give feedback'))));
   endBox.hidden = false;
