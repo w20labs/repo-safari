@@ -5,8 +5,10 @@ import { icon } from './icons.ts';
 export interface MenuOpts {
   playerNum: string;
   name: string;
+  team: string;
   dailyTag: string;
   onName(name: string): void;
+  onTeam(team: string): void;
   onDaily(): void;
   onPractice(): void;
   onArena(): void;
@@ -28,16 +30,31 @@ export function menuPanel(o: MenuOpts): HTMLElement {
       tag ? h('span', { class: 'mc-tag' }, tag) : null,
     );
 
+  const teamInput = h('input', {
+    class: 'input', id: 'team', maxlength: 24, autocomplete: 'organization', placeholder: 'e.g. vercel', value: o.team, spellcheck: 'false',
+  }) as HTMLInputElement;
+  teamInput.addEventListener('change', () => o.onTeam(teamInput.value.trim()));
+  teamInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') teamInput.blur();
+  });
+
   return h('div', { class: 'panel wide menu' },
     h('div', null,
       h('div', { class: 'eyebrow' }, `456 players · one wrong answer and you're out`),
       h('h1', { class: 'title', style: { marginTop: '10px' } }, 'Last Commit', h('span', { class: 't2' }, 'Standing')),
       h('p', { class: 'lede' }, 'Every platform is a GitHub repo. Land on one and answer a question about it. A wrong answer, running out of time or falling into the merge conflict knocks you out.'),
     ),
-    h('div', { class: 'field' },
-      h('label', { for: 'name' }, 'Display name (optional, shown on the leaderboard)'),
-      nameInput,
+    h('div', { class: 'fields' },
+      h('div', { class: 'field' },
+        h('label', { for: 'name' }, 'Display name (optional)'),
+        nameInput,
+      ),
+      h('div', { class: 'field' },
+        h('label', { for: 'team' }, 'Team or company (optional)'),
+        teamInput,
+      ),
     ),
+    h('p', { class: 'muted', style: { margin: '-8px 0 0', fontSize: '13px' } }, `Your name shows on the leaderboard. A team's score is its best 3 Daily runs added up.`),
     h('div', { class: 'modes' },
       card('daily', 'calendar', 'Daily', 'Same 12 platforms for everyone today. Your first run is the official one.', o.dailyTag, o.onDaily),
       card('practice', 'target', 'Practice', 'Every repo, random order, other players wandering around.', '', o.onPractice),

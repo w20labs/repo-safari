@@ -12,7 +12,7 @@ import { api, type PlayerStats } from './net/api.ts';
 import { $, h } from './ui/dom.ts';
 import { clearHud } from './ui/hud.ts';
 import { icon } from './ui/icons.ts';
-import { boardTable, leaderboardCard } from './ui/leaderboard.ts';
+import { boardTable, leaderboardCard, teamInviteLink } from './ui/leaderboard.ts';
 import { howToCard, menuPanel } from './ui/menu.ts';
 import { statsCard } from './ui/stats.ts';
 import { hideOverlay, showOverlay } from './ui/overlay.ts';
@@ -46,13 +46,15 @@ function showMenu() {
     menuPanel({
       playerNum: String(me.num).padStart(3, '0'),
       name: me.name,
+      team: me.team,
       dailyTag: !online
         ? ''
         : [stats && stats.currentStreak >= 1 ? `Streak ${stats.currentStreak}` : '', playedToday ? 'Played today · replays only' : 'Official run ready'].filter(Boolean).join(' · '),
       onName: (name) => {
         setMe({ name });
-        api.setName(name).then((r) => setMe({ name: r.name })).catch(() => undefined);
+        api.updateMe({ name }).then((r) => setMe({ name: r.name })).catch(() => undefined);
       },
+      onTeam: (team) => void joinTeam(team),
       onDaily: showDailyIntro,
       onPractice: startPractice,
       onArena: () => openArena(),
@@ -61,9 +63,21 @@ function showMenu() {
   void refreshBoard();
 }
 
-async function refreshBoard() {
+async function joinTeam(raw: string) {
+  try {
+    const r = await api.updateMe({ team: raw });
+    setMe({ team: r.team });
+    if (r.team) toast(`You're on team ${r.team}. Share ${teamInviteLink(r.team)} with your team.`, 'teal', { ms: 4500 });
+    else if (raw) toast('Team names need 2–24 letters, digits or dashes.', 'pink');
+    void refreshBoard(r.team ? 'team' : 'all');
+  } catch {
+    toast('Teams need the server. Try again in a moment.', 'pink');
+  }
+}
+
+async function refreshBoard(tab: 'all' | 'team' | 'teams' = 'all') {
   const below = $('#below');
-  const board = await leaderboardCard(dateKey());
+  const board = await leaderboardCard(dateKey(), tab);
   below.replaceChildren(board, statsCard(stats), howToCard());
 }
 
@@ -235,14 +249,16 @@ async function init() {
   const params = new URLSearchParams(location.search);
   try {
     const m = await api.me();
-    setMe({ id: m.id, num: m.num, name: m.name || me.name });
-    if (!m.name && me.name) void api.setName(me.name);
+    setMe({ id: m.id, num: m.num, name: m.name || me.name, team: m.team });
+    if (!m.name && me.name) void api.updateMe({ name: me.name });
     playedToday = m.playedToday;
     stats = m.stats;
     online = true;
   } catch {
     online = false;
   }
+  const teamParam = params.get('team');
+  if (teamParam && online && teamParam.toLowerCase() !== me.team) await joinTeam(teamParam);
   api.rising().then((p) => (risingPool = p.repos?.length >= 2 && p.asOf ? p : null)).catch(() => undefined);
   const room = params.get('room');
   if (room && /^[a-z0-9]{4}$/i.test(room)) {

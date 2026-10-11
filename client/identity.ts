@@ -5,10 +5,12 @@ export interface Me {
   id: string | null;
   num: number;
   name: string;
+  team: string;
 }
 
 /** Local identity; replaced by the server's when it's reachable. */
-export const me: Me = store<Me>('lcs-me', { id: null, num: 1 + Math.floor(Math.random() * TOTAL_PLAYERS), name: '' });
+const stored = store<Partial<Me>>('lcs-me', {});
+export const me: Me = { id: stored.id ?? null, num: stored.num ?? 1 + Math.floor(Math.random() * TOTAL_PLAYERS), name: stored.name ?? '', team: stored.team ?? '' };
 save('lcs-me', me);
 
 export function setMe(next: Partial<Me>) {

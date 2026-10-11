@@ -39,6 +39,7 @@ export interface MeResponse {
   id: string;
   num: number;
   name: string;
+  team: string;
   today: string;
   playedToday: boolean;
   stats: PlayerStats;
@@ -49,11 +50,27 @@ export interface BoardRow {
   runId: string;
   num: number;
   name: string;
+  team?: string;
   score: number;
   cleared: number;
   total: number;
   won: boolean;
   me?: boolean;
+}
+
+export interface TeamRow {
+  rank: number;
+  team: string;
+  players: number;
+  score: number;
+  mine?: boolean;
+}
+
+export interface TeamsResponse {
+  date: string;
+  rows: TeamRow[];
+  me: TeamRow | null;
+  teams: number;
 }
 
 export interface BoardResponse {
@@ -65,11 +82,13 @@ export interface BoardResponse {
 
 export const api = {
   me: () => call<MeResponse>('GET', '/api/me'),
-  setName: (name: string) => call<{ name: string }>('POST', '/api/me', { name }),
+  updateMe: (patch: { name?: string; team?: string }) => call<{ name: string; team: string }>('POST', '/api/me', patch),
   dailyCourse: (date: string) => call<{ date: string; pool: RisingPool | null; repos: Repo[] }>('GET', `/api/daily/course?date=${date}`),
   dailyStart: () => call<{ runId: string | null; official: boolean; date: string; pool: RisingPool | null; repos: Repo[] }>('POST', '/api/daily/start'),
   dailyFinish: (body: { runId: string; results: RunResult[]; score: number; won: boolean; outLabel: string }) =>
     call<{ ok: true; score: number; rank: number; players: number; rankLine: string; stats: PlayerStats; url: string; outLabel: string }>('POST', '/api/daily/finish', body),
   leaderboard: (date: string) => call<BoardResponse>('GET', `/api/daily/leaderboard?date=${date}`),
+  teamBoard: (date: string, team: string) => call<BoardResponse & { team: string }>('GET', `/api/daily/leaderboard?date=${date}&scope=team&team=${encodeURIComponent(team)}`),
+  teams: (date: string) => call<TeamsResponse>('GET', `/api/daily/leaderboard?date=${date}&scope=teams`),
   rising: () => call<RisingPool & { asOf: string | null }>('GET', '/api/rising'),
 };

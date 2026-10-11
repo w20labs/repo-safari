@@ -3,6 +3,7 @@ import { dailyCourse } from '../shared/course.ts';
 import { dailyQuestion, defaultContext } from '../shared/questions.ts';
 import { answerScore, FELL_LABEL, STANDING_LABEL } from '../shared/scoring.ts';
 import { checkFinish } from '../server/daily.ts';
+import { cleanTeam } from '../server/names.ts';
 
 const date = '20261010';
 const course = dailyCourse(date, null);
@@ -35,5 +36,14 @@ describe('daily finish validation', () => {
   it('rejects malformed bodies', () => {
     expect(checkFinish(course, null, date, { results: 'x' as never, score: 0, won: false }, 0).ok).toBe(false);
     expect(checkFinish(course, null, date, { results: [{ i: 0, ok: true, s: 1.5 }], score: 0, won: false }, 99_000).ok).toBe(false);
+  });
+});
+
+describe('team slugs', () => {
+  it('normalizes team names', () => {
+    expect(cleanTeam('  Vercel Inc. ')).toBe('vercel-inc');
+    expect(cleanTeam('A')).toBe('');
+    expect(cleanTeam('<script>')).toBe('script');
+    expect(cleanTeam('x'.repeat(40))).toHaveLength(24);
   });
 });

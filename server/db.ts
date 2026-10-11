@@ -60,6 +60,8 @@ function addColumn(table: string, column: string, decl: string) {
   if (!cols.some((c) => c.name === column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${decl}`);
 }
 addColumn('daily_pool', 'repos', 'TEXT');
+addColumn('players', 'team', "TEXT NOT NULL DEFAULT ''");
+db.exec('CREATE INDEX IF NOT EXISTS players_team ON players(team)');
 
 export function getMeta(k: string): string | null {
   const row = db.prepare('SELECT v FROM meta WHERE k = ?').get(k) as { v: string } | undefined;

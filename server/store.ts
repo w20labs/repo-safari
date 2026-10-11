@@ -3,6 +3,7 @@ import { TOTAL_PLAYERS } from '../shared/constants.ts';
 import { dailyCourse, pickDailyRepos, type Course } from '../shared/course.ts';
 import type { Repo, RisingPool, RunResult } from '../shared/types.ts';
 import { db, getMeta } from './db.ts';
+export { cleanName, cleanTeam } from './names.ts';
 
 export const newId = (bytes = 9) => randomBytes(bytes).toString('base64url');
 
@@ -12,29 +13,26 @@ export interface PlayerRow {
   id: string;
   num: number;
   name: string;
+  team: string;
 }
 
 export function getPlayer(id: string | undefined): PlayerRow | null {
   if (!id) return null;
-  return (db.prepare('SELECT id, num, name FROM players WHERE id = ?').get(id) as PlayerRow | undefined) ?? null;
+  return (db.prepare('SELECT id, num, name, team FROM players WHERE id = ?').get(id) as PlayerRow | undefined) ?? null;
 }
 
 export function createPlayer(): PlayerRow {
-  const p = { id: newId(12), num: randomInt(1, TOTAL_PLAYERS + 1), name: '' };
+  const p = { id: newId(12), num: randomInt(1, TOTAL_PLAYERS + 1), name: '', team: '' };
   db.prepare('INSERT INTO players (id, num, name, created_at) VALUES (?, ?, ?, ?)').run(p.id, p.num, p.name, Date.now());
   return p;
 }
 
-export function cleanName(raw: unknown): string {
-  return String(raw ?? '')
-    .replace(/[\u0000-\u001f\u007f<>]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 24);
-}
-
 export function setPlayerName(id: string, name: string) {
   db.prepare('UPDATE players SET name = ? WHERE id = ?').run(name, id);
+}
+
+export function setPlayerTeam(id: string, team: string) {
+  db.prepare('UPDATE players SET team = ? WHERE id = ?').run(team, id);
 }
 
 // ---------- rising pool ----------
@@ -124,6 +122,7 @@ export interface BoardRow {
   runId: string;
   num: number;
   name: string;
+  team?: string;
   score: number;
   cleared: number;
   total: number;
@@ -133,22 +132,31 @@ export interface BoardRow {
 
 const ORDER = 'r.score DESC, r.cleared DESC, r.finished_at ASC';
 
-export function leaderboard(date: string, playerId: string | undefined, limit = 10): { rows: BoardRow[]; me: BoardRow | null; players: number } {
+export function leaderboard(
+  date: string,
+  playerId: string | undefined,
+  limit = 10,
+  team = '',
+): { rows: BoardRow[]; me: BoardRow | null; players: number } {
+  const teamSql = team ? 'AND p.team = ?' : '';
+  const args = team ? [date, team] : [date];
   const rows = db
     .prepare(
-      `SELECT r.id, r.player_id, p.num, p.name, r.score, r.cleared, r.total, r.won
+      `SELECT r.id, r.player_id, p.num, p.name, p.team, r.score, r.cleared, r.total, r.won
        FROM runs r JOIN players p ON p.id = r.player_id
-       WHERE r.date = ? AND r.official = 1 AND r.finished_at IS NOT NULL
+       WHERE r.date = ? AND r.official = 1 AND r.finished_at IS NOT NULL ${teamSql}
        ORDER BY ${ORDER} LIMIT ?`,
     )
-    .all(date, limit) as { id: string; player_id: string; num: number; name: string; score: number; cleared: number; total: number; won: number }[];
-  const players = (db.prepare('SELECT COUNT(*) n FROM runs WHERE date = ? AND official = 1 AND finished_at IS NOT NULL').get(date) as { n: number }).n;
+    .all(...args, limit) as { id: string; player_id: string; num: number; name: string; team: string; score: number; cleared: number; total: number; won: number }[];
+  const players = (
+    db.prepare(`SELECT COUNT(*) n FROM runs r JOIN players p ON p.id = r.player_id WHERE r.date = ? AND r.official = 1 AND r.finished_at IS NOT NULL ${teamSql}`).get(...args) as { n: number }
+  ).n;
   const map = (r: (typeof rows)[number], rank: number): BoardRow => ({
-    rank, runId: r.id, num: r.num, name: r.name, score: r.score, cleared: r.cleared, total: r.total, won: !!r.won, me: r.player_id === playerId,
+    rank, runId: r.id, num: r.num, name: r.name, team: r.team, score: r.score, cleared: r.cleared, total: r.total, won: !!r.won, me: r.player_id === playerId,
   });
   const out = rows.map((r, i) => map(r, i + 1));
   let me = out.find((r) => r.me) ?? null;
-  if (!me && playerId) {
+  if (!me && playerId && (!team || getPlayer(playerId)?.team === team)) {
     const mine = officialRun(playerId, date);
     if (mine?.finished_at) me = { ...rankOf(mine), me: true };
   }
@@ -167,4 +175,33 @@ export function rankOf(run: RunRow): BoardRow {
     rank: better.n + 1, runId: run.id, num: p.num, name: p.name, score: run.score ?? 0,
     cleared: run.cleared ?? 0, total: run.total ?? 0, won: !!run.won,
   };
+}
+
+// ---------- teams ----------
+
+export interface TeamRow {
+  rank: number;
+  team: string;
+  players: number;
+  score: number;
+  mine?: boolean;
+}
+
+export const TEAM_BEST_OF = 3;
+
+/** Teams ranked by the sum of their best 3 official runs on a date. */
+export function teamBoard(date: string, myTeam = '', limit = 10): { rows: TeamRow[]; me: TeamRow | null; teams: number } {
+  const all = db
+    .prepare(
+      `WITH ranked AS (
+         SELECT p.team, r.score, ROW_NUMBER() OVER (PARTITION BY p.team ORDER BY r.score DESC, r.finished_at ASC) rn
+         FROM runs r JOIN players p ON p.id = r.player_id
+         WHERE r.date = ? AND r.official = 1 AND r.finished_at IS NOT NULL AND p.team != ''
+       )
+       SELECT team, SUM(CASE WHEN rn <= ${TEAM_BEST_OF} THEN score ELSE 0 END) AS score, COUNT(*) AS players
+       FROM ranked GROUP BY team ORDER BY score DESC, players DESC, team ASC`,
+    )
+    .all(date) as { team: string; score: number; players: number }[];
+  const ranked = all.map((t, i): TeamRow => ({ ...t, rank: i + 1, mine: !!myTeam && t.team === myTeam }));
+  return { rows: ranked.slice(0, limit), me: ranked.find((t) => t.mine) ?? null, teams: ranked.length };
 }

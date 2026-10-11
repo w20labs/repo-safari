@@ -7,6 +7,7 @@ import { checkFinish, summaryFor, type FinishBody } from './daily.ts';
 import { HttpError, escapeHtml, json, originOf, parseCookies, readJson, setCookie } from './http.ts';
 import {
   cleanName,
+  cleanTeam,
   courseForDate,
   createPlayer,
   currentPool,
@@ -17,7 +18,9 @@ import {
   officialRun,
   rankOf,
   setPlayerName,
+  setPlayerTeam,
   startOfficialRun,
+  teamBoard,
   type PlayerRow,
 } from './store.ts';
 import { getMeta } from './db.ts';
@@ -45,15 +48,16 @@ const routes: [string, RegExp, Handler][] = [
   ['GET', /^\/api\/me$/, (req, res) => {
     const p = ensurePlayer(req, res);
     const today = dateKey();
-    json(res, 200, { id: p.id, num: p.num, name: p.name, today, playedToday: !!officialRun(p.id, today), stats: playerStats(p.id, today) });
+    json(res, 200, { id: p.id, num: p.num, name: p.name, team: p.team, today, playedToday: !!officialRun(p.id, today), stats: playerStats(p.id, today) });
   }],
 
   ['POST', /^\/api\/me$/, async (req, res) => {
     const p = ensurePlayer(req, res);
-    const body = await readJson<{ name?: string }>(req);
-    const name = cleanName(body.name);
-    setPlayerName(p.id, name);
-    json(res, 200, { id: p.id, num: p.num, name });
+    const body = await readJson<{ name?: string; team?: string }>(req);
+    if (body.name !== undefined) setPlayerName(p.id, cleanName(body.name));
+    if (body.team !== undefined) setPlayerTeam(p.id, cleanTeam(body.team));
+    const fresh = getPlayer(p.id)!;
+    json(res, 200, { id: fresh.id, num: fresh.num, name: fresh.name, team: fresh.team });
   }],
 
   ['GET', /^\/api\/daily\/course$/, (_req, res, _p, url) => {
@@ -95,7 +99,7 @@ const routes: [string, RegExp, Handler][] = [
       outLabel: check.outLabel,
       rank,
       players,
-      rankLine: rankLine(rank, players, stats.currentStreak),
+      rankLine: [rankLine(rank, players, stats.currentStreak), teamLine(run.date, p.team)].filter(Boolean).join(' · '),
       stats,
       url: `${origin}/r/${run.id}`,
     });
@@ -105,7 +109,14 @@ const routes: [string, RegExp, Handler][] = [
     const date = url.searchParams.get('date') ?? dateKey();
     if (!validDate(date)) throw new HttpError(400, 'bad date');
     const p = playerFromCookie(req);
-    json(res, 200, { date, ...leaderboard(date, p?.id) });
+    const scope = url.searchParams.get('scope') ?? 'all';
+    if (scope === 'teams') return json(res, 200, { date, scope, ...teamBoard(date, p?.team ?? '') });
+    if (scope === 'team') {
+      const team = cleanTeam(url.searchParams.get('team') ?? p?.team ?? '');
+      if (!team) throw new HttpError(400, 'no team');
+      return json(res, 200, { date, scope, team, ...leaderboard(date, p?.id, 10, team) });
+    }
+    json(res, 200, { date, scope: 'all', ...leaderboard(date, p?.id) });
   }],
 
   ['GET', /^\/api\/rising$/, (_req, res) => {
@@ -134,6 +145,13 @@ const routes: [string, RegExp, Handler][] = [
   }],
 ];
 
+/** "team vercel #2 of 31" when the player is on a team with a ranking today. */
+function teamLine(date: string, team: string): string {
+  if (!team) return '';
+  const { me, teams } = teamBoard(date, team, 0);
+  return me ? `team ${team} #${me.rank} of ${teams}` : '';
+}
+
 function finishedRun(id: string) {
   const run = getRun(id);
   if (!run?.finished_at || !run.official) return null;
@@ -141,7 +159,7 @@ function finishedRun(id: string) {
   const { course } = courseForDate(run.date);
   const { rank } = rankOf(run);
   const { players } = leaderboard(run.date, undefined, 0);
-  const line = rankLine(rank, players, streakAt(player.id, run.date));
+  const line = [rankLine(rank, players, streakAt(player.id, run.date)), teamLine(run.date, player.team)].filter(Boolean).join(' · ');
   return { run, summary: summaryFor(course, run, player, line), rank };
 }
 

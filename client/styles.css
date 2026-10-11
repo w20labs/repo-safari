@@ -286,3 +286,10 @@ kbd { font-family: var(--mono); font-size: 11px; background: var(--sunken); bord
 .below #leaderboard { grid-row: span 2; }
 .stats:has(> .stat:nth-child(4)) { grid-template-columns: repeat(4, 1fr); }
 @media (max-width: 760px) { .below #leaderboard { grid-row: auto; } .stats:has(> .stat:nth-child(4)) { grid-template-columns: repeat(2, 1fr); } }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 560px) { .fields { grid-template-columns: 1fr; } }
+.tabs { display: flex; gap: 4px; margin: -4px 0 12px; flex-wrap: wrap; }
+.tab { background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: var(--muted); cursor: pointer; min-height: 32px; }
+.tab[aria-selected='true'] { background: var(--raised); color: var(--text); border-color: #3a4364; }
+.lb .badge { display: inline-flex; vertical-align: -2px; color: var(--teal); margin-left: 4px; }
+.lb .teamtag { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: 6px; }
