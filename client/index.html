@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Last Commit Standing</title>
+    <meta name="description" content="A GitHub-repo elimination platformer. 456 players. One wrong answer and you're out." />
+    <meta name="theme-color" content="#0A0C14" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Bungee&family=JetBrains+Mono:wght@400;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Last Commit Standing, home"><span class="brand-a">LAST COMMIT</span> <span class="brand-b">STANDING</span></a>
+      <div class="who" id="who"></div>
+    </header>
+    <main class="shell">
+      <section class="stage" id="stage" aria-label="Game">
+        <canvas id="world" aria-hidden="true"></canvas>
+        <div class="hud" id="hud"></div>
+        <div class="sr-only" id="live" aria-live="polite"></div>
+        <div class="toasts" id="toasts" aria-live="polite"></div>
+        <div class="overlay" id="overlay"></div>
+      </section>
+      <div class="touchpad" id="touchpad" aria-label="Touch controls">
+        <button type="button" class="pad-btn" data-key="left" aria-label="Move left"></button>
+        <button type="button" class="pad-btn" data-key="right" aria-label="Move right"></button>
+        <span class="pad-gap"></span>
+        <button type="button" class="pad-btn" data-key="drop" aria-label="Drop through"></button>
+        <button type="button" class="pad-btn pad-jump" data-key="jump" aria-label="Jump"></button>
+      </div>
+      <section class="below" id="below"></section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
