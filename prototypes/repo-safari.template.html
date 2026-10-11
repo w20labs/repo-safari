@@ -36,8 +36,9 @@ header.top { display: flex; align-items: end; justify-content: space-between; ga
 .today { display: flex; gap: 8px; flex-wrap: wrap; }
 .tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); border: 1px solid rgba(242,181,68,.45); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
 .tag.lime { color: var(--lime); border-color: rgba(212,242,92,.45); }
-.today { align-items: center; }
-.btn.share { min-height: 28px; padding: 3px 12px; font-size: 12.5px; border-radius: 999px; }
+.progress { display: flex; gap: 6px; align-items: center; }
+.btn.share[hidden] { display: none; }
+.btn.share { min-height: 0; padding: 4px 12px; font-size: 12.5px; border-radius: 999px; pointer-events: auto; }
 
 /* ---------- stage ---------- */
 .stage { position: relative; height: clamp(420px, 68vh, 640px); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--bg); }
@@ -177,7 +178,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
       <h1 class="brand">REPO <span>SAFARI</span></h1>
       <p class="pitch">A new trail through open source every day. Each platform is a category. Drop into its room to compare its leading active repos, ranked by stars, with the new ones marked. Save the ones you like as stickers.</p>
     </div>
-    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag" id="nextTag">New trail at 00:00 UTC</span><button type="button" class="btn share" id="shareBtn">Share my trail</button></div>
+    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag" id="nextTag">New trail at 00:00 UTC</span></div>
   </header>
 
   <section class="stage" id="stage" aria-label="Today's trail">
@@ -185,7 +186,10 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
     <div class="hud">
       <span class="chip" id="where">Today's trail</span>
       <div class="minimap" id="minimap" aria-label="Trail map"></div>
-      <span class="chip"><b id="visited">0</b>/<span id="total">0</span> rooms · <b id="savedToday">0</b> stickers today</span>
+      <div class="progress">
+        <span class="chip"><b id="visited">0</b>/<span id="total">0</span> rooms · <b id="savedToday">0</b> stickers today</span>
+        <button type="button" class="btn go share" id="shareBtn" hidden>Share</button>
+      </div>
     </div>
     <div class="rs-card" id="card" data-open="false" role="region" aria-live="polite" aria-label="Platform details"></div>
     <div class="room" id="room" hidden></div>
@@ -401,6 +405,8 @@ function setCurrent(i) {
 function updateCounts() {
   $('visited').textContent = plats.filter((p) => p.entered).length;
   $('savedToday').textContent = [...album.values()].filter((s) => s.day === TODAY).length;
+  // Nothing to share until you've dropped into a room or saved a sticker today.
+  $('shareBtn').hidden = $('visited').textContent === '0' && $('savedToday').textContent === '0';
   for (const p of plats) {
     p.dot.classList.toggle('seen', p.seen);
     p.dot.classList.toggle('room', p.entered);
