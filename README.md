@@ -15,7 +15,7 @@
 
 **Repo Safari is a tiny daily game for finding open-source projects worth knowing about.**
 Every day there's a new trail of about a dozen categories (OCR, vector databases, game engines, note-taking apps…).
-Walk the trail, drop into a category, and every active repo in it is waiting on the wall as a sticker, ranked by stars.
+Walk the trail, drop into a category, and its leading active repos are waiting on the wall as stickers, ranked by stars.
 Keep the ones you like. No sign-up, no quiz, nothing to lose. A walk takes about three minutes.
 
 <p align="center">
@@ -34,7 +34,7 @@ Keep the ones you like. No sign-up, no quiz, nothing to lose. A walk takes about
 | Climb back out | <kbd>Esc</kbd> | ▲ in a room |
 
 1. **Walk the trail.** Each platform is a category. Stand on one to see its best-known repo.
-2. **Drop in.** The room shows every repo in that category as a sticker, most stars first, with forks, open issues, language and last commit.
+2. **Drop in.** The room shows up to eight selected active repos from that category as stickers, most stars first, with forks, open issues, language and last commit.
 3. **Collect.** Save the ones you want to remember. They go into your sticker album.
 4. **Reach the end.** This week's rising repos sit on a high platform at the end of the trail. Getting there takes a double jump, and their stickers are rare.
 
@@ -44,8 +44,8 @@ Keep the ones you like. No sign-up, no quiz, nothing to lose. A walk takes about
     <td width="42%"><img src="assets/readme/album.png" alt="The sticker album, with two rare stickers from this week's rising repos"></td>
   </tr>
   <tr>
-    <td align="center"><sub>Inside a room: compare every active repo in a category</sub></td>
-    <td align="center"><sub>Your album: rare stickers are only around for a week</sub></td>
+    <td align="center"><sub>Inside a room: compare a category's leading active repos</sub></td>
+    <td align="center"><sub>Your album: rare stickers are available to collect on this week's trail</sub></td>
   </tr>
 </table>
 
