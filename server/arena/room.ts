@@ -145,9 +145,11 @@ export class Room {
     this.checkOver();
   }
 
-  disconnect(id: string) {
+  /** A socket closed. `conn` is that socket; if the seat has since moved to a newer connection, nothing happens. */
+  disconnect(id: string, conn?: Conn) {
     const m = this.members.get(id);
     if (!m) return;
+    if (conn && m.conn !== conn) return;
     m.conn = null;
     m.disconnectedAt = this.now();
     if (this.phase !== 'running') {

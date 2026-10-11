@@ -15,6 +15,15 @@ It's an early playtest: no sign-up, and your sticker album stays in your browser
 | Build the site | `npm run build-safari -- https://w20labs.github.io/repo-safari/ --site _site` |
 | Deploy | `.github/workflows/pages.yml`: every push to `main`, plus a weekly data refresh on Mondays |
 
+**Contributing:** only repository collaborators can open pull requests, and every change to `main`
+needs a passing CI run and a maintainer's review. Anyone can open issues: bugs, odd rooms, ideas.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security problems: [SECURITY.md](SECURITY.md).
+
+**License:** [MIT](LICENSE). The bundled fonts are under the SIL Open Font License; see
+[assets/fonts](assets/fonts/README.md).
+
+**Requirements:** Node.js 24 (see `.nvmrc`).
+
 The rest of this README covers **Last Commit Standing**, the quiz platformer this repo started as.
 Its client, server and tests are still here and still pass.
 

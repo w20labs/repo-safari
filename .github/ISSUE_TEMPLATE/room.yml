@@ -1,0 +1,18 @@
+name: Room feedback
+description: A room that doesn't make sense, a repo in the wrong room, or a repo that shouldn't be featured.
+labels: [rooms]
+body:
+  - type: input
+    id: room
+    attributes:
+      label: Which room?
+      placeholder: e.g. Vector database
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's wrong with it?
+      description: Name the repos involved (owner/name) and say why.
+    validations:
+      required: true

@@ -177,5 +177,20 @@ describe('arena room', () => {
     expect(bots.filter((id) => !bellOut.has(id)).length).toBeGreaterThanOrEqual(1);
     void out;
   });
+
+  it('closing an old tab does not disconnect the same player in a newer tab', () => {
+    const room = new Room('tabs', () => 1_000);
+    const a: ServerMsg[] = [], b: ServerMsg[] = [];
+    const tabA = { send: (m: ServerMsg) => a.push(m) };
+    const tabB = { send: (m: ServerMsg) => b.push(m) };
+    const r1 = room.join('same-player', null, 'P', tabA);
+    const r2 = room.join('same-player', null, 'P', tabB);
+    if ('error' in r1 || 'error' in r2) throw new Error('join failed');
+    expect(r2.id).toBe(r1.id);
+    room.disconnect(r1.id, tabA); // the old tab closes
+    expect(room.lobby().map((p) => p.id)).toContain(r1.id);
+    room.disconnect(r1.id, tabB); // the tab that owns the seat closes
+    expect(room.lobby()).toHaveLength(0);
+  });
 });
 

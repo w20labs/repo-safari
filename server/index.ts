@@ -20,7 +20,15 @@ const MIME: Record<string, string> = {
 };
 
 function serveStatic(pathname: string, res: import('node:http').ServerResponse): boolean {
-  const safe = normalize(decodeURIComponent(pathname)).replace(/^(\.\.[/\\])+/, '');
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'text/plain' });
+    res.end('Bad request');
+    return true;
+  }
+  const safe = normalize(decoded).replace(/^(\.\.[/\\])+/, '');
   let file = join(STATIC_DIR, safe);
   if (!file.startsWith(STATIC_DIR)) return false;
   if (!existsSync(file) || statSync(file).isDirectory()) file = join(STATIC_DIR, 'index.html');
@@ -35,10 +43,17 @@ function serveStatic(pathname: string, res: import('node:http').ServerResponse):
 }
 
 export const server = createServer(async (req, res) => {
-  if (await handleRoute(req, res)) return;
-  if (IS_PROD && (req.method === 'GET' || req.method === 'HEAD') && serveStatic(new URL(req.url ?? '/', 'http://x').pathname, res)) return;
-  res.writeHead(404, { 'Content-Type': 'text/plain' });
-  res.end('Not found');
+  try {
+    if (await handleRoute(req, res)) return;
+    if (IS_PROD && (req.method === 'GET' || req.method === 'HEAD') && serveStatic(new URL(req.url ?? '/', 'http://x').pathname, res)) return;
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not found');
+  } catch (err) {
+    // last line of defence: one bad request must never crash the server for everyone
+    console.error('[server] request failed', err);
+    if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'text/plain' });
+    res.end('Something went wrong');
+  }
 });
 
 attachArena(server);

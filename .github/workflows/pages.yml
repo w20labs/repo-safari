@@ -1,9 +1,10 @@
 name: Deploy Repo Safari
 
 # Builds the Repo Safari page and publishes it to GitHub Pages.
-# - every push to main: rebuild from the data committed in shared/data/
-# - every Monday (and on demand): refresh rooms and rising repos from the GitHub API first,
-#   commit the new data, then publish
+# - every push to main: rebuild with the latest data
+# - every Monday (and on demand): refresh rooms and rising repos from the GitHub API first
+# Refreshed data is saved to the `data` branch, not `main`: main only changes through reviewed
+# pull requests, and every build takes the newest data from `data` when it exists.
 on:
   push:
     branches: [main]
@@ -12,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write # the weekly run commits refreshed data
+  contents: write # the weekly run pushes refreshed data to the `data` branch
   pages: write
   id-token: write
 
@@ -34,6 +35,15 @@ jobs:
           cache: npm
       - run: npm ci
 
+      - name: Use the latest saved data
+        run: |
+          if git fetch --depth=1 origin data 2>/dev/null; then
+            git checkout FETCH_HEAD -- shared/data/rooms.json shared/data/rising.json
+            echo "Using data from the data branch"
+          else
+            echo "No data branch yet; using the data on main"
+          fi
+
       - name: Refresh rising repos and rooms
         if: github.event_name != 'push'
         run: |
@@ -43,13 +53,15 @@ jobs:
       - name: Build the page
         run: npm run build-safari -- "$SITE_URL" --site _site
 
-      - name: Commit refreshed data
+      - name: Save refreshed data to the data branch
         if: github.event_name != 'push'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B data
           git add shared/data/rooms.json shared/data/rising.json
-          git diff --cached --quiet || { git commit -m "Weekly data refresh"; git push; }
+          git commit -m "Data refresh $(date -u +%F)" || echo "No data changes"
+          git push --force origin data
 
       - uses: actions/upload-pages-artifact@v3
         with:

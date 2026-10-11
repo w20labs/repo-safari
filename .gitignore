@@ -6,3 +6,7 @@ playwright-report
 .env
 data/rooms-cache.json
 _site
+.env.*
+!.env.example
+*.pem
+*.key

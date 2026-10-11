@@ -1,7 +1,8 @@
 import type { IncomingMessage, Server } from 'node:http';
 import { WebSocket, WebSocketServer } from 'ws';
 import { ARENA, makeRoomCode } from '../../shared/arena.ts';
-import type { ClientMsg, ServerMsg } from '../../shared/protocol.ts';
+import type { ServerMsg } from '../../shared/protocol.ts';
+import { parseClientMsg } from './messages.ts';
 import { parseCookies } from '../http.ts';
 import { cleanName, displayNameOf, getPlayer } from '../store.ts';
 import { Room } from './room.ts';
@@ -58,12 +59,8 @@ function handleConnection(ws: WebSocket, req: IncomingMessage) {
 
   ws.on('message', (raw) => {
     if (--budget < 0) return;
-    let msg: ClientMsg;
-    try {
-      msg = JSON.parse(String(raw)) as ClientMsg;
-    } catch {
-      return;
-    }
+    const msg = parseClientMsg(String(raw));
+    if (!msg) return;
     switch (msg.t) {
       case 'hello':
         if (!player && typeof msg.pid === 'string' && msg.pid.length <= 40) key = `anon:${msg.pid}`;
@@ -105,9 +102,13 @@ function handleConnection(ws: WebSocket, req: IncomingMessage) {
     }
   });
 
+  // oversized frames (maxPayload), bad frames and resets arrive as 'error'; without a handler they
+  // crash the process. Drop the socket; 'close' then runs the cleanup below.
+  ws.on('error', () => ws.terminate());
   ws.on('close', () => {
     clearInterval(refill);
-    if (room && memberId) room.disconnect(memberId);
+    // pass our connection: if the same player reconnected in another tab, that newer socket owns the seat
+    if (room && memberId) room.disconnect(memberId, conn);
   });
 }
 

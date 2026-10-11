@@ -187,18 +187,22 @@ export function leaderboard(
   const mePlayer = playerId ? getPlayer(playerId) : null;
   if (!me && playerId && (!team || mePlayer?.team === team) && (!verifiedOnly || mePlayer?.github_id)) {
     const mine = officialRun(playerId, date);
-    if (mine?.finished_at) me = { ...rankOf(mine), me: true };
+    if (mine?.finished_at) me = { ...rankOf(mine, { team, verifiedOnly }), me: true };
   }
   return { rows: out, me, players };
 }
 
-export function rankOf(run: RunRow): BoardRow {
+/** A run's rank on its date, optionally within one team or among verified players only. */
+export function rankOf(run: RunRow, filter: { team?: string; verifiedOnly?: boolean } = {}): BoardRow {
+  const teamSql = filter.team ? 'AND p.team = ?' : '';
+  const verifiedSql = filter.verifiedOnly ? 'AND p.github_id IS NOT NULL' : '';
   const better = db
     .prepare(
-      `SELECT COUNT(*) n FROM runs r WHERE r.date = ? AND r.official = 1 AND r.finished_at IS NOT NULL AND (
+      `SELECT COUNT(*) n FROM runs r JOIN players p ON p.id = r.player_id
+       WHERE r.date = ? AND r.official = 1 AND r.finished_at IS NOT NULL ${teamSql} ${verifiedSql} AND (
          r.score > ? OR (r.score = ? AND r.cleared > ?) OR (r.score = ? AND r.cleared = ? AND r.finished_at < ?))`,
     )
-    .get(run.date, run.score, run.score, run.cleared, run.score, run.cleared, run.finished_at) as { n: number };
+    .get(run.date, ...(filter.team ? [filter.team] : []), run.score, run.score, run.cleared, run.score, run.cleared, run.finished_at) as { n: number };
   const p = getPlayer(run.player_id)!;
   return {
     rank: better.n + 1, runId: run.id, num: p.num, name: displayNameOf(p), verified: !!p.github_login, score: run.score ?? 0,
