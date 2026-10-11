@@ -2,6 +2,7 @@ import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
 import { IS_PROD } from './http.ts';
+import { attachArena } from './arena/index.ts';
 import { handleRoute } from './routes.ts';
 
 const PORT = Number(process.env.PORT ?? 8787);
@@ -39,5 +40,7 @@ export const server = createServer(async (req, res) => {
   res.writeHead(404, { 'Content-Type': 'text/plain' });
   res.end('Not found');
 });
+
+attachArena(server);
 
 server.listen(PORT, () => console.log(`[server] listening on http://localhost:${PORT}${IS_PROD ? '' : ' (API only; open the Vite URL)'}`));

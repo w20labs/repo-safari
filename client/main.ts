@@ -51,7 +51,7 @@ function showMenu() {
       },
       onDaily: showDailyIntro,
       onPractice: startPractice,
-      onArena: () => import('./modes/arena-ui.ts').then((m) => m.showArenaHome({ stage, onExit: backToMenu, stopRun })).catch(() => toast('Arena could not load.', 'pink')),
+      onArena: () => openArena(),
     }),
   );
   void refreshBoard();
@@ -61,6 +61,14 @@ async function refreshBoard() {
   const below = $('#below');
   const board = await leaderboardCard(dateKey());
   below.replaceChildren(board, howToCard());
+}
+
+// ---------- Arena ----------
+
+function openArena(joinCode?: string) {
+  import('./modes/arena-ui.ts')
+    .then((m) => m.showArenaHome({ stage, onExit: backToMenu, stopRun, joinCode }))
+    .catch(() => toast('The Arena could not load.', 'pink'));
 }
 
 // ---------- Practice ----------
@@ -226,7 +234,11 @@ async function init() {
     online = false;
   }
   api.rising().then((p) => (risingPool = p.repos?.length >= 2 && p.asOf ? p : null)).catch(() => undefined);
-  if (params.get('play') === 'daily') {
+  const room = params.get('room');
+  if (room && /^[a-z0-9]{4}$/i.test(room)) {
+    showMenu();
+    openArena(room.toLowerCase());
+  } else if (params.get('play') === 'daily') {
     showMenu();
     showDailyIntro();
   } else showMenu();
