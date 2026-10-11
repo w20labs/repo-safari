@@ -1,6 +1,7 @@
 {
  "asOf": "2026-10-11",
  "source": "GitHub topics, grouped automatically by scripts/build-rooms.ts",
+ "activeDays": 183,
  "rooms": [
   {
    "id": "curriculum",
@@ -19,17 +20,6 @@
      "created": "2014-12-24",
      "pushed": "2026-10-11",
      "license": "BSD-3-Clause"
-    },
-    {
-     "name": "FreeCodeCampChina/freecodecamp.cn",
-     "desc": "FCC China open source codebase and curriculum. Learn to code and help nonprofits.",
-     "lang": "CSS",
-     "stars": 37787,
-     "forks": 1416,
-     "issues": 159,
-     "created": "2016-09-30",
-     "pushed": "2023-07-16",
-     "license": null
     },
     {
      "name": "TheOdinProject/curriculum",
@@ -65,17 +55,6 @@
      "license": "MIT"
     },
     {
-     "name": "offchan42/machine-learning-curriculum",
-     "desc": ":computer: Learn to make machines learn so that you don't have to struggle to program them; The ultimate list",
-     "lang": null,
-     "stars": 1132,
-     "forks": 253,
-     "issues": 0,
-     "created": "2016-12-12",
-     "pushed": "2024-03-03",
-     "license": "MIT"
-    },
-    {
      "name": "enkidevs/curriculum",
      "desc": "👩‍🏫 👨‍🏫 The open-source curriculum of Enki!",
      "lang": null,
@@ -85,114 +64,59 @@
      "created": "2016-11-29",
      "pushed": "2026-07-25",
      "license": null
-    },
-    {
-     "name": "DerekBabb/CyberSecurity",
-     "desc": "A curriculum for a high school cyber security course.",
-     "lang": "Java",
-     "stars": 809,
-     "forks": 178,
-     "issues": 11,
-     "created": "2017-07-24",
-     "pushed": "2023-12-17",
-     "license": "GPL-3.0"
     }
    ]
   },
   {
-   "id": "learn-to-code",
-   "title": "Learn to code",
+   "id": "design-patterns",
+   "title": "Design patterns",
    "topics": [
-    "learn-to-code"
+    "design-patterns"
    ],
    "repos": [
     {
-     "name": "freeCodeCamp/freeCodeCamp",
-     "desc": "freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming, and computer science for free.",
-     "lang": "TypeScript",
-     "stars": 456842,
-     "forks": 48837,
-     "issues": 223,
-     "created": "2014-12-24",
-     "pushed": "2026-10-11",
-     "license": "BSD-3-Clause"
-    },
-    {
-     "name": "Chalarangelo/30-seconds-of-code",
-     "desc": "Coding articles to level up your development skills",
-     "lang": "JavaScript",
-     "stars": 129160,
-     "forks": 12488,
-     "issues": 0,
-     "created": "2017-11-29",
-     "pushed": "2026-10-02",
-     "license": "CC-BY-4.0"
-    },
-    {
-     "name": "FreeCodeCampChina/freecodecamp.cn",
-     "desc": "FCC China open source codebase and curriculum. Learn to code and help nonprofits.",
-     "lang": "CSS",
-     "stars": 37787,
-     "forks": 1416,
-     "issues": 159,
-     "created": "2016-09-30",
-     "pushed": "2023-07-16",
+     "name": "donnemartin/system-design-primer",
+     "desc": "Learn how to design large-scale systems. Prep for the system design interview.  Includes Anki flashcards.",
+     "lang": "Python",
+     "stars": 373719,
+     "forks": 58805,
+     "issues": 621,
+     "created": "2017-02-26",
+     "pushed": "2026-09-15",
      "license": null
     },
     {
-     "name": "TheAlgorithms/C",
-     "desc": "Collection of various algorithms in mathematics, machine learning, computer science, physics, etc implemented in C for educational purposes.",
-     "lang": "C",
-     "stars": 22518,
-     "forks": 4777,
-     "issues": 22,
-     "created": "2016-07-16",
-     "pushed": "2024-08-07",
+     "name": "iluwatar/java-design-patterns",
+     "desc": "Design patterns implemented in Java",
+     "lang": "Java",
+     "stars": 94779,
+     "forks": 27363,
+     "issues": 141,
+     "created": "2014-08-09",
+     "pushed": "2026-10-08",
+     "license": null
+    },
+    {
+     "name": "faif/python-patterns",
+     "desc": "A collection of design patterns/idioms in Python",
+     "lang": "Python",
+     "stars": 43047,
+     "forks": 6983,
+     "issues": 12,
+     "created": "2012-06-06",
+     "pushed": "2026-10-09",
+     "license": null
+    },
+    {
+     "name": "ashishps1/awesome-low-level-design",
+     "desc": "Learn Low Level Design (LLD) and prepare for interviews using free resources.",
+     "lang": "Java",
+     "stars": 27318,
+     "forks": 6602,
+     "issues": 81,
+     "created": "2023-11-17",
+     "pushed": "2026-08-19",
      "license": "GPL-3.0"
-    },
-    {
-     "name": "inancgumus/learngo",
-     "desc": "❤️ 1000+ Hand-Crafted Go Examples, Exercises, and Quizzes. 🚀 Learn Go by fixing 1000+ tiny programs.",
-     "lang": "Go",
-     "stars": 20165,
-     "forks": 2728,
-     "issues": 44,
-     "created": "2018-10-15",
-     "pushed": "2025-06-24",
-     "license": null
-    },
-    {
-     "name": "workshopper/learnyounode",
-     "desc": "Learn You The Node.js For Much Win! An intro to Node.js via a set of self-guided workshops.",
-     "lang": "HTML",
-     "stars": 7380,
-     "forks": 1812,
-     "issues": 113,
-     "created": "2013-08-05",
-     "pushed": "2021-12-04",
-     "license": null
-    },
-    {
-     "name": "kallaway/100-days-of-code",
-     "desc": "Fork this template for the 100 days journal - to keep yourself accountable (multiple languages available)",
-     "lang": null,
-     "stars": 7030,
-     "forks": 11540,
-     "issues": 215,
-     "created": "2016-06-22",
-     "pushed": "2024-08-20",
-     "license": null
-    },
-    {
-     "name": "shovanch/fullstack-web-developer-path",
-     "desc": "📚 A learning path for Full-stack web development",
-     "lang": null,
-     "stars": 3472,
-     "forks": 611,
-     "issues": 6,
-     "created": "2017-09-04",
-     "pushed": "2023-08-15",
-     "license": "MIT"
     }
    ]
   },
@@ -237,17 +161,6 @@
      "license": "MIT"
     },
     {
-     "name": "gztchan/awesome-design",
-     "desc": "🌟 Curated design resources from all over the world.",
-     "lang": null,
-     "stars": 17623,
-     "forks": 1240,
-     "issues": 66,
-     "created": "2016-07-22",
-     "pushed": "2024-07-04",
-     "license": null
-    },
-    {
      "name": "stenciljs/core",
      "desc": "A toolchain for building scalable, enterprise-ready component systems on top of TypeScript and Web Component standards. Stencil components can be distributed natively to React, Angular, Vue, (+ more) and traditional web applications from a single, framework-agnostic codebase.",
      "lang": "TypeScript",
@@ -270,17 +183,6 @@
      "license": "MIT"
     },
     {
-     "name": "jdan/98.css",
-     "desc": "A design system for building faithful recreations of old UIs",
-     "lang": "CSS",
-     "stars": 11529,
-     "forks": 383,
-     "issues": 44,
-     "created": "2020-04-17",
-     "pushed": "2025-09-07",
-     "license": "MIT"
-    },
-    {
      "name": "material-components/material-web",
      "desc": "Material Design Web Components",
      "lang": "SCSS",
@@ -290,298 +192,28 @@
      "created": "2018-03-27",
      "pushed": "2026-10-10",
      "license": "Apache-2.0"
-    }
-   ]
-  },
-  {
-   "id": "design-patterns",
-   "title": "Design patterns",
-   "topics": [
-    "design-patterns"
-   ],
-   "repos": [
-    {
-     "name": "donnemartin/system-design-primer",
-     "desc": "Learn how to design large-scale systems. Prep for the system design interview.  Includes Anki flashcards.",
-     "lang": "Python",
-     "stars": 373719,
-     "forks": 58805,
-     "issues": 621,
-     "created": "2017-02-26",
-     "pushed": "2026-09-15",
-     "license": null
     },
     {
-     "name": "iluwatar/java-design-patterns",
-     "desc": "Design patterns implemented in Java",
-     "lang": "Java",
-     "stars": 94779,
-     "forks": 27363,
-     "issues": 141,
-     "created": "2014-08-09",
-     "pushed": "2026-10-08",
-     "license": null
-    },
-    {
-     "name": "binhnguyennus/awesome-scalability",
-     "desc": "The Patterns of Scalable, Reliable, and Performant Large-Scale Systems",
-     "lang": null,
-     "stars": 74636,
-     "forks": 7166,
-     "issues": 30,
-     "created": "2017-12-27",
-     "pushed": "2026-01-04",
-     "license": "MIT"
-    },
-    {
-     "name": "DovAmir/awesome-design-patterns",
-     "desc": "A curated list of software and architecture related design patterns.",
-     "lang": null,
-     "stars": 49285,
-     "forks": 3310,
-     "issues": 27,
-     "created": "2018-06-04",
-     "pushed": "2024-10-25",
-     "license": null
-    },
-    {
-     "name": "nilbuild/design-patterns-for-humans",
-     "desc": "An ultra-simplified explanation to design patterns",
-     "lang": null,
-     "stars": 48902,
-     "forks": 5587,
-     "issues": 16,
-     "created": "2017-02-16",
-     "pushed": "2024-12-02",
-     "license": null
-    },
-    {
-     "name": "faif/python-patterns",
-     "desc": "A collection of design patterns/idioms in Python",
-     "lang": "Python",
-     "stars": 43047,
-     "forks": 6983,
-     "issues": 12,
-     "created": "2012-06-06",
+     "name": "DouyinFE/semi-design",
+     "desc": "🚀A modern, comprehensive, flexible design system and React UI library, AI-friendly built-in.🎨Provide 3000+ Design Tokens, easy to build your design system. Make Semi Design to Any Design.🧑🏻‍💻 Design to Code in one click",
+     "lang": "TypeScript",
+     "stars": 10405,
+     "forks": 851,
+     "issues": 31,
+     "created": "2021-10-25",
      "pushed": "2026-10-09",
      "license": null
     },
     {
-     "name": "tmrts/go-patterns",
-     "desc": "Curated list of Go design patterns, recipes and idioms",
-     "lang": "Go",
-     "stars": 28262,
-     "forks": 2337,
-     "issues": 65,
-     "created": "2015-12-14",
-     "pushed": "2024-05-14",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "ashishps1/awesome-low-level-design",
-     "desc": "Learn Low Level Design (LLD) and prepare for interviews using free resources.",
-     "lang": "Java",
-     "stars": 27318,
-     "forks": 6602,
-     "issues": 81,
-     "created": "2023-11-17",
-     "pushed": "2026-08-19",
-     "license": "GPL-3.0"
-    }
-   ]
-  },
-  {
-   "id": "coding-interviews",
-   "title": "Coding interviews",
-   "topics": [
-    "coding-interviews"
-   ],
-   "repos": [
-    {
-     "name": "jwasham/coding-interview-university",
-     "desc": "A complete computer science study plan to become a software engineer.",
-     "lang": null,
-     "stars": 362382,
-     "forks": 84913,
-     "issues": 127,
-     "created": "2016-06-06",
-     "pushed": "2025-08-28",
-     "license": "CC-BY-SA-4.0"
-    },
-    {
-     "name": "yangshun/tech-interview-handbook",
-     "desc": "Curated coding interview preparation materials for busy software engineers",
+     "name": "carbon-design-system/carbon",
+     "desc": "A design system built by IBM",
      "lang": "TypeScript",
-     "stars": 142976,
-     "forks": 16854,
-     "issues": 37,
-     "created": "2016-07-05",
-     "pushed": "2026-08-07",
-     "license": "MIT"
-    },
-    {
-     "name": "kdn251/interviews",
-     "desc": "Everything you need to know to get the job.",
-     "lang": "Java",
-     "stars": 65268,
-     "forks": 12884,
-     "issues": 122,
-     "created": "2017-02-14",
-     "pushed": "2025-05-12",
-     "license": "MIT"
-    },
-    {
-     "name": "ombharatiya/FAANG-Coding-Interview-Questions",
-     "desc": "A curated List of Coding Questions Asked in FAANG Interviews",
-     "lang": null,
-     "stars": 6034,
-     "forks": 1437,
-     "issues": 4,
-     "created": "2020-10-27",
-     "pushed": "2026-10-08",
-     "license": "GPL-3.0"
-    },
-    {
-     "name": "MAZHARMIK/Interview_DS_Algo",
-     "desc": "Super Repository for Coding Interview Preperation",
-     "lang": "C++",
-     "stars": 5167,
-     "forks": 2136,
-     "issues": 70,
-     "created": "2020-07-12",
+     "stars": 9539,
+     "forks": 2286,
+     "issues": 1110,
+     "created": "2017-03-13",
      "pushed": "2026-10-10",
-     "license": null
-    },
-    {
-     "name": "Chanda-Abdul/Several-Coding-Patterns-for-Solving-Data-Structures-and-Algorithms-Problems-during-Interviews",
-     "desc": "Several Coding Patterns for Solving Data Structures and Algorithms Problems during Interviews",
-     "lang": null,
-     "stars": 4846,
-     "forks": 1338,
-     "issues": 20,
-     "created": "2022-03-24",
-     "pushed": "2024-08-20",
-     "license": null
-    },
-    {
-     "name": "dipjul/Grokking-the-Coding-Interview-Patterns-for-Coding-Questions",
-     "desc": "Grokking the Coding Interview: Patterns for Coding Questions Alternative",
-     "lang": null,
-     "stars": 4462,
-     "forks": 945,
-     "issues": 4,
-     "created": "2020-01-26",
-     "pushed": "2025-09-15",
-     "license": "MIT"
-    },
-    {
-     "name": "liyin2015/python-coding-interview",
-     "desc": "A middle-to-high level open source algorithm book designed with coding interview at heart!",
-     "lang": "TeX",
-     "stars": 2324,
-     "forks": 474,
-     "issues": 9,
-     "created": "2019-01-19",
-     "pushed": "2024-02-27",
      "license": "Apache-2.0"
-    }
-   ]
-  },
-  {
-   "id": "algorithms",
-   "title": "Algorithms",
-   "topics": [
-    "algorithms",
-    "data-structures"
-   ],
-   "repos": [
-    {
-     "name": "jwasham/coding-interview-university",
-     "desc": "A complete computer science study plan to become a software engineer.",
-     "lang": null,
-     "stars": 362382,
-     "forks": 84913,
-     "issues": 127,
-     "created": "2016-06-06",
-     "pushed": "2025-08-28",
-     "license": "CC-BY-SA-4.0"
-    },
-    {
-     "name": "trekhleb/javascript-algorithms",
-     "desc": "📝 Algorithms and data structures implemented in JavaScript with explanations and links to further readings",
-     "lang": "JavaScript",
-     "stars": 196667,
-     "forks": 31005,
-     "issues": 411,
-     "created": "2018-03-24",
-     "pushed": "2026-07-26",
-     "license": "MIT"
-    },
-    {
-     "name": "TheAlgorithms/Java",
-     "desc": "All Algorithms implemented in Java",
-     "lang": "Java",
-     "stars": 66355,
-     "forks": 21278,
-     "issues": 8,
-     "created": "2016-07-16",
-     "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "TheAlgorithms/C-Plus-Plus",
-     "desc": "Collection of various algorithms in mathematics, machine learning, computer science and physics implemented in C++ for educational purposes.",
-     "lang": "C++",
-     "stars": 34757,
-     "forks": 7878,
-     "issues": 26,
-     "created": "2016-07-16",
-     "pushed": "2026-10-03",
-     "license": "MIT"
-    },
-    {
-     "name": "TheAlgorithms/JavaScript",
-     "desc": "Algorithms and Data Structures implemented in JavaScript for beginners, following best practices.",
-     "lang": "JavaScript",
-     "stars": 34271,
-     "forks": 5836,
-     "issues": 216,
-     "created": "2017-07-13",
-     "pushed": "2026-03-07",
-     "license": "GPL-3.0"
-    },
-    {
-     "name": "kodecocodes/swift-algorithm-club",
-     "desc": "Algorithms and data structures in Swift, with explanations!",
-     "lang": "Swift",
-     "stars": 29066,
-     "forks": 4938,
-     "issues": 62,
-     "created": "2016-01-26",
-     "pushed": "2024-12-06",
-     "license": "MIT"
-    },
-    {
-     "name": "TheAlgorithms/Rust",
-     "desc": " All Algorithms implemented in Rust ",
-     "lang": "Rust",
-     "stars": 26080,
-     "forks": 2596,
-     "issues": 11,
-     "created": "2018-09-13",
-     "pushed": "2026-10-08",
-     "license": "MIT"
-    },
-    {
-     "name": "keon/algorithms",
-     "desc": "Minimal examples of data structures and algorithms in Python",
-     "lang": "Python",
-     "stars": 25565,
-     "forks": 4705,
-     "issues": 18,
-     "created": "2016-11-17",
-     "pushed": "2026-09-25",
-     "license": "MIT"
     }
    ]
   },
@@ -657,17 +289,6 @@
      "created": "2011-06-08",
      "pushed": "2026-10-11",
      "license": "MIT"
-    },
-    {
-     "name": "buildship-ai/rowy",
-     "desc": "Low-code backend platform. Manage database on spreadsheet-like UI and build cloud functions workflows in JS/TS, all in your browser.",
-     "lang": "TypeScript",
-     "stars": 6844,
-     "forks": 556,
-     "issues": 81,
-     "created": "2019-09-05",
-     "pushed": "2024-11-23",
-     "license": null
     }
    ]
   },
@@ -758,77 +379,100 @@
    ]
   },
   {
-   "id": "tensorflow",
-   "title": "Tensorflow",
+   "id": "algorithms",
+   "title": "Algorithms",
    "topics": [
-    "tensorflow"
+    "algorithms",
+    "data-structures"
    ],
    "repos": [
     {
-     "name": "tensorflow/tensorflow",
-     "desc": "An Open Source Machine Learning Framework for Everyone",
+     "name": "trekhleb/javascript-algorithms",
+     "desc": "📝 Algorithms and data structures implemented in JavaScript with explanations and links to further readings",
+     "lang": "JavaScript",
+     "stars": 196667,
+     "forks": 31005,
+     "issues": 411,
+     "created": "2018-03-24",
+     "pushed": "2026-07-26",
+     "license": "MIT"
+    },
+    {
+     "name": "TheAlgorithms/Java",
+     "desc": "All Algorithms implemented in Java",
+     "lang": "Java",
+     "stars": 66355,
+     "forks": 21278,
+     "issues": 8,
+     "created": "2016-07-16",
+     "pushed": "2026-10-10",
+     "license": "MIT"
+    },
+    {
+     "name": "TheAlgorithms/C-Plus-Plus",
+     "desc": "Collection of various algorithms in mathematics, machine learning, computer science and physics implemented in C++ for educational purposes.",
      "lang": "C++",
-     "stars": 200780,
-     "forks": 78981,
-     "issues": 3310,
-     "created": "2015-11-07",
-     "pushed": "2026-10-11",
-     "license": "Apache-2.0"
+     "stars": 34757,
+     "forks": 7878,
+     "issues": 26,
+     "created": "2016-07-16",
+     "pushed": "2026-10-03",
+     "license": "MIT"
     },
     {
-     "name": "aymericdamien/TensorFlow-Examples",
-     "desc": "TensorFlow Tutorial and Examples for Beginners (support TF v1 & v2)",
-     "lang": "Jupyter Notebook",
-     "stars": 43740,
-     "forks": 14625,
-     "issues": 229,
-     "created": "2015-11-11",
-     "pushed": "2024-07-26",
-     "license": null
+     "name": "TheAlgorithms/Rust",
+     "desc": " All Algorithms implemented in Rust ",
+     "lang": "Rust",
+     "stars": 26080,
+     "forks": 2596,
+     "issues": 11,
+     "created": "2018-09-13",
+     "pushed": "2026-10-08",
+     "license": "MIT"
     },
     {
-     "name": "donnemartin/data-science-ipython-notebooks",
-     "desc": "Data science Python notebooks: Deep learning (TensorFlow, Theano, Caffe, Keras), scikit-learn, Kaggle, big data (Spark, Hadoop MapReduce, HDFS), matplotlib, pandas, NumPy, SciPy, Python essentials, AWS, and various command lines.",
+     "name": "keon/algorithms",
+     "desc": "Minimal examples of data structures and algorithms in Python",
      "lang": "Python",
-     "stars": 29360,
-     "forks": 8007,
+     "stars": 25565,
+     "forks": 4705,
+     "issues": 18,
+     "created": "2016-11-17",
+     "pushed": "2026-09-25",
+     "license": "MIT"
+    },
+    {
+     "name": "williamfiset/algorithms",
+     "desc": "A collection of algorithms and data structures",
+     "lang": "Java",
+     "stars": 18777,
+     "forks": 4507,
      "issues": 48,
-     "created": "2015-01-23",
-     "pushed": "2024-03-20",
-     "license": null
-    },
-    {
-     "name": "instillai/TensorFlow-Course",
-     "desc": ":satellite: Simple and ready-to-use tutorials for TensorFlow ",
-     "lang": "Jupyter Notebook",
-     "stars": 16265,
-     "forks": 3111,
-     "issues": 2,
-     "created": "2018-10-02",
-     "pushed": "2022-11-28",
+     "created": "2017-03-18",
+     "pushed": "2026-06-23",
      "license": "MIT"
     },
     {
-     "name": "Hvass-Labs/TensorFlow-Tutorials",
-     "desc": "TensorFlow Tutorials with YouTube Videos",
-     "lang": "Jupyter Notebook",
-     "stars": 9267,
-     "forks": 4083,
-     "issues": 1,
-     "created": "2016-06-26",
-     "pushed": "2021-01-15",
+     "name": "TheAlgorithms/Go",
+     "desc": "Algorithms and Data Structures implemented in Go for beginners, following best practices.",
+     "lang": "Go",
+     "stars": 18230,
+     "forks": 2826,
+     "issues": 9,
+     "created": "2016-08-20",
+     "pushed": "2026-08-03",
      "license": "MIT"
     },
     {
-     "name": "mrdbourke/tensorflow-deep-learning",
-     "desc": "All course materials for the Zero to Mastery Deep Learning with TensorFlow course.",
-     "lang": "Jupyter Notebook",
-     "stars": 5947,
-     "forks": 2827,
-     "issues": 69,
-     "created": "2020-11-23",
-     "pushed": "2024-08-19",
-     "license": "MIT"
+     "name": "ashishps1/awesome-leetcode-resources",
+     "desc": "Awesome LeetCode resources to learn Data Structures and Algorithms and prepare for Coding Interviews.",
+     "lang": "Java",
+     "stars": 17987,
+     "forks": 3775,
+     "issues": 25,
+     "created": "2023-10-25",
+     "pushed": "2026-06-06",
+     "license": "GPL-3.0"
     }
    ]
   },
@@ -959,28 +603,6 @@
      "license": null
     },
     {
-     "name": "mitesh77/Best-Flutter-UI-Templates",
-     "desc": "completely free for everyone. Its build-in Flutter Dart.",
-     "lang": "Dart",
-     "stars": 22831,
-     "forks": 4808,
-     "issues": 15,
-     "created": "2019-09-02",
-     "pushed": "2025-12-16",
-     "license": null
-    },
-    {
-     "name": "iampawan/FlutterExampleApps",
-     "desc": "[Example APPS] Basic Flutter apps, for flutter devs.",
-     "lang": "Dart",
-     "stars": 21510,
-     "forks": 3774,
-     "issues": 40,
-     "created": "2018-04-13",
-     "pushed": "2024-08-09",
-     "license": null
-    },
-    {
      "name": "cfug/dio",
      "desc": "A powerful HTTP client for Dart and Flutter, which supports global settings, Interceptors, FormData, aborting and canceling a request, files uploading and downloading, requests timeout, custom adapters, etc.",
      "lang": "Dart",
@@ -1000,17 +622,6 @@
      "issues": 83,
      "created": "2017-10-22",
      "pushed": "2026-10-11",
-     "license": "MIT"
-    },
-    {
-     "name": "TheAlphamerc/flutter_twitter_clone",
-     "desc": "Fully functional Twitter clone built in  flutter framework using Firebase realtime database and storage",
-     "lang": "Dart",
-     "stars": 4239,
-     "forks": 1160,
-     "issues": 36,
-     "created": "2019-12-25",
-     "pushed": "2024-07-31",
      "license": "MIT"
     }
    ]
@@ -1078,17 +689,6 @@
      "license": "MIT"
     },
     {
-     "name": "typicode/husky",
-     "desc": "Git hooks made easy 🐶 woof!",
-     "lang": "JavaScript",
-     "stars": 35347,
-     "forks": 1098,
-     "issues": 107,
-     "created": "2014-06-23",
-     "pushed": "2026-03-19",
-     "license": "MIT"
-    },
-    {
      "name": "dandavison/delta",
      "desc": "A syntax-highlighting pager for git, diff, grep, rg --json, and blame output",
      "lang": "Rust",
@@ -1109,6 +709,17 @@
      "created": "2018-01-27",
      "pushed": "2026-09-30",
      "license": "MIT"
+    },
+    {
+     "name": "GitbookIO/gitbook",
+     "desc": "The open source frontend for GitBook doc sites",
+     "lang": "TypeScript",
+     "stars": 29062,
+     "forks": 4042,
+     "issues": 102,
+     "created": "2014-03-31",
+     "pushed": "2026-10-09",
+     "license": "GPL-3.0"
     }
    ]
   },
@@ -1142,17 +753,6 @@
      "license": "MIT"
     },
     {
-     "name": "Semantic-Org/Semantic-UI",
-     "desc": "Semantic is a UI component framework based around useful principles from natural language.",
-     "lang": "JavaScript",
-     "stars": 51015,
-     "forks": 4841,
-     "issues": 1071,
-     "created": "2013-04-08",
-     "pushed": "2024-11-27",
-     "license": "MIT"
-    },
-    {
      "name": "jgthms/bulma",
      "desc": "Modern CSS framework based on Flexbox",
      "lang": "CSS",
@@ -1172,17 +772,6 @@
      "issues": 789,
      "created": "2014-09-12",
      "pushed": "2026-08-20",
-     "license": "MIT"
-    },
-    {
-     "name": "picturepan2/spectre",
-     "desc": "Spectre.css - A Lightweight, Responsive and Modern CSS Framework",
-     "lang": "CSS",
-     "stars": 11307,
-     "forks": 778,
-     "issues": 193,
-     "created": "2016-03-07",
-     "pushed": "2024-04-11",
      "license": "MIT"
     },
     {
@@ -1206,6 +795,28 @@
      "created": "2017-09-01",
      "pushed": "2026-06-08",
      "license": null
+    },
+    {
+     "name": "knadh/oat",
+     "desc": "Ultra-lightweight, zero dependency, semantic HTML, CSS, JS UI library. ~10KB min+gz.",
+     "lang": "CSS",
+     "stars": 5531,
+     "forks": 258,
+     "issues": 1,
+     "created": "2026-01-15",
+     "pushed": "2026-10-10",
+     "license": "MIT"
+    },
+    {
+     "name": "ingram-projects/animxyz",
+     "desc": "The first truly composable CSS animation library. Built for Vue, React, SCSS, and CSS, AnimXYZ will bring your website to life.",
+     "lang": "CSS",
+     "stars": 2498,
+     "forks": 62,
+     "issues": 42,
+     "created": "2020-05-03",
+     "pushed": "2026-10-08",
+     "license": "MIT"
     }
    ]
   },
@@ -1226,17 +837,6 @@
      "created": "2022-12-05",
      "pushed": "2026-10-11",
      "license": null
-    },
-    {
-     "name": "dair-ai/Prompt-Engineering-Guide",
-     "desc": "🐙 Guides, papers, lessons, notebooks and resources for prompt engineering, context engineering, RAG, and AI Agents.",
-     "lang": "MDX",
-     "stars": 79011,
-     "forks": 8674,
-     "issues": 287,
-     "created": "2022-12-16",
-     "pushed": "2026-03-11",
-     "license": "MIT"
     },
     {
      "name": "linshenkx/prompt-optimizer",
@@ -1303,103 +903,17 @@
      "created": "2026-03-11",
      "pushed": "2026-08-24",
      "license": "MIT"
-    }
-   ]
-  },
-  {
-   "id": "stable-diffusion",
-   "title": "Stable diffusion",
-   "topics": [
-    "stable-diffusion"
-   ],
-   "repos": [
-    {
-     "name": "AUTOMATIC1111/stable-diffusion-webui",
-     "desc": "Stable Diffusion web UI",
-     "lang": "Python",
-     "stars": 165042,
-     "forks": 32969,
-     "issues": 2510,
-     "created": "2022-08-22",
-     "pushed": "2026-03-02",
-     "license": "AGPL-3.0"
     },
     {
-     "name": "Comfy-Org/ComfyUI",
-     "desc": "The most powerful and modular diffusion model GUI, api and backend with a graph/nodes interface. The fastest local inference engine in the world.",
-     "lang": "Python",
-     "stars": 136825,
-     "forks": 16286,
-     "issues": 5127,
-     "created": "2023-01-17",
-     "pushed": "2026-10-11",
-     "license": "GPL-3.0"
-    },
-    {
-     "name": "huggingface/diffusers",
-     "desc": "🤗 Diffusers: State-of-the-art diffusion models for image, video, and audio generation in PyTorch.",
-     "lang": "Python",
-     "stars": 34701,
-     "forks": 7385,
-     "issues": 1469,
-     "created": "2022-05-30",
-     "pushed": "2026-10-10",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "invoke-ai/InvokeAI",
-     "desc": "Invoke is a leading creative engine for Stable Diffusion models, empowering professionals, artists, and enthusiasts to generate and create visual media using the latest AI-driven technologies. The solution offers an industry leading WebUI, and serves as the foundation for multiple commercial products.",
+     "name": "YouMind-OpenLab/awesome-nano-banana-pro-prompts",
+     "desc": "🍌 World's largest Nano Banana Pro prompt library — 10,000+ curated prompts with preview images, 16 languages. Google Gemini AI image generation. Free & open source.",
      "lang": "TypeScript",
-     "stars": 28548,
-     "forks": 3025,
-     "issues": 400,
-     "created": "2022-08-17",
+     "stars": 13560,
+     "forks": 1437,
+     "issues": 2,
+     "created": "2025-11-23",
      "pushed": "2026-10-11",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "camenduru/stable-diffusion-webui-colab",
-     "desc": "stable diffusion webui colab",
-     "lang": "Jupyter Notebook",
-     "stars": 15912,
-     "forks": 2614,
-     "issues": 37,
-     "created": "2022-10-05",
-     "pushed": "2025-12-16",
-     "license": "Unlicense"
-    },
-    {
-     "name": "divamgupta/diffusionbee-stable-diffusion-ui",
-     "desc": "Diffusion Bee is the easiest way to run Stable Diffusion locally on your M1 Mac. Comes with a one-click installer. No dependencies or technical knowledge needed.",
-     "lang": "JavaScript",
-     "stars": 13600,
-     "forks": 727,
-     "issues": 401,
-     "created": "2022-09-06",
-     "pushed": "2024-10-30",
-     "license": "AGPL-3.0"
-    },
-    {
-     "name": "Acly/krita-ai-diffusion",
-     "desc": "Streamlined interface for generating images with AI in Krita. Inpaint and outpaint with optional text prompt, no tweaking required.",
-     "lang": "Python",
-     "stars": 10689,
-     "forks": 639,
-     "issues": 120,
-     "created": "2023-09-01",
-     "pushed": "2026-10-03",
-     "license": "GPL-3.0"
-    },
-    {
-     "name": "Stability-AI/StableStudio",
-     "desc": "Community interface for generative AI",
-     "lang": "TypeScript",
-     "stars": 9046,
-     "forks": 913,
-     "issues": 62,
-     "created": "2023-04-21",
-     "pushed": "2024-04-30",
-     "license": "MIT"
+     "license": null
     }
    ]
   },
@@ -1519,17 +1033,6 @@
      "license": "MIT"
     },
     {
-     "name": "kdn251/interviews",
-     "desc": "Everything you need to know to get the job.",
-     "lang": "Java",
-     "stars": 65268,
-     "forks": 12884,
-     "issues": 122,
-     "created": "2017-02-14",
-     "pushed": "2025-05-12",
-     "license": "MIT"
-    },
-    {
      "name": "h5bp/Front-end-Developer-Interview-Questions",
      "desc": "A list of helpful front-end related questions you can use to interview potential candidates, test yourself or completely ignore.",
      "lang": "Nunjucks",
@@ -1563,37 +1066,48 @@
      "license": "MIT"
     },
     {
-     "name": "ashishps1/awesome-system-design-resources",
-     "desc": "Learn System Design concepts and prepare for interviews using free resources.",
-     "lang": "Java",
-     "stars": 42139,
-     "forks": 8809,
-     "issues": 19,
-     "created": "2023-10-25",
-     "pushed": "2026-02-16",
+     "name": "seanprashad/leetcode-patterns",
+     "desc": "A pattern-based approach to learn technical interview questions",
+     "lang": "TypeScript",
+     "stars": 14159,
+     "forks": 2283,
+     "issues": 2,
+     "created": "2018-12-31",
+     "pushed": "2026-10-04",
+     "license": null
+    },
+    {
+     "name": "ombharatiya/FAANG-Coding-Interview-Questions",
+     "desc": "A curated List of Coding Questions Asked in FAANG Interviews",
+     "lang": null,
+     "stars": 6034,
+     "forks": 1437,
+     "issues": 4,
+     "created": "2020-10-27",
+     "pushed": "2026-10-08",
      "license": "GPL-3.0"
     },
     {
-     "name": "donnemartin/interactive-coding-challenges",
-     "desc": "120+ interactive Python coding interview challenges (algorithms and data structures).  Includes Anki flashcards.",
+     "name": "perixtar/Tech-OA-Interview-Questions",
+     "desc": "Daily updated list of Tech Company OAs and Interview Problems. Save your time from finding them all over the internet.",
      "lang": "Python",
-     "stars": 31909,
-     "forks": 4658,
-     "issues": 75,
-     "created": "2015-04-28",
-     "pushed": "2024-05-08",
+     "stars": 5419,
+     "forks": 374,
+     "issues": 1,
+     "created": "2023-09-04",
+     "pushed": "2026-10-11",
      "license": null
     },
     {
-     "name": "checkcheckzz/system-design-interview",
-     "desc": "System design interview for IT companies",
+     "name": "JsonChao/Awesome-Android-Interview",
+     "desc": ":fire: A awesome  android expert interview questions and answers（continuous updating ...）",
      "lang": null,
-     "stars": 23832,
-     "forks": 5278,
-     "issues": 26,
-     "created": "2014-05-18",
-     "pushed": "2023-04-03",
-     "license": null
+     "stars": 4612,
+     "forks": 945,
+     "issues": 13,
+     "created": "2018-07-29",
+     "pushed": "2026-04-20",
+     "license": "Apache-2.0"
     }
    ]
   },
@@ -1627,17 +1141,6 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "lencx/ChatGPT",
-     "desc": "❄️ ChatGPT Desktop Application (Mac, Windows and Linux)",
-     "lang": "Rust",
-     "stars": 54597,
-     "forks": 6147,
-     "issues": 951,
-     "created": "2022-12-07",
-     "pushed": "2024-08-29",
-     "license": null
-    },
-    {
      "name": "pear-devs/pear-desktop",
      "desc": "Pear 🍐 is extension for music player",
      "lang": "TypeScript",
@@ -1660,28 +1163,6 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "listen1/listen1_desktop",
-     "desc": "one for all free music in china (Windows, Mac, Linux desktop)",
-     "lang": "JavaScript",
-     "stars": 11434,
-     "forks": 1523,
-     "issues": 957,
-     "created": "2016-05-19",
-     "pushed": "2026-04-07",
-     "license": "MIT"
-    },
-    {
-     "name": "dice2o/BingGPT",
-     "desc": "Desktop application of new Bing's AI-powered chat (Windows, macOS and Linux)",
-     "lang": "JavaScript",
-     "stars": 8887,
-     "forks": 658,
-     "issues": 240,
-     "created": "2023-02-16",
-     "pushed": "2024-02-08",
-     "license": "Apache-2.0"
-    },
-    {
      "name": "lightningpixel/modly",
      "desc": "Desktop app to generate 3D models from images or prompt using local AI — runs entirely on your GPU",
      "lang": "TypeScript",
@@ -1690,6 +1171,39 @@
      "issues": 103,
      "created": "2026-03-17",
      "pushed": "2026-10-04",
+     "license": null
+    },
+    {
+     "name": "vastsa/PI-Desktop",
+     "desc": "Local-first AI coding agent desktop: Electron + Rust host core + pi Agent Harness + user-installable plugins",
+     "lang": "TypeScript",
+     "stars": 6641,
+     "forks": 618,
+     "issues": 188,
+     "created": "2023-03-22",
+     "pushed": "2026-10-11",
+     "license": "LGPL-3.0"
+    },
+    {
+     "name": "op7418/CodePilot",
+     "desc": "A multi-model AI agent desktop client — connect any AI provider, extend with MCP & skills, control from your phone. Built with Electron + Next.js.",
+     "lang": "TypeScript",
+     "stars": 6498,
+     "forks": 699,
+     "issues": 414,
+     "created": "2026-02-06",
+     "pushed": "2026-09-22",
+     "license": null
+    },
+    {
+     "name": "zhukunpenglinyutong/desktop-cc-gui",
+     "desc": "Multi-engine AI coding desktop client (Tauri). Claude Code, Codex, Gemini, OpenCode, DeepSeek Harness and more in one GUI.",
+     "lang": "TypeScript",
+     "stars": 4460,
+     "forks": 402,
+     "issues": 316,
+     "created": "2026-02-03",
+     "pushed": "2026-10-10",
      "license": null
     }
    ]
@@ -1987,6 +1501,103 @@
    ]
   },
   {
+   "id": "stable-diffusion",
+   "title": "Stable diffusion",
+   "topics": [
+    "stable-diffusion"
+   ],
+   "repos": [
+    {
+     "name": "Comfy-Org/ComfyUI",
+     "desc": "The most powerful and modular diffusion model GUI, api and backend with a graph/nodes interface. The fastest local inference engine in the world.",
+     "lang": "Python",
+     "stars": 136825,
+     "forks": 16286,
+     "issues": 5127,
+     "created": "2023-01-17",
+     "pushed": "2026-10-11",
+     "license": "GPL-3.0"
+    },
+    {
+     "name": "huggingface/diffusers",
+     "desc": "🤗 Diffusers: State-of-the-art diffusion models for image, video, and audio generation in PyTorch.",
+     "lang": "Python",
+     "stars": 34701,
+     "forks": 7385,
+     "issues": 1469,
+     "created": "2022-05-30",
+     "pushed": "2026-10-10",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "invoke-ai/InvokeAI",
+     "desc": "Invoke is a leading creative engine for Stable Diffusion models, empowering professionals, artists, and enthusiasts to generate and create visual media using the latest AI-driven technologies. The solution offers an industry leading WebUI, and serves as the foundation for multiple commercial products.",
+     "lang": "TypeScript",
+     "stars": 28548,
+     "forks": 3025,
+     "issues": 400,
+     "created": "2022-08-17",
+     "pushed": "2026-10-11",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "Acly/krita-ai-diffusion",
+     "desc": "Streamlined interface for generating images with AI in Krita. Inpaint and outpaint with optional text prompt, no tweaking required.",
+     "lang": "Python",
+     "stars": 10689,
+     "forks": 639,
+     "issues": 120,
+     "created": "2023-09-01",
+     "pushed": "2026-10-03",
+     "license": "GPL-3.0"
+    },
+    {
+     "name": "LykosAI/StabilityMatrix",
+     "desc": "Multi-Platform Package Manager for Stable Diffusion",
+     "lang": "C#",
+     "stars": 8900,
+     "forks": 607,
+     "issues": 181,
+     "created": "2023-06-13",
+     "pushed": "2026-10-10",
+     "license": "AGPL-3.0"
+    },
+    {
+     "name": "carson-katri/dream-textures",
+     "desc": "Stable Diffusion built-in to Blender",
+     "lang": "Python",
+     "stars": 8213,
+     "forks": 436,
+     "issues": 15,
+     "created": "2022-09-08",
+     "pushed": "2026-09-17",
+     "license": "GPL-3.0"
+    },
+    {
+     "name": "MochiDiffusion/MochiDiffusion",
+     "desc": "Run Stable Diffusion on Mac natively",
+     "lang": "Swift",
+     "stars": 7965,
+     "forks": 367,
+     "issues": 10,
+     "created": "2022-12-15",
+     "pushed": "2026-10-11",
+     "license": "GPL-3.0"
+    },
+    {
+     "name": "leejet/stable-diffusion.cpp",
+     "desc": "Diffusion model(SD,Flux,Wan,Qwen Image,Z-Image,...) inference in pure C/C++",
+     "lang": "C++",
+     "stars": 7624,
+     "forks": 861,
+     "issues": 265,
+     "created": "2023-08-13",
+     "pushed": "2026-10-10",
+     "license": "MIT"
+    }
+   ]
+  },
+  {
    "id": "diagrams",
    "title": "Diagrams",
    "topics": [
@@ -2038,17 +1649,6 @@
      "license": "MIT"
     },
     {
-     "name": "projectstorm/react-diagrams",
-     "desc": "a super simple, no-nonsense diagramming library written in react that just works",
-     "lang": "TypeScript",
-     "stars": 9432,
-     "forks": 1179,
-     "issues": 320,
-     "created": "2016-06-03",
-     "pushed": "2025-04-03",
-     "license": "MIT"
-    },
-    {
      "name": "penrose/penrose",
      "desc": "Create beautiful diagrams just by typing notation in plain text.",
      "lang": "TypeScript",
@@ -2080,6 +1680,17 @@
      "created": "2019-01-10",
      "pushed": "2026-10-07",
      "license": "MIT"
+    },
+    {
+     "name": "philippemerle/KubeDiagrams",
+     "desc": "Generate Kubernetes architecture diagrams from Kubernetes manifest files, kustomization files, Helm charts, helmfiles, and actual cluster state",
+     "lang": "JavaScript",
+     "stars": 2720,
+     "forks": 179,
+     "issues": 11,
+     "created": "2024-12-26",
+     "pushed": "2026-10-05",
+     "license": "Apache-2.0"
     }
    ]
   },
@@ -2157,17 +1768,6 @@
      "license": null
     },
     {
-     "name": "jaredpalmer/formik",
-     "desc": "Build forms in React, without the tears 😭 ",
-     "lang": "TypeScript",
-     "stars": 34309,
-     "forks": 2774,
-     "issues": 843,
-     "created": "2017-06-14",
-     "pushed": "2025-11-10",
-     "license": "Apache-2.0"
-    },
-    {
      "name": "vercel/swr",
      "desc": "React Hooks for Data Fetching",
      "lang": "TypeScript",
@@ -2176,6 +1776,17 @@
      "issues": 232,
      "created": "2019-10-28",
      "pushed": "2026-09-22",
+     "license": "MIT"
+    },
+    {
+     "name": "react-native-elements/react-native-elements",
+     "desc": "Cross-Platform React Native UI Toolkit",
+     "lang": "MDX",
+     "stars": 25874,
+     "forks": 4667,
+     "issues": 159,
+     "created": "2016-09-08",
+     "pushed": "2026-05-21",
      "license": "MIT"
     }
    ]
@@ -2577,28 +2188,6 @@
      "license": "MIT"
     },
     {
-     "name": "Jannchie/Historical-ranking-data-visualization-based-on-d3.js",
-     "desc": "[Deprecated!] This is a data visualization project that converts historical data rankings into dynamic bar charts.",
-     "lang": "JavaScript",
-     "stars": 4637,
-     "forks": 1073,
-     "issues": 29,
-     "created": "2018-06-14",
-     "pushed": "2020-10-07",
-     "license": "GPL-3.0"
-    },
-    {
-     "name": "jasondavies/d3-cloud",
-     "desc": "Create word clouds in JavaScript.",
-     "lang": "JavaScript",
-     "stars": 3952,
-     "forks": 1053,
-     "issues": 2,
-     "created": "2012-02-08",
-     "pushed": "2026-03-09",
-     "license": "BSD-3-Clause"
-    },
-    {
      "name": "britecharts/britecharts",
      "desc": "Composable Charting Library based on reusable D3.js components.",
      "lang": "HTML",
@@ -2652,17 +2241,6 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "microsoft/Data-Science-For-Beginners",
-     "desc": "10 Weeks, 20 Lessons, Data Science for All!",
-     "lang": "Jupyter Notebook",
-     "stars": 37556,
-     "forks": 7580,
-     "issues": 20,
-     "created": "2021-03-03",
-     "pushed": "2026-09-13",
-     "license": "MIT"
-    },
-    {
      "name": "academic/awesome-datascience",
      "desc": ":memo: An awesome Data Science repository to learn and apply for real world problems.",
      "lang": null,
@@ -2685,17 +2263,6 @@
      "license": "MIT"
     },
     {
-     "name": "sinaptik-ai/pandas-ai",
-     "desc": "Chat with your database or your datalake (SQL, CSV, parquet). PandasAI makes data analysis conversational using LLMs and RAG.",
-     "lang": "Python",
-     "stars": 23864,
-     "forks": 2342,
-     "issues": 23,
-     "created": "2023-04-22",
-     "pushed": "2025-10-28",
-     "license": null
-    },
-    {
      "name": "airbnb/visx",
      "desc": "🐯 visx | visualization components",
      "lang": "TypeScript",
@@ -2705,6 +2272,28 @@
      "created": "2017-03-15",
      "pushed": "2026-06-22",
      "license": "MIT"
+    },
+    {
+     "name": "Avaiga/taipy",
+     "desc": "Turns Data and AI algorithms into production-ready web applications in no time.",
+     "lang": "Python",
+     "stars": 19432,
+     "forks": 1992,
+     "issues": 232,
+     "created": "2022-02-18",
+     "pushed": "2026-08-10",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "terkelg/awesome-creative-coding",
+     "desc": "Creative Coding: Generative Art, Data visualization, Interaction Design, Resources.",
+     "lang": "HTML",
+     "stars": 15425,
+     "forks": 984,
+     "issues": 15,
+     "created": "2016-11-01",
+     "pushed": "2026-07-21",
+     "license": null
     }
    ]
   },
@@ -2760,17 +2349,6 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "nextjs/saas-starter",
-     "desc": "Get started quickly with Next.js, Postgres, Stripe, and shadcn/ui.",
-     "lang": "TypeScript",
-     "stars": 16178,
-     "forks": 2736,
-     "issues": 56,
-     "created": "2024-09-10",
-     "pushed": "2025-12-11",
-     "license": "MIT"
-    },
-    {
      "name": "electric-sql/pglite",
      "desc": "Embeddable Postgres with real-time, reactive bindings.",
      "lang": "TypeScript",
@@ -2802,6 +2380,17 @@
      "created": "2010-10-15",
      "pushed": "2026-10-01",
      "license": "MIT"
+    },
+    {
+     "name": "citusdata/citus",
+     "desc": "Distributed PostgreSQL as an extension",
+     "lang": "C",
+     "stars": 12804,
+     "forks": 800,
+     "issues": 1060,
+     "created": "2016-02-01",
+     "pushed": "2026-10-08",
+     "license": "AGPL-3.0"
     }
    ]
   },
@@ -2868,17 +2457,6 @@
      "license": "MIT"
     },
     {
-     "name": "MatsuriDayo/NekoBoxForAndroid",
-     "desc": "NekoBox for Android / sing-box / universal proxy toolchain for Android",
-     "lang": "Kotlin",
-     "stars": 23041,
-     "forks": 1894,
-     "issues": 179,
-     "created": "2023-03-04",
-     "pushed": "2026-02-09",
-     "license": null
-    },
-    {
      "name": "HyNetworks/hysteria",
      "desc": "Hysteria is powerful, lightning-fast, and censorship-resistant open-source proxy software",
      "lang": "Go",
@@ -2899,6 +2477,114 @@
      "created": "2026-06-18",
      "pushed": "2026-10-11",
      "license": "MIT"
+    },
+    {
+     "name": "avwo/whistle",
+     "desc": "HTTP, HTTP2, HTTPS, Websocket debugging proxy",
+     "lang": "JavaScript",
+     "stars": 15726,
+     "forks": 1181,
+     "issues": 84,
+     "created": "2015-03-13",
+     "pushed": "2026-10-11",
+     "license": "MIT"
+    }
+   ]
+  },
+  {
+   "id": "http-client",
+   "title": "HTTP client",
+   "topics": [
+    "http-client"
+   ],
+   "repos": [
+    {
+     "name": "axios/axios",
+     "desc": "Promise based HTTP client for the browser and node.js",
+     "lang": "JavaScript",
+     "stars": 109345,
+     "forks": 11898,
+     "issues": 105,
+     "created": "2014-08-18",
+     "pushed": "2026-10-09",
+     "license": "MIT"
+    },
+    {
+     "name": "hoppscotch/hoppscotch",
+     "desc": "Open-Source API Development Ecosystem • https://hoppscotch.io • Offline, On-Prem & Cloud • Web, Desktop & CLI • Open-Source Alternative to Postman, Insomnia",
+     "lang": "TypeScript",
+     "stars": 80591,
+     "forks": 6148,
+     "issues": 847,
+     "created": "2019-08-21",
+     "pushed": "2026-10-07",
+     "license": "MIT"
+    },
+    {
+     "name": "Kong/insomnia",
+     "desc": "The open-source, cross-platform API client for GraphQL, REST, WebSockets, SSE and gRPC. With Cloud, Local and Git storage.",
+     "lang": "TypeScript",
+     "stars": 40035,
+     "forks": 2384,
+     "issues": 906,
+     "created": "2016-04-23",
+     "pushed": "2026-10-10",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "guzzle/guzzle",
+     "desc": "Guzzle, an extensible PHP HTTP client",
+     "lang": "PHP",
+     "stars": 23445,
+     "forks": 2390,
+     "issues": 4,
+     "created": "2011-02-28",
+     "pushed": "2026-09-06",
+     "license": "MIT"
+    },
+    {
+     "name": "mountain-loop/yaak",
+     "desc": "The most intuitive desktop API client. Organize and execute REST, GraphQL, WebSockets, Server Sent Events, and gRPC 🦬",
+     "lang": "TypeScript",
+     "stars": 19301,
+     "forks": 826,
+     "issues": 8,
+     "created": "2023-02-16",
+     "pushed": "2026-10-10",
+     "license": "MIT"
+    },
+    {
+     "name": "Orange-OpenSource/hurl",
+     "desc": "Hurl, run and test HTTP requests with plain text.",
+     "lang": "Rust",
+     "stars": 19246,
+     "forks": 748,
+     "issues": 201,
+     "created": "2020-08-25",
+     "pushed": "2026-10-11",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "sindresorhus/ky",
+     "desc": "🌳 Tiny & elegant JavaScript HTTP client based on the Fetch API",
+     "lang": "TypeScript",
+     "stars": 17106,
+     "forks": 503,
+     "issues": 0,
+     "created": "2018-09-04",
+     "pushed": "2026-10-09",
+     "license": "MIT"
+    },
+    {
+     "name": "aio-libs/aiohttp",
+     "desc": "Asynchronous HTTP client/server framework for asyncio and Python",
+     "lang": "Python",
+     "stars": 16573,
+     "forks": 2447,
+     "issues": 223,
+     "created": "2013-10-01",
+     "pushed": "2026-10-11",
+     "license": "Apache-2.0"
     }
    ]
   },
@@ -2943,17 +2629,6 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "yunjey/pytorch-tutorial",
-     "desc": "PyTorch Tutorial for Deep Learning Researchers",
-     "lang": "Python",
-     "stars": 32506,
-     "forks": 8200,
-     "issues": 89,
-     "created": "2017-03-10",
-     "pushed": "2023-08-15",
-     "license": "MIT"
-    },
-    {
      "name": "Lightning-AI/pytorch-lightning",
      "desc": "Pretrain, finetune ANY AI model of ANY size on 1 or 10,000+ GPUs with zero code changes.",
      "lang": "Python",
@@ -2963,17 +2638,6 @@
      "created": "2019-03-31",
      "pushed": "2026-10-07",
      "license": "Apache-2.0"
-    },
-    {
-     "name": "junyanz/pytorch-CycleGAN-and-pix2pix",
-     "desc": "Image-to-Image Translation in PyTorch",
-     "lang": "Python",
-     "stars": 25256,
-     "forks": 6565,
-     "issues": 589,
-     "created": "2017-04-18",
-     "pushed": "2025-08-06",
-     "license": null
     },
     {
      "name": "bharathgs/Awesome-pytorch-list",
@@ -2996,6 +2660,28 @@
      "created": "2020-05-05",
      "pushed": "2026-09-09",
      "license": "MIT"
+    },
+    {
+     "name": "jacobgil/pytorch-grad-cam",
+     "desc": "Advanced AI Explainability for computer vision.  Support for CNNs, Vision Transformers, Classification, Object detection, Segmentation, Image similarity and more.",
+     "lang": "Python",
+     "stars": 12996,
+     "forks": 1713,
+     "issues": 163,
+     "created": "2017-05-31",
+     "pushed": "2026-08-13",
+     "license": "MIT"
+    },
+    {
+     "name": "speechbrain/speechbrain",
+     "desc": "A PyTorch-based Speech Toolkit",
+     "lang": "Python",
+     "stars": 11863,
+     "forks": 1735,
+     "issues": 194,
+     "created": "2020-04-28",
+     "pushed": "2026-08-27",
+     "license": "Apache-2.0"
     }
    ]
   },
@@ -3062,28 +2748,6 @@
      "license": "MIT"
     },
     {
-     "name": "preservim/nerdtree",
-     "desc": "A tree explorer plugin for vim.",
-     "lang": "Vim Script",
-     "stars": 20083,
-     "forks": 1435,
-     "issues": 40,
-     "created": "2008-03-10",
-     "pushed": "2025-09-26",
-     "license": "WTFPL"
-    },
-    {
-     "name": "mhinz/vim-galore",
-     "desc": ":mortar_board: All things Vim!",
-     "lang": "Vim script",
-     "stars": 18015,
-     "forks": 627,
-     "issues": 13,
-     "created": "2016-01-04",
-     "pushed": "2023-12-22",
-     "license": "CC-BY-SA-4.0"
-    },
-    {
      "name": "vim-airline/vim-airline",
      "desc": "lean & mean status/tabline for vim that's light as air",
      "lang": "Vim Script",
@@ -3093,14 +2757,36 @@
      "created": "2013-06-30",
      "pushed": "2026-09-09",
      "license": "MIT"
+    },
+    {
+     "name": "ranger/ranger",
+     "desc": "A VIM-inspired filemanager for the console",
+     "lang": "Python",
+     "stars": 17423,
+     "forks": 939,
+     "issues": 897,
+     "created": "2009-06-04",
+     "pushed": "2026-09-09",
+     "license": "GPL-3.0"
+    },
+    {
+     "name": "fatih/vim-go",
+     "desc": "Go development plugin for Vim",
+     "lang": "Vim Script",
+     "stars": 16220,
+     "forks": 1424,
+     "issues": 44,
+     "created": "2014-03-24",
+     "pushed": "2026-08-23",
+     "license": null
     }
    ]
   },
   {
-   "id": "ui-kit",
-   "title": "UI kit",
+   "id": "ui-library",
+   "title": "UI library",
    "topics": [
-    "ui-kit"
+    "ui-library"
    ],
    "repos": [
     {
@@ -3115,25 +2801,25 @@
      "license": "MIT"
     },
     {
-     "name": "ElemeFE/element",
-     "desc": "A Vue.js 2.0 UI Toolkit for Web",
-     "lang": "Vue",
-     "stars": 54023,
-     "forks": 14382,
-     "issues": 2966,
-     "created": "2016-09-03",
-     "pushed": "2024-08-20",
-     "license": "MIT"
+     "name": "DavidHDev/react-bits",
+     "desc": "The largest open-source library of animated, interactive, and customizable React & Next.js components for building standout web products and experiences. Built for humans and AI agents.",
+     "lang": "JavaScript",
+     "stars": 48876,
+     "forks": 2391,
+     "issues": 2,
+     "created": "2024-08-06",
+     "pushed": "2026-10-10",
+     "license": null
     },
     {
-     "name": "tabler/tabler",
-     "desc": "Free and open source admin dashboard UI kit built on Bootstrap: 100+ pages, 5,000+ icons, dark mode, RTL.",
-     "lang": "Astro",
-     "stars": 41850,
-     "forks": 4432,
-     "issues": 74,
-     "created": "2018-02-01",
-     "pushed": "2026-10-10",
+     "name": "chakra-ui/chakra-ui",
+     "desc": "Chakra UI is a component system for building SaaS products with speed ⚡️",
+     "lang": "TypeScript",
+     "stars": 40683,
+     "forks": 3648,
+     "issues": 16,
+     "created": "2019-08-17",
+     "pushed": "2026-10-06",
      "license": "MIT"
     },
     {
@@ -3148,39 +2834,6 @@
      "license": "MIT"
     },
     {
-     "name": "iview/iview",
-     "desc": "A high quality UI Toolkit built on Vue.js 2.0",
-     "lang": "Vue",
-     "stars": 23751,
-     "forks": 4043,
-     "issues": 1238,
-     "created": "2016-07-28",
-     "pushed": "2024-01-15",
-     "license": null
-    },
-    {
-     "name": "radix-ui/primitives",
-     "desc": "Radix Primitives is an open-source UI component library for building high-quality, accessible design systems and web apps. Maintained by @workos.",
-     "lang": "TypeScript",
-     "stars": 19379,
-     "forks": 1260,
-     "issues": 263,
-     "created": "2020-06-19",
-     "pushed": "2026-10-09",
-     "license": "MIT"
-    },
-    {
-     "name": "ElemeFE/mint-ui",
-     "desc": "Mobile UI elements for Vue.js",
-     "lang": "Vue",
-     "stars": 16429,
-     "forks": 3470,
-     "issues": 291,
-     "created": "2016-05-17",
-     "pushed": "2022-02-28",
-     "license": "MIT"
-    },
-    {
      "name": "unovue/shadcn-vue",
      "desc": "Vue port of shadcn-ui",
      "lang": "TypeScript",
@@ -3189,6 +2842,39 @@
      "issues": 145,
      "created": "2023-06-26",
      "pushed": "2026-10-04",
+     "license": "MIT"
+    },
+    {
+     "name": "akveo/react-native-ui-kitten",
+     "desc": "React Native UI library built on the Eva Design System: 30+ themeable, accessible components for iOS, Android and web. TypeScript, React 19 / RN 0.81, Eva and Material themes with runtime light/dark switching, on-demand style compilation.",
+     "lang": "TypeScript",
+     "stars": 10664,
+     "forks": 960,
+     "issues": 15,
+     "created": "2016-12-20",
+     "pushed": "2026-10-06",
+     "license": "MIT"
+    },
+    {
+     "name": "themesberg/flowbite",
+     "desc": "Open-source UI component library and front-end development framework based on Tailwind CSS",
+     "lang": "HTML",
+     "stars": 9368,
+     "forks": 867,
+     "issues": 258,
+     "created": "2021-07-28",
+     "pushed": "2026-06-27",
+     "license": "MIT"
+    },
+    {
+     "name": "arco-design/arco-design",
+     "desc": "A comprehensive React UI components library based on Arco Design",
+     "lang": "TypeScript",
+     "stars": 5713,
+     "forks": 725,
+     "issues": 375,
+     "created": "2021-10-25",
+     "pushed": "2026-10-10",
      "license": "MIT"
     }
    ]
@@ -3267,17 +2953,6 @@
      "license": "MIT"
     },
     {
-     "name": "mdbootstrap/mdb-ui-kit",
-     "desc": "Bootstrap 5 & Material Design UI KIT",
-     "lang": "SCSS",
-     "stars": 24246,
-     "forks": 3434,
-     "issues": 26,
-     "created": "2014-08-18",
-     "pushed": "2026-03-24",
-     "license": null
-    },
-    {
      "name": "material-components/material-components-android",
      "desc": "[MAINTENANCE MODE] Modular and customizable Material Design UI components for Android",
      "lang": "Java",
@@ -3287,6 +2962,17 @@
      "created": "2016-12-05",
      "pushed": "2026-09-14",
      "license": "Apache-2.0"
+    },
+    {
+     "name": "MaterialDesignInXAML/MaterialDesignInXamlToolkit",
+     "desc": "Google's Material Design in XAML & WPF, for C# & VB.Net. ",
+     "lang": "C#",
+     "stars": 16276,
+     "forks": 3495,
+     "issues": 143,
+     "created": "2015-02-07",
+     "pushed": "2026-10-09",
+     "license": "MIT"
     }
    ]
   },
@@ -3317,28 +3003,6 @@
      "issues": 1872,
      "created": "2022-09-27",
      "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "goldbergyoni/javascript-testing-best-practices",
-     "desc": "📗🌐 🚢 Comprehensive and exhaustive JavaScript & Node.js testing best practices (August 2025)",
-     "lang": "JavaScript",
-     "stars": 24611,
-     "forks": 2089,
-     "issues": 70,
-     "created": "2019-07-04",
-     "pushed": "2024-06-27",
-     "license": "MIT"
-    },
-    {
-     "name": "enzymejs/enzyme",
-     "desc": "JavaScript Testing utilities for React",
-     "lang": "JavaScript",
-     "stars": 19807,
-     "forks": 1965,
-     "issues": 282,
-     "created": "2015-11-10",
-     "pushed": "2025-10-22",
      "license": "MIT"
     },
     {
@@ -3384,6 +3048,28 @@
      "created": "2015-05-28",
      "pushed": "2026-09-23",
      "license": "MPL-2.0"
+    },
+    {
+     "name": "phoronix-test-suite/phoronix-test-suite",
+     "desc": "The Phoronix Test Suite open-source, cross-platform automated testing/benchmarking software.",
+     "lang": "PHP",
+     "stars": 3152,
+     "forks": 438,
+     "issues": 277,
+     "created": "2014-01-12",
+     "pushed": "2026-09-20",
+     "license": "GPL-3.0"
+    },
+    {
+     "name": "test-zeus-ai/testzeus-hercules",
+     "desc": "Hercules is the world’s first open-source testing agent, enabling UI, API, Security, Accessibility, and Visual validations – all without code or maintenance. Automate testing effortlessly and let Hercules handle the heavy lifting! ⚡",
+     "lang": "Python",
+     "stars": 1179,
+     "forks": 195,
+     "issues": 45,
+     "created": "2024-11-14",
+     "pushed": "2026-08-04",
+     "license": "AGPL-3.0"
     }
    ]
   },
@@ -3404,28 +3090,6 @@
      "created": "2015-03-22",
      "pushed": "2026-09-09",
      "license": "MIT"
-    },
-    {
-     "name": "animate-css/animate.css",
-     "desc": "🍿 A cross-browser library of CSS animations. As easy to use as an easy thing.",
-     "lang": "CSS",
-     "stars": 82860,
-     "forks": 15867,
-     "issues": 80,
-     "created": "2011-10-12",
-     "pushed": "2024-07-29",
-     "license": null
-    },
-    {
-     "name": "airbnb/lottie-android",
-     "desc": "Render After Effects animations natively on Android and iOS, Web, and React Native",
-     "lang": "Java",
-     "stars": 35741,
-     "forks": 5424,
-     "issues": 78,
-     "created": "2016-10-06",
-     "pushed": "2026-02-15",
-     "license": "Apache-2.0"
     },
     {
      "name": "motiondivision/motion",
@@ -3450,17 +3114,6 @@
      "license": null
     },
     {
-     "name": "Popmotion/popmotion",
-     "desc": "Simple animation libraries for delightful user interfaces",
-     "lang": "JavaScript",
-     "stars": 20151,
-     "forks": 662,
-     "issues": 50,
-     "created": "2014-08-17",
-     "pushed": "2024-03-12",
-     "license": null
-    },
-    {
      "name": "formkit/auto-animate",
      "desc": "A zero-config, drop-in animation utility that adds smooth transitions to your web app. You can use it with React, Vue, or any other JavaScript application.",
      "lang": "TypeScript",
@@ -3472,15 +3125,15 @@
      "license": "MIT"
     },
     {
-     "name": "catdad/canvas-confetti",
-     "desc": "🎉 performant confetti animation in the browser",
-     "lang": "JavaScript",
-     "stars": 12788,
-     "forks": 465,
-     "issues": 44,
-     "created": "2018-01-26",
-     "pushed": "2025-10-25",
-     "license": "ISC"
+     "name": "ingram-projects/animxyz",
+     "desc": "The first truly composable CSS animation library. Built for Vue, React, SCSS, and CSS, AnimXYZ will bring your website to life.",
+     "lang": "CSS",
+     "stars": 2498,
+     "forks": 62,
+     "issues": 42,
+     "created": "2020-05-03",
+     "pushed": "2026-10-08",
+     "license": "MIT"
     }
    ]
   },
@@ -3633,17 +3286,6 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "dusty-nv/jetson-inference",
-     "desc": "Hello AI World guide to deploying deep-learning inference networks and deep vision primitives with TensorRT and NVIDIA Jetson.",
-     "lang": "C++",
-     "stars": 9016,
-     "forks": 3114,
-     "issues": 407,
-     "created": "2016-07-30",
-     "pushed": "2025-10-16",
-     "license": "MIT"
-    },
-    {
      "name": "vllm-project/vllm-omni",
      "desc": "A framework for efficient model inference with omni-modality models",
      "lang": "Python",
@@ -3750,17 +3392,6 @@
      "created": "2014-05-23",
      "pushed": "2026-10-08",
      "license": "BSD-3-Clause"
-    },
-    {
-     "name": "gao-sun/eul",
-     "desc": "🖥️ macOS status monitoring app written in SwiftUI.",
-     "lang": "Swift",
-     "stars": 9949,
-     "forks": 380,
-     "issues": 77,
-     "created": "2020-06-26",
-     "pushed": "2024-05-25",
-     "license": "MIT"
     }
    ]
   },
@@ -3959,81 +3590,6 @@
    ]
   },
   {
-   "id": "crawler",
-   "title": "Crawler",
-   "topics": [
-    "crawler"
-   ],
-   "repos": [
-    {
-     "name": "unclecode/crawl4ai",
-     "desc": "Open-source web crawler and scraper for LLMs and AI agents: any website into clean, LLM-ready Markdown. Run it yourself, or use Crawl4AI Cloud with one key.",
-     "lang": "Python",
-     "stars": 85172,
-     "forks": 8836,
-     "issues": 237,
-     "created": "2024-05-09",
-     "pushed": "2026-10-05",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "gocolly/colly",
-     "desc": "Elegant Scraper and Crawler Framework for Golang",
-     "lang": "Go",
-     "stars": 25549,
-     "forks": 1861,
-     "issues": 194,
-     "created": "2017-09-29",
-     "pushed": "2026-10-05",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "code4craft/webmagic",
-     "desc": "A scalable web crawler framework for Java.",
-     "lang": "Java",
-     "stars": 11671,
-     "forks": 4091,
-     "issues": 367,
-     "created": "2013-04-23",
-     "pushed": "2025-12-20",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "BruceDone/awesome-crawler",
-     "desc": "A collection of awesome web crawler,spider in different languages",
-     "lang": null,
-     "stars": 7327,
-     "forks": 753,
-     "issues": 39,
-     "created": "2016-10-10",
-     "pushed": "2024-06-16",
-     "license": "MIT"
-    },
-    {
-     "name": "bda-research/node-crawler",
-     "desc": "Web Crawler/Spider for NodeJS + server-side jQuery ;-)",
-     "lang": "TypeScript",
-     "stars": 6796,
-     "forks": 862,
-     "issues": 29,
-     "created": "2010-11-25",
-     "pushed": "2026-06-18",
-     "license": "MIT"
-    },
-    {
-     "name": "yujiosaka/headless-chrome-crawler",
-     "desc": "Distributed crawler powered by Headless Chrome",
-     "lang": "JavaScript",
-     "stars": 5632,
-     "forks": 403,
-     "issues": 33,
-     "created": "2017-12-02",
-     "pushed": "2023-04-29",
-     "license": "MIT"
-    }
-   ]
-  },
-  {
    "id": "vite",
    "title": "Vite",
    "topics": [
@@ -4060,17 +3616,6 @@
      "issues": 328,
      "created": "2020-04-30",
      "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "vitejs/awesome-vite",
-     "desc": "⚡️ A curated list of awesome things related to Vite.js",
-     "lang": "JavaScript",
-     "stars": 17263,
-     "forks": 1339,
-     "issues": 142,
-     "created": "2020-08-21",
-     "pushed": "2026-02-04",
      "license": "MIT"
     },
     {
@@ -4180,114 +3725,6 @@
      "created": "2022-05-11",
      "pushed": "2026-10-05",
      "license": null
-    },
-    {
-     "name": "Perfare/Il2CppDumper",
-     "desc": "Unity il2cpp reverse engineer",
-     "lang": "C#",
-     "stars": 9485,
-     "forks": 1933,
-     "issues": 154,
-     "created": "2016-12-30",
-     "pushed": "2024-08-18",
-     "license": "MIT"
-    }
-   ]
-  },
-  {
-   "id": "http",
-   "title": "HTTP",
-   "topics": [
-    "http"
-   ],
-   "repos": [
-    {
-     "name": "hoppscotch/hoppscotch",
-     "desc": "Open-Source API Development Ecosystem • https://hoppscotch.io • Offline, On-Prem & Cloud • Web, Desktop & CLI • Open-Source Alternative to Postman, Insomnia",
-     "lang": "TypeScript",
-     "stars": 80591,
-     "forks": 6148,
-     "issues": 847,
-     "created": "2019-08-21",
-     "pushed": "2026-10-07",
-     "license": "MIT"
-    },
-    {
-     "name": "caddyserver/caddy",
-     "desc": "Fast and extensible multi-platform HTTP/1-2-3 web server with automatic HTTPS",
-     "lang": "Go",
-     "stars": 77710,
-     "forks": 5113,
-     "issues": 282,
-     "created": "2015-01-13",
-     "pushed": "2026-10-11",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "psf/requests",
-     "desc": "A simple, yet elegant, HTTP library.",
-     "lang": "Python",
-     "stars": 54563,
-     "forks": 12473,
-     "issues": 243,
-     "created": "2011-02-13",
-     "pushed": "2026-09-28",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "httpie/cli",
-     "desc": "🥧 HTTPie CLI  — modern, user-friendly command-line HTTP client for the API era. JSON support, colors, sessions, downloads, plugins & more.",
-     "lang": "Python",
-     "stars": 38755,
-     "forks": 4016,
-     "issues": 346,
-     "created": "2012-02-25",
-     "pushed": "2024-12-17",
-     "license": "BSD-3-Clause"
-    },
-    {
-     "name": "tokio-rs/axum",
-     "desc": "HTTP routing and request-handling library for Rust that focuses on ergonomics and modularity",
-     "lang": "Rust",
-     "stars": 27443,
-     "forks": 1506,
-     "issues": 89,
-     "created": "2021-05-30",
-     "pushed": "2026-10-09",
-     "license": "MIT"
-    },
-    {
-     "name": "GopeedLab/gopeed",
-     "desc": "  A fast, modern download manager for HTTP, BitTorrent, Magnet, and ed2k. Cross-platform, built with Golang and Flutter.",
-     "lang": "Dart",
-     "stars": 26807,
-     "forks": 1747,
-     "issues": 345,
-     "created": "2019-04-21",
-     "pushed": "2026-10-10",
-     "license": "GPL-3.0"
-    },
-    {
-     "name": "vapor/vapor",
-     "desc": "💧 A server-side Swift HTTP web framework.",
-     "lang": "Swift",
-     "stars": 26228,
-     "forks": 1535,
-     "issues": 87,
-     "created": "2016-01-18",
-     "pushed": "2026-10-04",
-     "license": "MIT"
-    },
-    {
-     "name": "tsenart/vegeta",
-     "desc": "HTTP load testing tool and library. It's over 9000!",
-     "lang": "Go",
-     "stars": 25216,
-     "forks": 1425,
-     "issues": 124,
-     "created": "2013-08-13",
-     "pushed": "2026-09-24",
-     "license": "MIT"
     }
    ]
   },
@@ -4420,17 +3857,6 @@
      "license": "MIT"
     },
     {
-     "name": "CorentinJ/Real-Time-Voice-Cloning",
-     "desc": "Clone a voice in 5 seconds to generate arbitrary speech in real-time",
-     "lang": "Python",
-     "stars": 60174,
-     "forks": 9377,
-     "issues": 177,
-     "created": "2019-05-26",
-     "pushed": "2026-03-09",
-     "license": null
-    },
-    {
      "name": "debpalash/VoiceStudio",
      "desc": "VoiceStudio is the open-source, fully-local ElevenLabs alternative — voice cloning, voice design, video dubbing, dictation, transcription & audiobook creation in 646 languages.",
      "lang": "Python",
@@ -4439,28 +3865,6 @@
      "issues": 97,
      "created": "2026-04-09",
      "pushed": "2026-10-10",
-     "license": "AGPL-3.0"
-    },
-    {
-     "name": "coqui-ai/TTS",
-     "desc": "🐸💬 - a deep learning toolkit for Text-to-Speech, battle-tested in research and production",
-     "lang": "Python",
-     "stars": 46107,
-     "forks": 6165,
-     "issues": 3,
-     "created": "2020-05-20",
-     "pushed": "2024-08-16",
-     "license": "MPL-2.0"
-    },
-    {
-     "name": "2noise/ChatTTS",
-     "desc": "A generative speech model for daily dialogue.",
-     "lang": "Python",
-     "stars": 39898,
-     "forks": 4256,
-     "issues": 63,
-     "created": "2024-05-27",
-     "pushed": "2026-04-10",
      "license": "AGPL-3.0"
     },
     {
@@ -4475,15 +3879,48 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "myshell-ai/OpenVoice",
-     "desc": "Instant voice cloning by MIT and MyShell. Audio foundation model.",
+     "name": "fishaudio/fish-speech",
+     "desc": "SOTA Open Source TTS",
      "lang": "Python",
-     "stars": 37834,
-     "forks": 4251,
-     "issues": 311,
-     "created": "2023-11-29",
-     "pushed": "2025-04-19",
-     "license": "MIT"
+     "stars": 32994,
+     "forks": 2865,
+     "issues": 15,
+     "created": "2023-10-10",
+     "pushed": "2026-10-10",
+     "license": null
+    },
+    {
+     "name": "index-tts/index-tts",
+     "desc": "An Industrial-Level Controllable and Efficient Zero-Shot Text-To-Speech System",
+     "lang": "Python",
+     "stars": 24410,
+     "forks": 2895,
+     "issues": 413,
+     "created": "2025-02-06",
+     "pushed": "2026-09-29",
+     "license": null
+    },
+    {
+     "name": "QwenAudio/CosyVoice",
+     "desc": "Multi-lingual large voice generation model, providing inference, training and deployment full-stack ability.",
+     "lang": "Python",
+     "stars": 23915,
+     "forks": 2727,
+     "issues": 671,
+     "created": "2024-07-03",
+     "pushed": "2026-05-25",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "DrewThomasson/ebook2audiobook",
+     "desc": "Generate audiobooks from e-books, voice cloning & 1158+ languages!",
+     "lang": "Python",
+     "stars": 20330,
+     "forks": 1732,
+     "issues": 4,
+     "created": "2024-01-22",
+     "pushed": "2026-10-06",
+     "license": "Apache-2.0"
     }
    ]
   },
@@ -4528,28 +3965,6 @@
      "license": "MPL-2.0"
     },
     {
-     "name": "JaidedAI/EasyOCR",
-     "desc": "Ready-to-use OCR with 80+ supported languages and all popular writing scripts including Latin, Chinese, Arabic, Devanagari, Cyrillic and etc.",
-     "lang": "Python",
-     "stars": 30063,
-     "forks": 3612,
-     "issues": 532,
-     "created": "2020-03-14",
-     "pushed": "2025-12-05",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "lukas-blecher/LaTeX-OCR",
-     "desc": "pix2tex: Using a ViT to convert images of equations into LaTeX code.",
-     "lang": "Python",
-     "stars": 16588,
-     "forks": 1311,
-     "issues": 158,
-     "created": "2020-12-11",
-     "pushed": "2025-01-18",
-     "license": "MIT"
-    },
-    {
      "name": "datalab-to/chandra",
      "desc": "OCR model that handles complex tables, forms, handwriting with full layout.",
      "lang": "Python",
@@ -4561,17 +3976,6 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "getomni-ai/zerox",
-     "desc": "OCR & Document Extraction using vision models",
-     "lang": "TypeScript",
-     "stars": 12255,
-     "forks": 847,
-     "issues": 91,
-     "created": "2024-07-21",
-     "pushed": "2025-05-20",
-     "license": "MIT"
-    },
-    {
      "name": "RapidAI/RapidOCR",
      "desc": "📄 Awesome OCR multiple programing languages toolkits based on ONNX Runtime, OpenVINO, MNN, PaddlePaddle, TensorRT and PyTorch.",
      "lang": "Python",
@@ -4581,6 +3985,17 @@
      "created": "2021-01-04",
      "pushed": "2026-10-11",
      "license": "Apache-2.0"
+    },
+    {
+     "name": "TheJoeFin/Text-Grab",
+     "desc": "Use OCR in Windows quickly and easily with Text Grab. With optional background process and notifications.",
+     "lang": "C#",
+     "stars": 5040,
+     "forks": 331,
+     "issues": 72,
+     "created": "2020-12-01",
+     "pushed": "2026-09-22",
+     "license": "MIT"
     }
    ]
   },
@@ -4678,17 +4093,6 @@
      "license": null
     },
     {
-     "name": "CMU-Perceptual-Computing-Lab/openpose",
-     "desc": "OpenPose: Real-time multi-person keypoint detection library for body, face, hands, and foot estimation",
-     "lang": "C++",
-     "stars": 34495,
-     "forks": 8039,
-     "issues": 359,
-     "created": "2017-04-24",
-     "pushed": "2024-08-03",
-     "license": null
-    },
-    {
      "name": "allinurl/goaccess",
      "desc": "GoAccess is a real-time web log analyzer and interactive viewer that runs in a terminal in *nix systems or through your browser.",
      "lang": "C",
@@ -4742,189 +4146,103 @@
      "created": "2026-03-19",
      "pushed": "2026-10-11",
      "license": "AGPL-3.0"
-    }
-   ]
-  },
-  {
-   "id": "rest",
-   "title": "Rest",
-   "topics": [
-    "rest"
-   ],
-   "repos": [
-    {
-     "name": "typicode/json-server",
-     "desc": "Get a full fake REST API with zero coding in less than 30 seconds (seriously)",
-     "lang": "JavaScript",
-     "stars": 75721,
-     "forks": 7264,
-     "issues": 719,
-     "created": "2013-11-27",
-     "pushed": "2026-03-23",
-     "license": "MIT"
     },
     {
-     "name": "encode/django-rest-framework",
-     "desc": "Web APIs for Django. 🎸",
+     "name": "livekit/agents",
+     "desc": "A framework for building realtime voice AI agents 🤖🎙️📹 ",
      "lang": "Python",
-     "stars": 30201,
-     "forks": 7095,
-     "issues": 56,
-     "created": "2011-03-02",
-     "pushed": "2026-10-08",
-     "license": null
-    },
-    {
-     "name": "PostgREST/postgrest",
-     "desc": "REST API for any Postgres database",
-     "lang": "Haskell",
-     "stars": 27702,
-     "forks": 1231,
-     "issues": 402,
-     "created": "2014-06-13",
-     "pushed": "2026-10-09",
-     "license": "MIT"
-    },
-    {
-     "name": "api-platform/api-platform",
-     "desc": "🕸️ Create REST and GraphQL APIs, scaffold Jamstack webapps, stream changes in real-time.",
-     "lang": "PHP",
-     "stars": 9188,
-     "forks": 967,
-     "issues": 3,
-     "created": "2015-03-06",
-     "pushed": "2026-09-01",
-     "license": "MIT"
-    },
-    {
-     "name": "dropwizard/dropwizard",
-     "desc": "A damn simple library for building production-ready RESTful web services.",
-     "lang": "Java",
-     "stars": 8583,
-     "forks": 3402,
-     "issues": 38,
-     "created": "2011-01-19",
-     "pushed": "2026-10-11",
+     "stars": 14686,
+     "forks": 3902,
+     "issues": 699,
+     "created": "2023-10-19",
+     "pushed": "2026-10-10",
      "license": "Apache-2.0"
-    },
-    {
-     "name": "Huachao/vscode-restclient",
-     "desc": "REST Client Extension for Visual Studio Code",
-     "lang": "TypeScript",
-     "stars": 6056,
-     "forks": 540,
-     "issues": 593,
-     "created": "2016-03-30",
-     "pushed": "2026-04-23",
-     "license": "MIT"
-    },
-    {
-     "name": "kgrzybek/sample-dotnet-core-cqrs-api",
-     "desc": "Sample .NET Core REST API CQRS implementation with raw SQL and DDD using Clean Architecture.",
-     "lang": "C#",
-     "stars": 3063,
-     "forks": 677,
-     "issues": 13,
-     "created": "2019-02-03",
-     "pushed": "2024-02-27",
-     "license": "MIT"
     }
    ]
   },
   {
-   "id": "json",
-   "title": "JSON",
+   "id": "data-analysis",
+   "title": "Data analysis",
    "topics": [
-    "json"
+    "data-analysis"
    ],
    "repos": [
     {
-     "name": "typicode/json-server",
-     "desc": "Get a full fake REST API with zero coding in less than 30 seconds (seriously)",
-     "lang": "JavaScript",
-     "stars": 75721,
-     "forks": 7264,
-     "issues": 719,
-     "created": "2013-11-27",
-     "pushed": "2026-03-23",
-     "license": "MIT"
-    },
-    {
-     "name": "AykutSarac/jsoncrack.com",
-     "desc": "✨ Innovative and open-source visualization application that transforms various data formats, such as JSON, YAML, XML and CSV into interactive graphs.",
-     "lang": "TypeScript",
-     "stars": 44473,
-     "forks": 3570,
-     "issues": 46,
-     "created": "2022-01-30",
-     "pushed": "2026-09-14",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "codex-team/editor.js",
-     "desc": "A block-style editor with clean JSON output",
-     "lang": "TypeScript",
-     "stars": 31968,
-     "forks": 2247,
-     "issues": 710,
-     "created": "2015-11-28",
-     "pushed": "2026-09-17",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "simdjson/simdjson",
-     "desc": "Parsing gigabytes of JSON per second : used by Facebook/Meta Velox, the Node.js runtime, ClickHouse, WatermelonDB, Apache Doris, Milvus, StarRocks",
-     "lang": "C++",
-     "stars": 24398,
-     "forks": 1310,
-     "issues": 77,
-     "created": "2018-03-23",
+     "name": "apache/superset",
+     "desc": "Apache Superset is a Data Visualization and Data Exploration Platform",
+     "lang": "Python",
+     "stars": 75101,
+     "forks": 18451,
+     "issues": 560,
+     "created": "2015-07-21",
      "pushed": "2026-10-10",
      "license": "Apache-2.0"
     },
     {
-     "name": "SwiftyJSON/SwiftyJSON",
-     "desc": "The better way to deal with JSON data in Swift.",
-     "lang": "Swift",
-     "stars": 22930,
-     "forks": 3416,
-     "issues": 139,
-     "created": "2014-06-18",
-     "pushed": "2026-08-18",
+     "name": "pandas-dev/pandas",
+     "desc": "Flexible and powerful data analysis / manipulation library for Python, providing labeled data structures similar to R data.frame objects, statistical functions, and much more",
+     "lang": "Python",
+     "stars": 49995,
+     "forks": 20484,
+     "issues": 2334,
+     "created": "2010-08-24",
+     "pushed": "2026-10-11",
+     "license": "BSD-3-Clause"
+    },
+    {
+     "name": "microsoft/Data-Science-For-Beginners",
+     "desc": "10 Weeks, 20 Lessons, Data Science for All!",
+     "lang": "Jupyter Notebook",
+     "stars": 37556,
+     "forks": 7580,
+     "issues": 20,
+     "created": "2021-03-03",
+     "pushed": "2026-09-13",
      "license": "MIT"
     },
     {
-     "name": "typicode/lowdb",
-     "desc": "Simple and fast JSON database",
-     "lang": "JavaScript",
-     "stars": 22581,
-     "forks": 963,
-     "issues": 17,
-     "created": "2014-04-02",
-     "pushed": "2026-03-27",
+     "name": "airbytehq/airbyte",
+     "desc": "Open-source data movement for ELT pipelines and AI agents — from APIs, databases & files to warehouses, lakes, and AI applications. Both self-hosted and Cloud.",
+     "lang": "Python",
+     "stars": 22202,
+     "forks": 5398,
+     "issues": 2563,
+     "created": "2020-07-27",
+     "pushed": "2026-10-10",
+     "license": null
+    },
+    {
+     "name": "Kanaries/pygwalker",
+     "desc": "PyGWalker: Turn your dataframe into an interactive UI for visual analysis",
+     "lang": "Python",
+     "stars": 15983,
+     "forks": 890,
+     "issues": 69,
+     "created": "2023-02-16",
+     "pushed": "2026-09-05",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "Data-Centric-AI-Community/fg-data-profiling",
+     "desc": "1 Line of code data quality profiling & exploratory data analysis for Pandas and Spark DataFrames. ",
+     "lang": "Python",
+     "stars": 13719,
+     "forks": 1801,
+     "issues": 339,
+     "created": "2016-01-09",
+     "pushed": "2026-09-11",
      "license": "MIT"
     },
     {
-     "name": "antonmedv/fx",
-     "desc": "Terminal JSON viewer & processor",
-     "lang": "Go",
-     "stars": 20661,
-     "forks": 494,
-     "issues": 5,
-     "created": "2018-01-25",
-     "pushed": "2026-10-08",
-     "license": "MIT"
-    },
-    {
-     "name": "pinojs/pino",
-     "desc": "🌲 super fast, all natural json logger",
-     "lang": "JavaScript",
-     "stars": 18239,
-     "forks": 1006,
-     "issues": 167,
-     "created": "2016-02-16",
-     "pushed": "2026-10-06",
-     "license": "MIT"
+     "name": "NVIDIA/cudf",
+     "desc": "cuDF - GPU DataFrame Library ",
+     "lang": "C++",
+     "stars": 9774,
+     "forks": 1127,
+     "issues": 1408,
+     "created": "2017-05-07",
+     "pushed": "2026-10-11",
+     "license": "Apache-2.0"
     }
    ]
   },
@@ -4944,17 +4262,6 @@
      "issues": 1059,
      "created": "2025-06-02",
      "pushed": "2026-10-11",
-     "license": "MIT"
-    },
-    {
-     "name": "FoundationAgents/MetaGPT",
-     "desc": "🌟 The Multi-Agent Framework: First AI Software Company, Towards Natural Language Programming",
-     "lang": "Python",
-     "stars": 70796,
-     "forks": 9003,
-     "issues": 141,
-     "created": "2023-06-30",
-     "pushed": "2026-01-21",
      "license": "MIT"
     },
     {
@@ -5022,6 +4329,17 @@
      "created": "2024-09-09",
      "pushed": "2026-10-08",
      "license": null
+    },
+    {
+     "name": "microsoft/agent-framework",
+     "desc": "A framework for building, orchestrating and deploying AI agents and multi-agent workflows with support for Python and .NET.",
+     "lang": "Python",
+     "stars": 14051,
+     "forks": 2455,
+     "issues": 765,
+     "created": "2025-04-28",
+     "pushed": "2026-10-09",
+     "license": "MIT"
     }
    ]
   },
@@ -5077,17 +4395,6 @@
      "license": null
     },
     {
-     "name": "catdad/canvas-confetti",
-     "desc": "🎉 performant confetti animation in the browser",
-     "lang": "JavaScript",
-     "stars": 12788,
-     "forks": 465,
-     "issues": 44,
-     "created": "2018-01-26",
-     "pushed": "2025-10-25",
-     "license": "ISC"
-    },
-    {
      "name": "szimek/signature_pad",
      "desc": "HTML5 canvas based smooth signature drawing",
      "lang": "TypeScript",
@@ -5099,17 +4406,6 @@
      "license": "MIT"
     },
     {
-     "name": "metafizzy/zdog",
-     "desc": "Flat, round, designer-friendly pseudo-3D engine for canvas & SVG",
-     "lang": "JavaScript",
-     "stars": 10669,
-     "forks": 409,
-     "issues": 55,
-     "created": "2019-03-06",
-     "pushed": "2023-07-18",
-     "license": null
-    },
-    {
      "name": "DavidHDev/canvas-ui",
      "desc": "A library of creative canvas components. Real HTML with WebGL effects running over it. React, Vue, Svelte, vanilla.",
      "lang": "TypeScript",
@@ -5118,103 +4414,6 @@
      "issues": 2,
      "created": "2026-07-16",
      "pushed": "2026-10-03",
-     "license": null
-    }
-   ]
-  },
-  {
-   "id": "reinforcement-learning",
-   "title": "Reinforcement learning",
-   "topics": [
-    "reinforcement-learning"
-   ],
-   "repos": [
-    {
-     "name": "labmlai/annotated_deep_learning_paper_implementations",
-     "desc": "🧑‍🏫 60+ Implementations/tutorials of deep learning papers with side-by-side notes 📝; including transformers (original, xl, switch, feedback, vit, ...), optimizers (adam, adabelief, sophia, ...), gans(cyclegan, stylegan2, ...), 🎮 reinforcement learning (ppo, dqn), capsnet, distillation, ... 🧠",
-     "lang": "Python",
-     "stars": 67548,
-     "forks": 6754,
-     "issues": 44,
-     "created": "2020-08-25",
-     "pushed": "2026-01-22",
-     "license": "MIT"
-    },
-    {
-     "name": "d2l-ai/d2l-en",
-     "desc": "Interactive deep learning book with multi-framework code, math, and discussions. Adopted at 500 universities from 70 countries including Stanford, MIT, Harvard, and Cambridge.",
-     "lang": "Python",
-     "stars": 29809,
-     "forks": 5146,
-     "issues": 198,
-     "created": "2018-10-09",
-     "pushed": "2024-08-18",
-     "license": null
-    },
-    {
-     "name": "stefan-jansen/machine-learning-for-trading",
-     "desc": "Code for Machine Learning for Trading, 3rd edition — from data sourcing to live execution.",
-     "lang": "Jupyter Notebook",
-     "stars": 21292,
-     "forks": 5690,
-     "issues": 1,
-     "created": "2018-05-09",
-     "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "Unity-Technologies/ml-agents",
-     "desc": "The Unity Machine Learning Agents Toolkit (ML-Agents) is an open-source project that enables games and simulations to serve as environments for training intelligent agents using deep reinforcement learning and imitation learning.",
-     "lang": "C#",
-     "stars": 19731,
-     "forks": 4504,
-     "issues": 18,
-     "created": "2017-09-08",
-     "pushed": "2026-10-07",
-     "license": null
-    },
-    {
-     "name": "MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning",
-     "desc": "This is the homepage of a new book entitled \"Mathematical Foundations of Reinforcement Learning.\"",
-     "lang": "MATLAB",
-     "stars": 18026,
-     "forks": 1703,
-     "issues": 1,
-     "created": "2022-08-07",
-     "pushed": "2026-10-02",
-     "license": null
-    },
-    {
-     "name": "ddbourgin/numpy-ml",
-     "desc": "Machine learning, in numpy",
-     "lang": "Python",
-     "stars": 16324,
-     "forks": 3734,
-     "issues": 55,
-     "created": "2019-04-06",
-     "pushed": "2023-10-29",
-     "license": "GPL-3.0"
-    },
-    {
-     "name": "ShangtongZhang/reinforcement-learning-an-introduction",
-     "desc": "Python Implementation of Reinforcement Learning: An Introduction",
-     "lang": "Python",
-     "stars": 14782,
-     "forks": 4952,
-     "issues": 22,
-     "created": "2016-09-13",
-     "pushed": "2024-08-09",
-     "license": "MIT"
-    },
-    {
-     "name": "kmario23/deep-learning-drizzle",
-     "desc": "Drench yourself in Deep Learning, Reinforcement Learning, Machine Learning, Computer Vision, and NLP by learning from these exciting lectures!!",
-     "lang": "HTML",
-     "stars": 12957,
-     "forks": 2979,
-     "issues": 5,
-     "created": "2018-11-26",
-     "pushed": "2026-08-22",
      "license": null
     }
    ]
@@ -5498,15 +4697,15 @@
      "license": "GPL-3.0"
     },
     {
-     "name": "segment-boneyard/nightmare",
-     "desc": "A high-level browser automation library.",
+     "name": "citrolabs/ego-lite",
+     "desc": "The fastest browser for AI agents to run browser automation, built for sharing your logged-in browser state with your AI agents, like Codex or Claude Code, without disturbing you. Zero cost, zero config.",
      "lang": "JavaScript",
-     "stars": 19762,
-     "forks": 1063,
-     "issues": 203,
-     "created": "2014-04-05",
-     "pushed": "2024-04-20",
-     "license": null
+     "stars": 17072,
+     "forks": 910,
+     "issues": 188,
+     "created": "2026-04-16",
+     "pushed": "2026-10-10",
+     "license": "MIT"
     }
    ]
   },
@@ -5551,17 +4750,6 @@
      "license": "MIT"
     },
     {
-     "name": "mkdocs/mkdocs",
-     "desc": "Project documentation with Markdown.",
-     "lang": "Python",
-     "stars": 22496,
-     "forks": 2658,
-     "issues": 192,
-     "created": "2014-01-11",
-     "pushed": "2025-10-20",
-     "license": "BSD-2-Clause"
-    },
-    {
      "name": "docmost/docmost",
      "desc": "Docmost is an open-source collaborative wiki and documentation software. It is an open-source alternative to Confluence and Notion.",
      "lang": "TypeScript",
@@ -5604,6 +4792,17 @@
      "created": "2013-01-20",
      "pushed": "2026-10-07",
      "license": "GPL-3.0"
+    },
+    {
+     "name": "withastro/starlight",
+     "desc": "🌟 Build beautiful, accessible, high-performance documentation websites with Astro",
+     "lang": "TypeScript",
+     "stars": 9391,
+     "forks": 1063,
+     "issues": 28,
+     "created": "2023-03-16",
+     "pushed": "2026-10-09",
+     "license": "MIT"
     }
    ]
   },
@@ -5681,17 +4880,6 @@
      "license": "LGPL-3.0"
     },
     {
-     "name": "Laverna/laverna",
-     "desc": "Laverna is a JavaScript note taking application with Markdown editor and encryption support. Consider it like open source alternative to Evernote.",
-     "lang": "JavaScript",
-     "stars": 9169,
-     "forks": 787,
-     "issues": 447,
-     "created": "2014-01-21",
-     "pushed": "2021-05-30",
-     "license": "MPL-2.0"
-    },
-    {
      "name": "xwmx/nb",
      "desc": "CLI and local web plain text note‑taking, bookmarking, and archiving with linking, tagging, filtering, search, Git versioning & syncing, Pandoc conversion, + more, in a single portable script.",
      "lang": "Shell",
@@ -5701,6 +4889,17 @@
      "created": "2016-01-12",
      "pushed": "2026-08-26",
      "license": "AGPL-3.0"
+    },
+    {
+     "name": "glushchenko/fsnotes",
+     "desc": "Fast Markdown note-taking app for Mac and iPhone",
+     "lang": "Swift",
+     "stars": 7522,
+     "forks": 581,
+     "issues": 2,
+     "created": "2017-07-20",
+     "pushed": "2026-10-09",
+     "license": "MIT"
     }
    ]
   },
@@ -5767,28 +4966,6 @@
      "license": null
     },
     {
-     "name": "bilibili/ijkplayer",
-     "desc": "Android/iOS video player based on FFmpeg n3.4, with MediaCodec, VideoToolbox support.",
-     "lang": "C",
-     "stars": 33208,
-     "forks": 8241,
-     "issues": 2904,
-     "created": "2013-06-03",
-     "pushed": "2024-08-13",
-     "license": "GPL-2.0"
-    },
-    {
-     "name": "iawia002/lux",
-     "desc": "👾 Fast and simple video download library and CLI tool written in Go",
-     "lang": "Go",
-     "stars": 31762,
-     "forks": 3324,
-     "issues": 544,
-     "created": "2018-02-24",
-     "pushed": "2026-03-29",
-     "license": "MIT"
-    },
-    {
      "name": "jitsi/jitsi-meet",
      "desc": "Jitsi Meet - Secure, Simple and Scalable Video Conferences that you use as a standalone app or embed in your web application.",
      "lang": "TypeScript",
@@ -5798,6 +4975,28 @@
      "created": "2013-12-16",
      "pushed": "2026-10-09",
      "license": "Apache-2.0"
+    },
+    {
+     "name": "charmbracelet/vhs",
+     "desc": "Your CLI home video recorder 📼",
+     "lang": "Go",
+     "stars": 21089,
+     "forks": 484,
+     "issues": 174,
+     "created": "2022-07-19",
+     "pushed": "2026-10-01",
+     "license": "MIT"
+    },
+    {
+     "name": "hypit-ai/hypit",
+     "desc": "Clone any viral video with AI agents. Not just a script, the whole workflow: swap the face, the words, the B-roll, ship 100 variants in one command, and get your 100M views.",
+     "lang": "TypeScript",
+     "stars": 20871,
+     "forks": 2297,
+     "issues": 11,
+     "created": "2026-07-29",
+     "pushed": "2026-10-09",
+     "license": null
     }
    ]
   },
@@ -5842,28 +5041,6 @@
      "license": "MIT"
     },
     {
-     "name": "notable/notable",
-     "desc": "The Markdown-based note-taking app that doesn't suck.",
-     "lang": null,
-     "stars": 23493,
-     "forks": 1179,
-     "issues": 732,
-     "created": "2018-12-22",
-     "pushed": "2024-06-21",
-     "license": null
-    },
-    {
-     "name": "mkdocs/mkdocs",
-     "desc": "Project documentation with Markdown.",
-     "lang": "Python",
-     "stars": 22496,
-     "forks": 2658,
-     "issues": 192,
-     "created": "2014-01-11",
-     "pushed": "2025-10-20",
-     "license": "BSD-2-Clause"
-    },
-    {
      "name": "markdown-it/markdown-it",
      "desc": "Markdown parser, done right. 100% CommonMark support, extensions, syntax plugins & high speed",
      "lang": "TypeScript",
@@ -5895,6 +5072,28 @@
      "created": "2024-01-30",
      "pushed": "2026-10-09",
      "license": "GPL-3.0"
+    },
+    {
+     "name": "codexu/note-gen",
+     "desc": "Capture first. Organize later. A local-first Markdown app that turns scattered records into clear notes with AI.",
+     "lang": "TypeScript",
+     "stars": 12881,
+     "forks": 975,
+     "issues": 92,
+     "created": "2024-08-06",
+     "pushed": "2026-10-10",
+     "license": "GPL-3.0"
+    },
+    {
+     "name": "glushchenko/fsnotes",
+     "desc": "Fast Markdown note-taking app for Mac and iPhone",
+     "lang": "Swift",
+     "stars": 7522,
+     "forks": 581,
+     "issues": 2,
+     "created": "2017-07-20",
+     "pushed": "2026-10-09",
+     "license": "MIT"
     }
    ]
   },
@@ -5915,17 +5114,6 @@
      "created": "2017-11-12",
      "pushed": "2026-10-11",
      "license": "MIT"
-    },
-    {
-     "name": "slab/quill",
-     "desc": "Quill is a modern WYSIWYG editor built for compatibility and extensibility",
-     "lang": "TypeScript",
-     "stars": 47377,
-     "forks": 3672,
-     "issues": 661,
-     "created": "2012-07-30",
-     "pushed": "2025-07-25",
-     "license": "BSD-3-Clause"
     },
     {
      "name": "microsoft/monaco-editor",
@@ -5992,6 +5180,17 @@
      "created": "2025-10-16",
      "pushed": "2026-10-11",
      "license": "MIT"
+    },
+    {
+     "name": "chartdb/chartdb",
+     "desc": "Database diagrams editor that allows you to visualize and design your DB with a single query.",
+     "lang": "TypeScript",
+     "stars": 22992,
+     "forks": 1494,
+     "issues": 174,
+     "created": "2024-08-05",
+     "pushed": "2026-09-13",
+     "license": "AGPL-3.0"
     }
    ]
   },
@@ -6036,28 +5235,6 @@
      "license": "MIT"
     },
     {
-     "name": "open-mmlab/mmdetection",
-     "desc": "OpenMMLab Detection Toolbox and Benchmark",
-     "lang": "Python",
-     "stars": 32986,
-     "forks": 9823,
-     "issues": 1964,
-     "created": "2018-08-22",
-     "pushed": "2024-08-21",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "matterport/Mask_RCNN",
-     "desc": "Mask R-CNN for object detection and instance segmentation on Keras and TensorFlow",
-     "lang": "Python",
-     "stars": 25576,
-     "forks": 11585,
-     "issues": 2022,
-     "created": "2017-10-19",
-     "pushed": "2024-06-07",
-     "license": null
-    },
-    {
      "name": "PaddlePaddle/PaddleDetection",
      "desc": "Object Detection toolkit based on PaddlePaddle. It supports object detection, instance segmentation, multiple object tracking and real-time multi-person keypoint detection.",
      "lang": "Python",
@@ -6067,17 +5244,6 @@
      "created": "2019-10-25",
      "pushed": "2026-05-28",
      "license": "Apache-2.0"
-    },
-    {
-     "name": "hoya012/deep_learning_object_detection",
-     "desc": "A paper list of object detection using deep learning.",
-     "lang": "Python",
-     "stars": 11376,
-     "forks": 2739,
-     "issues": 5,
-     "created": "2018-09-18",
-     "pushed": "2024-02-12",
-     "license": null
     },
     {
      "name": "roboflow/rf-detr",
@@ -6130,17 +5296,6 @@
      "issues": 0,
      "created": "2018-10-17",
      "pushed": "2026-10-10",
-     "license": "MIT"
-    },
-    {
-     "name": "dahlbyk/posh-git",
-     "desc": "A PowerShell environment for Git",
-     "lang": "PowerShell",
-     "stars": 8272,
-     "forks": 822,
-     "issues": 118,
-     "created": "2010-03-10",
-     "pushed": "2024-09-02",
      "license": "MIT"
     },
     {
@@ -6241,15 +5396,15 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "vastsa/PI-Desktop",
-     "desc": "Local-first AI coding agent desktop: Electron + Rust host core + pi Agent Harness + user-installable plugins",
+     "name": "KunAgent/Kun",
+     "desc": "Local-first AI agent workspace for coding, writing, design, research, and automation — one runtime for desktop GUI and TUI.",
      "lang": "TypeScript",
-     "stars": 6641,
-     "forks": 618,
-     "issues": 188,
-     "created": "2023-03-22",
-     "pushed": "2026-10-11",
-     "license": "LGPL-3.0"
+     "stars": 6321,
+     "forks": 594,
+     "issues": 7,
+     "created": "2026-05-21",
+     "pushed": "2026-10-07",
+     "license": null
     }
    ]
   },
@@ -6466,28 +5621,6 @@
      "license": "MIT"
     },
     {
-     "name": "Semantic-Org/Semantic-UI",
-     "desc": "Semantic is a UI component framework based around useful principles from natural language.",
-     "lang": "JavaScript",
-     "stars": 51015,
-     "forks": 4841,
-     "issues": 1071,
-     "created": "2013-04-08",
-     "pushed": "2024-11-27",
-     "license": "MIT"
-    },
-    {
-     "name": "chakra-ui/chakra-ui",
-     "desc": "Chakra UI is a component system for building SaaS products with speed ⚡️",
-     "lang": "TypeScript",
-     "stars": 40683,
-     "forks": 3648,
-     "issues": 16,
-     "created": "2019-08-17",
-     "pushed": "2026-10-06",
-     "license": "MIT"
-    },
-    {
      "name": "react-native-elements/react-native-elements",
      "desc": "Cross-Platform React Native UI Toolkit",
      "lang": "MDX",
@@ -6496,17 +5629,6 @@
      "issues": 159,
      "created": "2016-09-08",
      "pushed": "2026-05-21",
-     "license": "MIT"
-    },
-    {
-     "name": "GeekyAnts/NativeBase",
-     "desc": "Mobile-first, accessible components for React Native & Web to build consistent UI across Android, iOS and Web.",
-     "lang": "TypeScript",
-     "stars": 20367,
-     "forks": 2386,
-     "issues": 377,
-     "created": "2016-04-15",
-     "pushed": "2026-01-31",
      "license": "MIT"
     },
     {
@@ -6532,14 +5654,47 @@
      "license": "MIT"
     },
     {
-     "name": "mdbootstrap/TW-Elements",
-     "desc": "𝙃𝙪𝙜𝙚 collection of Tailwind MIT licensed (free) components, sections and templates 😎",
+     "name": "assistant-ui/assistant-ui",
+     "desc": "Typescript/React Library for AI Chat 💬🚀",
+     "lang": "TypeScript",
+     "stars": 12467,
+     "forks": 1243,
+     "issues": 109,
+     "created": "2023-11-22",
+     "pushed": "2026-10-11",
+     "license": "MIT"
+    },
+    {
+     "name": "segmentio/evergreen",
+     "desc": "🌲 Evergreen React UI Framework by Segment",
      "lang": "JavaScript",
-     "stars": 13181,
-     "forks": 1572,
-     "issues": 107,
-     "created": "2012-11-06",
-     "pushed": "2026-03-27",
+     "stars": 12425,
+     "forks": 805,
+     "issues": 80,
+     "created": "2017-07-30",
+     "pushed": "2026-06-25",
+     "license": "MIT"
+    },
+    {
+     "name": "tambo-ai/tambo",
+     "desc": "Generative UI SDK for React",
+     "lang": "TypeScript",
+     "stars": 11187,
+     "forks": 574,
+     "issues": 45,
+     "created": "2024-06-15",
+     "pushed": "2026-10-11",
+     "license": "MIT"
+    },
+    {
+     "name": "wix/react-native-calendars",
+     "desc": "React Native Calendar Components 🗓️ 📆 ",
+     "lang": "TypeScript",
+     "stars": 10318,
+     "forks": 3057,
+     "issues": 148,
+     "created": "2016-11-11",
+     "pushed": "2026-10-05",
      "license": "MIT"
     }
    ]
@@ -6757,17 +5912,6 @@
      "license": "MIT"
     },
     {
-     "name": "vuejs/vuepress",
-     "desc": "📝 Minimalistic Vue-powered static site generator",
-     "lang": "JavaScript",
-     "stars": 22721,
-     "forks": 4615,
-     "issues": 607,
-     "created": "2018-04-05",
-     "pushed": "2024-08-07",
-     "license": "MIT"
-    },
-    {
      "name": "11ty/buildawesome",
      "desc": "A simpler site generator. Transforms a directory of templates (of varying types) into HTML.",
      "lang": "JavaScript",
@@ -6832,6 +5976,17 @@
      "created": "2010-10-16",
      "pushed": "2026-04-20",
      "license": "AGPL-3.0"
+    },
+    {
+     "name": "HugoBlox/kit",
+     "desc": "🧱 Describe your site, AI builds it, you own it as Markdown. Snap together Tailwind blocks like Lego — landing pages, blogs, portfolios, docs & more. No AI slop. Free to deploy anywhere 👇",
+     "lang": "HTML",
+     "stars": 9758,
+     "forks": 2952,
+     "issues": 24,
+     "created": "2016-04-26",
+     "pushed": "2026-08-04",
+     "license": "MIT"
     }
    ]
   },
@@ -6922,103 +6077,6 @@
    ]
   },
   {
-   "id": "architecture",
-   "title": "Architecture",
-   "topics": [
-    "architecture"
-   ],
-   "repos": [
-    {
-     "name": "DovAmir/awesome-design-patterns",
-     "desc": "A curated list of software and architecture related design patterns.",
-     "lang": null,
-     "stars": 49285,
-     "forks": 3310,
-     "issues": 27,
-     "created": "2018-06-04",
-     "pushed": "2024-10-25",
-     "license": null
-    },
-    {
-     "name": "ardalis/CleanArchitecture",
-     "desc": "Clean Architecture Solution Template: A proven Clean Architecture Template for ASP.NET Core 10",
-     "lang": "C#",
-     "stars": 18514,
-     "forks": 3133,
-     "issues": 43,
-     "created": "2016-09-30",
-     "pushed": "2026-09-21",
-     "license": "MIT"
-    },
-    {
-     "name": "Sairyss/domain-driven-hexagon",
-     "desc": "Learn Domain-Driven Design, software architecture, design patterns, best practices. Code examples included",
-     "lang": "TypeScript",
-     "stars": 14967,
-     "forks": 1565,
-     "issues": 5,
-     "created": "2020-11-29",
-     "pushed": "2024-06-11",
-     "license": "MIT"
-    },
-    {
-     "name": "pointfreeco/swift-composable-architecture",
-     "desc": "A library for building applications in a consistent and understandable way, with composition, testing, and ergonomics in mind.",
-     "lang": "Swift",
-     "stars": 14953,
-     "forks": 1678,
-     "issues": 26,
-     "created": "2020-05-03",
-     "pushed": "2026-10-06",
-     "license": "MIT"
-    },
-    {
-     "name": "alibaba/COLA",
-     "desc": "🥤 COLA: Clean Object-oriented & Layered Architecture",
-     "lang": "Java",
-     "stars": 13065,
-     "forks": 3237,
-     "issues": 106,
-     "created": "2018-02-06",
-     "pushed": "2026-08-31",
-     "license": "LGPL-2.1"
-    },
-    {
-     "name": "mehdihadeli/awesome-software-architecture",
-     "desc": "📚 A curated list of awesome articles, videos, and other resources to learn and practice software architecture, patterns, and principles.",
-     "lang": "TypeScript",
-     "stars": 11712,
-     "forks": 1029,
-     "issues": 53,
-     "created": "2021-02-06",
-     "pushed": "2026-09-08",
-     "license": "CC0-1.0"
-    },
-    {
-     "name": "mhadidg/software-architecture-books",
-     "desc": "A comprehensive list of books on Software Architecture.",
-     "lang": null,
-     "stars": 11382,
-     "forks": 892,
-     "issues": 3,
-     "created": "2021-06-25",
-     "pushed": "2023-03-15",
-     "license": null
-    },
-    {
-     "name": "bxcodec/go-clean-arch",
-     "desc": "Go (Golang) Clean Architecture based on Reading Uncle Bob's Clean Architecture",
-     "lang": "Go",
-     "stars": 10171,
-     "forks": 1314,
-     "issues": 37,
-     "created": "2017-06-09",
-     "pushed": "2024-04-24",
-     "license": "MIT"
-    }
-   ]
-  },
-  {
    "id": "file-sharing",
    "title": "File sharing",
    "topics": [
@@ -7081,17 +6139,6 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "ShareDropio/sharedrop",
-     "desc": "Easy P2P file transfer powered by WebRTC - inspired by Apple AirDrop",
-     "lang": "JavaScript",
-     "stars": 10765,
-     "forks": 861,
-     "issues": 111,
-     "created": "2014-03-20",
-     "pushed": "2025-02-10",
-     "license": "MIT"
-    },
-    {
      "name": "owncloud/core",
      "desc": ":cloud: ownCloud web server core (Files, DAV, etc.)",
      "lang": "PHP",
@@ -7103,15 +6150,26 @@
      "license": "AGPL-3.0"
     },
     {
-     "name": "timvisee/ffsend",
-     "desc": ":mailbox_with_mail: Easily and securely share files from the command line. A fully featured Firefox Send client.",
-     "lang": "Rust",
-     "stars": 7423,
-     "forks": 206,
-     "issues": 33,
-     "created": "2018-03-05",
-     "pushed": "2025-11-20",
-     "license": "GPL-3.0"
+     "name": "onionshare/onionshare",
+     "desc": "Securely and anonymously share files, host websites, and chat with friends using the Tor network",
+     "lang": "Python",
+     "stars": 7134,
+     "forks": 726,
+     "issues": 66,
+     "created": "2014-05-20",
+     "pushed": "2026-10-07",
+     "license": null
+    },
+    {
+     "name": "kalcaddle/KodExplorer",
+     "desc": "A web based file manager,web IDE / browser based code editor",
+     "lang": "PHP",
+     "stars": 6392,
+     "forks": 1813,
+     "issues": 1,
+     "created": "2013-09-04",
+     "pushed": "2026-10-09",
+     "license": null
     }
    ]
   },
@@ -7383,17 +6441,6 @@
      "license": "Apache-2.0"
     },
     {
-     "name": "jina-ai/serve",
-     "desc": "☁️ Build multimodal AI applications with cloud-native stack",
-     "lang": "Python",
-     "stars": 21856,
-     "forks": 2241,
-     "issues": 25,
-     "created": "2020-02-13",
-     "pushed": "2025-03-24",
-     "license": "Apache-2.0"
-    },
-    {
      "name": "nats-io/nats-server",
      "desc": "High-Performance server for NATS.io, the cloud and edge native messaging system.",
      "lang": "Go",
@@ -7402,6 +6449,17 @@
      "issues": 472,
      "created": "2012-10-29",
      "pushed": "2026-10-10",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "apache/apisix",
+     "desc": "The Cloud-Native API Gateway and AI Gateway",
+     "lang": "Lua",
+     "stars": 17208,
+     "forks": 2963,
+     "issues": 262,
+     "created": "2019-04-10",
+     "pushed": "2026-10-09",
      "license": "Apache-2.0"
     }
    ]
@@ -7458,17 +6516,6 @@
      "license": "MIT"
     },
     {
-     "name": "akveo/ngx-admin",
-     "desc": "Customizable admin dashboard template based on Angular 10+",
-     "lang": "TypeScript",
-     "stars": 25677,
-     "forks": 7881,
-     "issues": 497,
-     "created": "2016-05-25",
-     "pushed": "2024-09-25",
-     "license": "MIT"
-    },
-    {
      "name": "ColorlibHQ/gentelella",
      "desc": "Free admin dashboard template — vanilla JS, SCSS, Vite 8. No Bootstrap, no jQuery.",
      "lang": "HTML",
@@ -7499,6 +6546,17 @@
      "issues": 24,
      "created": "2024-01-26",
      "pushed": "2026-09-10",
+     "license": "MIT"
+    },
+    {
+     "name": "cyrus-and/gdb-dashboard",
+     "desc": "Modular visual interface for GDB in Python",
+     "lang": "Python",
+     "stars": 12268,
+     "forks": 821,
+     "issues": 19,
+     "created": "2015-09-09",
+     "pushed": "2026-07-17",
      "license": "MIT"
     }
    ]
@@ -7579,6 +6637,103 @@
    ]
   },
   {
+   "id": "json",
+   "title": "JSON",
+   "topics": [
+    "json"
+   ],
+   "repos": [
+    {
+     "name": "AykutSarac/jsoncrack.com",
+     "desc": "✨ Innovative and open-source visualization application that transforms various data formats, such as JSON, YAML, XML and CSV into interactive graphs.",
+     "lang": "TypeScript",
+     "stars": 44473,
+     "forks": 3570,
+     "issues": 46,
+     "created": "2022-01-30",
+     "pushed": "2026-09-14",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "codex-team/editor.js",
+     "desc": "A block-style editor with clean JSON output",
+     "lang": "TypeScript",
+     "stars": 31968,
+     "forks": 2247,
+     "issues": 710,
+     "created": "2015-11-28",
+     "pushed": "2026-09-17",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "simdjson/simdjson",
+     "desc": "Parsing gigabytes of JSON per second : used by Facebook/Meta Velox, the Node.js runtime, ClickHouse, WatermelonDB, Apache Doris, Milvus, StarRocks",
+     "lang": "C++",
+     "stars": 24398,
+     "forks": 1310,
+     "issues": 77,
+     "created": "2018-03-23",
+     "pushed": "2026-10-10",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "SwiftyJSON/SwiftyJSON",
+     "desc": "The better way to deal with JSON data in Swift.",
+     "lang": "Swift",
+     "stars": 22930,
+     "forks": 3416,
+     "issues": 139,
+     "created": "2014-06-18",
+     "pushed": "2026-08-18",
+     "license": "MIT"
+    },
+    {
+     "name": "antonmedv/fx",
+     "desc": "Terminal JSON viewer & processor",
+     "lang": "Go",
+     "stars": 20661,
+     "forks": 494,
+     "issues": 5,
+     "created": "2018-01-25",
+     "pushed": "2026-10-08",
+     "license": "MIT"
+    },
+    {
+     "name": "pinojs/pino",
+     "desc": "🌲 super fast, all natural json logger",
+     "lang": "JavaScript",
+     "stars": 18239,
+     "forks": 1006,
+     "issues": 167,
+     "created": "2016-02-16",
+     "pushed": "2026-10-06",
+     "license": "MIT"
+    },
+    {
+     "name": "mikefarah/yq",
+     "desc": "yq is a portable command-line YAML, JSON, XML, CSV, TOML, HCL  and properties processor",
+     "lang": "Go",
+     "stars": 16070,
+     "forks": 3060,
+     "issues": 297,
+     "created": "2015-09-26",
+     "pushed": "2026-10-09",
+     "license": "MIT"
+    },
+    {
+     "name": "rjsf-team/react-jsonschema-form",
+     "desc": "A React component for building Web forms from JSON Schema.",
+     "lang": "TypeScript",
+     "stars": 15914,
+     "forks": 2343,
+     "issues": 159,
+     "created": "2015-12-16",
+     "pushed": "2026-10-11",
+     "license": "Apache-2.0"
+    }
+   ]
+  },
+  {
    "id": "compiler",
    "title": "Compiler",
    "topics": [
@@ -7639,17 +6794,6 @@
      "created": "2021-09-27",
      "pushed": "2026-10-09",
      "license": "Apache-2.0"
-    },
-    {
-     "name": "aalhour/awesome-compilers",
-     "desc": ":sunglasses: Curated list of awesome resources on Compilers, Interpreters and Runtimes",
-     "lang": null,
-     "stars": 9922,
-     "forks": 712,
-     "issues": 64,
-     "created": "2016-07-13",
-     "pushed": "2024-05-26",
-     "license": null
     }
    ]
   },
@@ -7703,17 +6847,6 @@
      "created": "2026-02-27",
      "pushed": "2026-10-10",
      "license": "MIT"
-    },
-    {
-     "name": "kodu-ai/claude-coder",
-     "desc": "Kodu is an autonomous coding agent that lives in your IDE. It is a VSCode extension that can help you build your dream project step by step by leveraging the latest technologies in automated coding agents ",
-     "lang": "TypeScript",
-     "stars": 5215,
-     "forks": 198,
-     "issues": 44,
-     "created": "2024-09-01",
-     "pushed": "2025-04-30",
-     "license": null
     },
     {
      "name": "lackeyjb/playwright-skill",
@@ -7811,17 +6944,6 @@
    ],
    "repos": [
     {
-     "name": "zsh-users/zsh-autosuggestions",
-     "desc": "Fish-like autosuggestions for zsh",
-     "lang": "Shell",
-     "stars": 36124,
-     "forks": 1940,
-     "issues": 203,
-     "created": "2013-10-26",
-     "pushed": "2025-06-24",
-     "license": "MIT"
-    },
-    {
      "name": "fish-shell/fish-shell",
      "desc": "The user-friendly command line shell.",
      "lang": "Rust",
@@ -7844,28 +6966,6 @@
      "license": "MIT"
     },
     {
-     "name": "jorgebucaran/fisher",
-     "desc": "A plugin manager for Fish",
-     "lang": "Shell",
-     "stars": 9438,
-     "forks": 281,
-     "issues": 16,
-     "created": "2015-09-24",
-     "pushed": "2026-01-31",
-     "license": "MIT"
-    },
-    {
-     "name": "jorgebucaran/awsm.fish",
-     "desc": "A curation of prompts, plugins & other Fish treasures 🐚💎",
-     "lang": null,
-     "stars": 5091,
-     "forks": 154,
-     "issues": 21,
-     "created": "2015-10-13",
-     "pushed": "2026-01-25",
-     "license": "CC0-1.0"
-    },
-    {
      "name": "paulirish/dotfiles",
      "desc": "paul's fish, bash, git, etc config files. good stuff. ",
      "lang": "Shell",
@@ -7877,17 +6977,6 @@
      "license": null
     },
     {
-     "name": "IlanCosman/tide",
-     "desc": "🌊 The ultimate Fish prompt.",
-     "lang": "Shell",
-     "stars": 4280,
-     "forks": 179,
-     "issues": 161,
-     "created": "2020-04-02",
-     "pushed": "2025-12-15",
-     "license": "MIT"
-    },
-    {
      "name": "jorgebucaran/nvm.fish",
      "desc": "The Node.js version manager you'll adore, crafted just for Fish",
      "lang": "Shell",
@@ -7897,156 +6986,81 @@
      "created": "2016-04-12",
      "pushed": "2026-06-22",
      "license": "MIT"
+    },
+    {
+     "name": "PatrickF1/fzf.fish",
+     "desc": "🔍🐟 Fzf plugin for Fish",
+     "lang": "Shell",
+     "stars": 2705,
+     "forks": 104,
+     "issues": 1,
+     "created": "2020-04-30",
+     "pushed": "2026-06-18",
+     "license": "MIT"
     }
    ]
   },
   {
-   "id": "image-generation",
-   "title": "Image generation",
+   "id": "rest",
+   "title": "Rest",
    "topics": [
-    "image-generation"
+    "rest"
    ],
    "repos": [
     {
-     "name": "huggingface/diffusers",
-     "desc": "🤗 Diffusers: State-of-the-art diffusion models for image, video, and audio generation in PyTorch.",
+     "name": "encode/django-rest-framework",
+     "desc": "Web APIs for Django. 🎸",
      "lang": "Python",
-     "stars": 34701,
-     "forks": 7385,
-     "issues": 1469,
-     "created": "2022-05-30",
-     "pushed": "2026-10-10",
+     "stars": 30201,
+     "forks": 7095,
+     "issues": 56,
+     "created": "2011-03-02",
+     "pushed": "2026-10-08",
+     "license": null
+    },
+    {
+     "name": "PostgREST/postgrest",
+     "desc": "REST API for any Postgres database",
+     "lang": "Haskell",
+     "stars": 27702,
+     "forks": 1231,
+     "issues": 402,
+     "created": "2014-06-13",
+     "pushed": "2026-10-09",
+     "license": "MIT"
+    },
+    {
+     "name": "api-platform/api-platform",
+     "desc": "🕸️ Create REST and GraphQL APIs, scaffold Jamstack webapps, stream changes in real-time.",
+     "lang": "PHP",
+     "stars": 9188,
+     "forks": 967,
+     "issues": 3,
+     "created": "2015-03-06",
+     "pushed": "2026-09-01",
+     "license": "MIT"
+    },
+    {
+     "name": "dropwizard/dropwizard",
+     "desc": "A damn simple library for building production-ready RESTful web services.",
+     "lang": "Java",
+     "stars": 8583,
+     "forks": 3402,
+     "issues": 38,
+     "created": "2011-01-19",
+     "pushed": "2026-10-11",
      "license": "Apache-2.0"
     },
     {
-     "name": "junyanz/pytorch-CycleGAN-and-pix2pix",
-     "desc": "Image-to-Image Translation in PyTorch",
-     "lang": "Python",
-     "stars": 25256,
-     "forks": 6565,
-     "issues": 589,
-     "created": "2017-04-18",
-     "pushed": "2025-08-06",
-     "license": null
-    },
-    {
-     "name": "EvoLinkAI/awesome-gpt-image-2-API-and-Prompts",
-     "desc": "GPT-Image-2 API and Prompts",
-     "lang": "Python",
-     "stars": 17302,
-     "forks": 1742,
-     "issues": 3,
-     "created": "2026-04-18",
-     "pushed": "2026-07-18",
-     "license": "CC0-1.0"
-    },
-    {
-     "name": "phillipi/pix2pix",
-     "desc": "Image-to-image translation with conditional adversarial nets",
-     "lang": "Lua",
-     "stars": 10660,
-     "forks": 1729,
-     "issues": 92,
-     "created": "2016-11-16",
-     "pushed": "2021-06-06",
-     "license": null
-    },
-    {
-     "name": "YouMind-OpenLab/awesome-gpt-image-2",
-     "desc": "🚀 World's largest GPT Image 2 prompt library, updated daily — 2000+ curated prompts with preview images, 16 languages. OpenAI's next-gen image model with pixel-perfect text rendering, cross-image consistency, and commercial-grade illustration. Free & open source.",
+     "name": "Huachao/vscode-restclient",
+     "desc": "REST Client Extension for Visual Studio Code",
      "lang": "TypeScript",
-     "stars": 10048,
-     "forks": 883,
-     "issues": 3,
-     "created": "2026-04-16",
-     "pushed": "2026-10-11",
-     "license": null
-    },
-    {
-     "name": "jamez-bondos/awesome-gpt4o-images",
-     "desc": "Awesome curated collection of images and prompts generated by GPT-4o and gpt-image-1. Explore AI generated visuals created with ChatGPT and Sora, showcasing OpenAI’s advanced image generation capabilities.",
-     "lang": "JavaScript",
-     "stars": 8155,
-     "forks": 1798,
-     "issues": 6,
-     "created": "2025-04-13",
-     "pushed": "2025-05-26",
-     "license": null
-    },
-    {
-     "name": "leejet/stable-diffusion.cpp",
-     "desc": "Diffusion model(SD,Flux,Wan,Qwen Image,Z-Image,...) inference in pure C/C++",
-     "lang": "C++",
-     "stars": 7624,
-     "forks": 861,
-     "issues": 265,
-     "created": "2023-08-13",
-     "pushed": "2026-10-10",
+     "stars": 6056,
+     "forks": 540,
+     "issues": 593,
+     "created": "2016-03-30",
+     "pushed": "2026-04-23",
      "license": "MIT"
-    },
-    {
-     "name": "wuyoscar/GPT-Image2-Skill",
-     "desc": "GPT Image 2/2.5 prompt gallery, image prompt library, agentic skill, and CLI for OpenAI image generation/editing",
-     "lang": "Python",
-     "stars": 5705,
-     "forks": 472,
-     "issues": 1,
-     "created": "2026-04-22",
-     "pushed": "2026-09-30",
-     "license": "MIT"
-    }
-   ]
-  },
-  {
-   "id": "ffmpeg",
-   "title": "Ffmpeg",
-   "topics": [
-    "ffmpeg"
-   ],
-   "repos": [
-    {
-     "name": "bilibili/ijkplayer",
-     "desc": "Android/iOS video player based on FFmpeg n3.4, with MediaCodec, VideoToolbox support.",
-     "lang": "C",
-     "stars": 33208,
-     "forks": 8241,
-     "issues": 2904,
-     "created": "2013-06-03",
-     "pushed": "2024-08-13",
-     "license": "GPL-2.0"
-    },
-    {
-     "name": "ffmpegwasm/ffmpeg.wasm",
-     "desc": "FFmpeg for browser, powered by WebAssembly",
-     "lang": "C",
-     "stars": 17841,
-     "forks": 1114,
-     "issues": 459,
-     "created": "2019-10-16",
-     "pushed": "2026-09-29",
-     "license": "MIT"
-    },
-    {
-     "name": "leandromoreira/ffmpeg-libav-tutorial",
-     "desc": "FFmpeg libav tutorial - learn how media works from basic to transmuxing, transcoding and more. Translations: 🇺🇸 🇨🇳 🇰🇷 🇪🇸 🇻🇳 🇧🇷 🇷🇺",
-     "lang": "C",
-     "stars": 11050,
-     "forks": 1014,
-     "issues": 42,
-     "created": "2017-11-06",
-     "pushed": "2026-06-18",
-     "license": "BSD-3-Clause"
-    },
-    {
-     "name": "bytedeco/javacv",
-     "desc": "Java interface to OpenCV, FFmpeg, and more",
-     "lang": "Java",
-     "stars": 8348,
-     "forks": 1616,
-     "issues": 465,
-     "created": "2014-04-21",
-     "pushed": "2026-08-12",
-     "license": null
     }
    ]
   },
@@ -8362,130 +7376,196 @@
    ]
   },
   {
-   "id": "websocket",
-   "title": "Websocket",
+   "id": "reinforcement-learning",
+   "title": "Reinforcement learning",
    "topics": [
-    "websocket"
+    "reinforcement-learning"
    ],
    "repos": [
     {
-     "name": "gorilla/websocket",
-     "desc": "Package gorilla/websocket is a fast, well-tested and widely used WebSocket implementation for Go.",
-     "lang": "Go",
-     "stars": 24873,
-     "forks": 3593,
-     "issues": 85,
-     "created": "2013-10-16",
-     "pushed": "2025-03-19",
-     "license": "BSD-2-Clause"
-    },
-    {
-     "name": "ZLMediaKit/ZLMediaKit",
-     "desc": "WebRTC/RTSP/RTMP/HTTP/HLS/HTTP-FLV/WebSocket-FLV/HTTP-TS/HTTP-fMP4/WebSocket-TS/WebSocket-fMP4/GB28181/SRT/STUN/TURN server and client framework based on C++11",
-     "lang": "C++",
-     "stars": 17603,
-     "forks": 4148,
-     "issues": 137,
-     "created": "2017-04-01",
+     "name": "stefan-jansen/machine-learning-for-trading",
+     "desc": "Code for Machine Learning for Trading, 3rd edition — from data sourcing to live execution.",
+     "lang": "Jupyter Notebook",
+     "stars": 21292,
+     "forks": 5690,
+     "issues": 1,
+     "created": "2018-05-09",
      "pushed": "2026-10-10",
-     "license": null
-    },
-    {
-     "name": "daltoniam/Starscream",
-     "desc": "Websockets in swift for iOS and OSX",
-     "lang": "Swift",
-     "stars": 8637,
-     "forks": 1257,
-     "issues": 172,
-     "created": "2014-07-17",
-     "pushed": "2024-05-16",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "sockjs/sockjs-client",
-     "desc": "WebSocket emulation - Javascript client",
-     "lang": "JavaScript",
-     "stars": 8504,
-     "forks": 1271,
-     "issues": 33,
-     "created": "2011-07-22",
-     "pushed": "2026-09-24",
      "license": "MIT"
     },
     {
-     "name": "boostorg/beast",
-     "desc": "HTTP and WebSocket built on Boost.Asio in C++11",
-     "lang": "C++",
-     "stars": 4829,
-     "forks": 695,
+     "name": "Unity-Technologies/ml-agents",
+     "desc": "The Unity Machine Learning Agents Toolkit (ML-Agents) is an open-source project that enables games and simulations to serve as environments for training intelligent agents using deep reinforcement learning and imitation learning.",
+     "lang": "C#",
+     "stars": 19731,
+     "forks": 4504,
+     "issues": 18,
+     "created": "2017-09-08",
+     "pushed": "2026-10-07",
+     "license": null
+    },
+    {
+     "name": "MathFoundationRL/Book-Mathematical-Foundation-of-Reinforcement-Learning",
+     "desc": "This is the homepage of a new book entitled \"Mathematical Foundations of Reinforcement Learning.\"",
+     "lang": "MATLAB",
+     "stars": 18026,
+     "forks": 1703,
+     "issues": 1,
+     "created": "2022-08-07",
+     "pushed": "2026-10-02",
+     "license": null
+    },
+    {
+     "name": "kmario23/deep-learning-drizzle",
+     "desc": "Drench yourself in Deep Learning, Reinforcement Learning, Machine Learning, Computer Vision, and NLP by learning from these exciting lectures!!",
+     "lang": "HTML",
+     "stars": 12957,
+     "forks": 2979,
+     "issues": 5,
+     "created": "2018-11-26",
+     "pushed": "2026-08-22",
+     "license": null
+    },
+    {
+     "name": "Farama-Foundation/Gymnasium",
+     "desc": "A standard API for single-agent reinforcement learning environments, with popular reference environments and related utilities (formerly Gym)",
+     "lang": "Python",
+     "stars": 12651,
+     "forks": 1502,
      "issues": 105,
-     "created": "2013-06-16",
+     "created": "2022-09-08",
+     "pushed": "2026-10-10",
+     "license": "MIT"
+    },
+    {
+     "name": "OpenPipe/ART",
+     "desc": "Agent Reinforcement Trainer: train multi-step agents for real-world tasks using GRPO. Give your agents on-the-job training. Reinforcement learning for Qwen3.6, GPT-OSS, Llama, and more!",
+     "lang": "Python",
+     "stars": 10793,
+     "forks": 1004,
+     "issues": 168,
+     "created": "2025-03-10",
+     "pushed": "2026-10-10",
+     "license": "Apache-2.0"
+    },
+    {
+     "name": "vwxyzjn/cleanrl",
+     "desc": "High-quality single file implementation of Deep Reinforcement Learning algorithms with research-friendly features (PPO, DQN, C51, DDPG, TD3, SAC, PPG)",
+     "lang": "Python",
+     "stars": 10531,
+     "forks": 1179,
+     "issues": 110,
+     "created": "2019-06-07",
+     "pushed": "2026-04-20",
+     "license": null
+    },
+    {
+     "name": "rllm-org/rllm",
+     "desc": "Democratizing Reinforcement Learning for LLMs",
+     "lang": "Python",
+     "stars": 5870,
+     "forks": 630,
+     "issues": 171,
+     "created": "2025-01-26",
      "pushed": "2026-10-09",
-     "license": "BSL-1.0"
+     "license": "Apache-2.0"
     }
    ]
   },
   {
-   "id": "sqlite",
-   "title": "Sqlite",
+   "id": "architecture",
+   "title": "Architecture",
    "topics": [
-    "sqlite"
+    "architecture"
    ],
    "repos": [
     {
-     "name": "sqlitebrowser/sqlitebrowser",
-     "desc": "Official home of the DB Browser for SQLite (DB4S) project. Previously known as \"SQLite Database Browser\" and \"Database Browser for SQLite\". Website at: ",
-     "lang": "C++",
-     "stars": 24686,
-     "forks": 2376,
-     "issues": 835,
-     "created": "2014-05-04",
-     "pushed": "2026-10-11",
-     "license": null
-    },
-    {
-     "name": "rqlite/rqlite",
-     "desc": "The lightweight, fault-tolerant database built on SQLite. Designed to keep your data highly available with minimal effort.",
-     "lang": "Go",
-     "stars": 17787,
-     "forks": 818,
-     "issues": 66,
-     "created": "2014-08-23",
-     "pushed": "2026-10-09",
+     "name": "ardalis/CleanArchitecture",
+     "desc": "Clean Architecture Solution Template: A proven Clean Architecture Template for ASP.NET Core 10",
+     "lang": "C#",
+     "stars": 18514,
+     "forks": 3133,
+     "issues": 43,
+     "created": "2016-09-30",
+     "pushed": "2026-09-21",
      "license": "MIT"
     },
     {
-     "name": "tursodatabase/libsql",
-     "desc": "libSQL is a fork of SQLite that is both Open Source, and Open Contributions.",
-     "lang": "C",
-     "stars": 17262,
-     "forks": 542,
-     "issues": 459,
-     "created": "2022-09-29",
-     "pushed": "2026-10-01",
+     "name": "pointfreeco/swift-composable-architecture",
+     "desc": "A library for building applications in a consistent and understandable way, with composition, testing, and ergonomics in mind.",
+     "lang": "Swift",
+     "stars": 14953,
+     "forks": 1678,
+     "issues": 26,
+     "created": "2020-05-03",
+     "pushed": "2026-10-06",
      "license": "MIT"
     },
     {
-     "name": "benbjohnson/litestream",
-     "desc": "Streaming replication for SQLite.",
-     "lang": "Go",
-     "stars": 14473,
-     "forks": 432,
-     "issues": 153,
-     "created": "2020-10-06",
-     "pushed": "2026-10-09",
+     "name": "alibaba/COLA",
+     "desc": "🥤 COLA: Clean Object-oriented & Layered Architecture",
+     "lang": "Java",
+     "stars": 13065,
+     "forks": 3237,
+     "issues": 106,
+     "created": "2018-02-06",
+     "pushed": "2026-08-31",
+     "license": "LGPL-2.1"
+    },
+    {
+     "name": "mehdihadeli/awesome-software-architecture",
+     "desc": "📚 A curated list of awesome articles, videos, and other resources to learn and practice software architecture, patterns, and principles.",
+     "lang": "TypeScript",
+     "stars": 11712,
+     "forks": 1029,
+     "issues": 53,
+     "created": "2021-02-06",
+     "pushed": "2026-09-08",
+     "license": "CC0-1.0"
+    },
+    {
+     "name": "uber/RIBs",
+     "desc": "Uber's cross-platform mobile architecture framework - Android Repository",
+     "lang": "Kotlin",
+     "stars": 7942,
+     "forks": 913,
+     "issues": 119,
+     "created": "2017-10-03",
+     "pushed": "2026-10-07",
      "license": "Apache-2.0"
     },
     {
-     "name": "sql-js/sql.js",
-     "desc": "A javascript library to run SQLite on the web.  ",
-     "lang": "JavaScript",
-     "stars": 13666,
-     "forks": 1116,
-     "issues": 146,
-     "created": "2012-02-27",
+     "name": "likec4/likec4",
+     "desc": "Visualize, collaborate, and evolve the software architecture with always actual and live diagrams from your code",
+     "lang": "TypeScript",
+     "stars": 5847,
+     "forks": 396,
+     "issues": 194,
+     "created": "2023-03-24",
      "pushed": "2026-10-10",
-     "license": null
+     "license": "MIT"
+    },
+    {
+     "name": "rafaelfgx/Architecture",
+     "desc": ".NET 10, Angular 22, Clean Architecture, Clean Code, SOLID, KISS, DRY, Mediator Pattern, Folder-by-Feature Structure",
+     "lang": "C#",
+     "stars": 3278,
+     "forks": 803,
+     "issues": 0,
+     "created": "2017-10-08",
+     "pushed": "2026-10-07",
+     "license": "MIT"
+    },
+    {
+     "name": "philippemerle/KubeDiagrams",
+     "desc": "Generate Kubernetes architecture diagrams from Kubernetes manifest files, kustomization files, Helm charts, helmfiles, and actual cluster state",
+     "lang": "JavaScript",
+     "stars": 2720,
+     "forks": 179,
+     "issues": 11,
+     "created": "2024-12-26",
+     "pushed": "2026-10-05",
+     "license": "Apache-2.0"
     }
    ]
   },
@@ -8496,17 +7576,6 @@
     "jsx"
    ],
    "repos": [
-    {
-     "name": "developit/htm",
-     "desc": "Hyperscript Tagged Markup: JSX alternative using standard tagged templates, with compiler support.",
-     "lang": "JavaScript",
-     "stars": 9047,
-     "forks": 181,
-     "issues": 49,
-     "created": "2018-07-30",
-     "pushed": "2024-02-01",
-     "license": "Apache-2.0"
-    },
     {
      "name": "vercel/styled-jsx",
      "desc": "Full CSS support for JSX without compromises",
@@ -8530,17 +7599,6 @@
      "license": "MIT"
     },
     {
-     "name": "jsx-eslint/eslint-plugin-jsx-a11y",
-     "desc": "Static AST checker for a11y rules on JSX elements.",
-     "lang": "JavaScript",
-     "stars": 3623,
-     "forks": 657,
-     "issues": 141,
-     "created": "2016-02-17",
-     "pushed": "2026-01-06",
-     "license": "MIT"
-    },
-    {
      "name": "kane50613/takumi",
      "desc": "Render OG images and paged PDFs from JSX, HTML, and CSS. No headless browser. Runs on Node.js, Cloudflare Workers, browsers, and Rust.",
      "lang": "Rust",
@@ -8560,81 +7618,6 @@
      "issues": 0,
      "created": "2021-07-01",
      "pushed": "2026-09-28",
-     "license": "MIT"
-    }
-   ]
-  },
-  {
-   "id": "twitter",
-   "title": "Twitter",
-   "topics": [
-    "twitter"
-   ],
-   "repos": [
-    {
-     "name": "d60/twikit",
-     "desc": "Twitter API Scraper | Without an API key | Twitter Internal API | Free | Twitter scraper | Twitter Bot",
-     "lang": "Python",
-     "stars": 4721,
-     "forks": 572,
-     "issues": 160,
-     "created": "2024-01-20",
-     "pushed": "2026-03-10",
-     "license": "MIT"
-    },
-    {
-     "name": "abraham/twitteroauth",
-     "desc": "The most popular PHP library for use with the Twitter OAuth REST API.",
-     "lang": "PHP",
-     "stars": 4297,
-     "forks": 1670,
-     "issues": 10,
-     "created": "2009-02-14",
-     "pushed": "2026-10-05",
-     "license": "MIT"
-    },
-    {
-     "name": "TheAlphamerc/flutter_twitter_clone",
-     "desc": "Fully functional Twitter clone built in  flutter framework using Firebase realtime database and storage",
-     "lang": "Dart",
-     "stars": 4239,
-     "forks": 1160,
-     "issues": 36,
-     "created": "2019-12-25",
-     "pushed": "2024-07-31",
-     "license": "MIT"
-    },
-    {
-     "name": "orakaro/rainbowstream",
-     "desc": "A smart and nice Twitter client on terminal written in Python.",
-     "lang": "Python",
-     "stars": 3526,
-     "forks": 251,
-     "issues": 149,
-     "created": "2014-05-05",
-     "pushed": "2022-09-29",
-     "license": "MIT"
-    },
-    {
-     "name": "twitter/twitter-text",
-     "desc": "Twitter Text Libraries. This code is used at Twitter to tokenize and parse text to meet the expectations for what can be used on the platform.",
-     "lang": "HTML",
-     "stars": 3137,
-     "forks": 527,
-     "issues": 94,
-     "created": "2014-12-03",
-     "pushed": "2024-04-26",
-     "license": "Apache-2.0"
-    },
-    {
-     "name": "viperrcrypto/Siftly",
-     "desc": "Local Twitter/X bookmark organizer with AI categorization and mindmap visualization",
-     "lang": "TypeScript",
-     "stars": 3067,
-     "forks": 281,
-     "issues": 29,
-     "created": "2026-03-04",
-     "pushed": "2026-04-08",
      "license": "MIT"
     }
    ]

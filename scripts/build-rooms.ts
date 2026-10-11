@@ -10,6 +10,8 @@
  *    description (it is about the subject, not just listing it), or it carries two of the room's topics; unsafe repos are dropped (same filter as rising repos);
  *    each repo sits in at most two rooms; rooms need 4+ repos and keep the top 8 by stars.
  *
+ * Only active repos count: a commit in the last ~6 months and not archived.
+ *
  * Output: shared/data/rooms.json, with every number as returned by the API on the as-of date.
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -19,6 +21,7 @@ const token = process.env.GITHUB_TOKEN;
 const headers = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'repo-safari-rooms', Authorization: `Bearer ${token}` };
 
 interface Repo extends GhRepo {
+  archived?: boolean;
   forks_count: number;
   open_issues_count: number;
   pushed_at: string;
@@ -85,12 +88,14 @@ function mentions(desc: string, words: string[]): boolean {
 }
 
 const CACHE = 'data/rooms-cache.json';
+/** A repo must have a commit this recent to be in a room. */
+const ACTIVE_DAYS = 183;
 
 async function main() {
   const asOf = new Date().toISOString().slice(0, 10);
   if (process.argv.includes('--cached') && existsSync(CACHE)) {
-    const c = JSON.parse(readFileSync(CACHE, 'utf8')) as { repos: Repo[]; members: Record<string, string[]> };
-    return buildRooms(asOf, new Map(c.repos.map((r) => [r.full_name, r])), new Map(Object.entries(c.members).map(([k, v]) => [k, new Set(v)])));
+    const c = JSON.parse(readFileSync(CACHE, 'utf8')) as { fetchedAt?: string; repos: Repo[]; members: Record<string, string[]> };
+    return buildRooms(c.fetchedAt ?? asOf, new Map(c.repos.map((r) => [r.full_name, r])), new Map(Object.entries(c.members).map(([k, v]) => [k, new Set(v)])));
   }
   if (!token) throw new Error('Set GITHUB_TOKEN (e.g. GITHUB_TOKEN=$(gh auth token)); the search API needs it. Or pass --cached to rebuild from the last fetch.');
   const all = new Map<string, Repo>();
@@ -115,13 +120,15 @@ async function main() {
   }
   // repos from the top-1000 pass also count toward the topics they carry
   for (const r of all.values()) for (const t of r.topics ?? []) members.get(t)?.add(r.full_name);
-  writeFileSync(CACHE, JSON.stringify({ repos: [...all.values()], members: Object.fromEntries([...members].map(([k, v]) => [k, [...v]])) }));
+  writeFileSync(CACHE, JSON.stringify({ fetchedAt: asOf, repos: [...all.values()], members: Object.fromEntries([...members].map(([k, v]) => [k, [...v]])) }));
   buildRooms(asOf, all, members);
 }
 
 function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<string, Set<string>>) {
   // drop anything the (possibly newer) filters reject, and umbrella topics added since the cache was made
-  const all = new Map([...allIn].filter(([, r]) => !exclusionReason(r)));
+  // only active projects: a commit in the last ~6 months, not archived
+  const cutoff = Date.parse(asOf) - ACTIVE_DAYS * 86_400_000;
+  const all = new Map([...allIn].filter(([, r]) => !exclusionReason(r) && !r.archived && Date.parse(r.pushed_at) >= cutoff));
   const members = new Map([...membersIn].filter(([t]) => !UMBRELLA.has(t)).map(([t, set]) => [t, new Set([...set].filter((id) => all.has(id)))]));
   console.log('3/3 Building rooms…');
   // merge topics whose member sets overlap a lot (e.g. speech-recognition + speech-to-text)
@@ -195,6 +202,7 @@ function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<strin
   const out = {
     asOf,
     source: 'GitHub topics, grouped automatically by scripts/build-rooms.ts',
+    activeDays: ACTIVE_DAYS,
     rooms: rooms.map((room) => ({
       id: room.id,
       title: room.title,

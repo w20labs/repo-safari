@@ -100,6 +100,8 @@ canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: bl
 .sticker .bar span { display: block; height: 100%; background: var(--ink); }
 .sticker .mine { position: absolute; left: 10px; top: -12px; background: var(--ink); color: var(--paper); font: 700 10px var(--mono); padding: 2px 7px; border-radius: 999px; letter-spacing: .04em; }
 .sticker .saved { position: absolute; right: 26px; top: 8px; font-size: 14px; }
+.sticker .newtag { justify-self: start; background: var(--ink); color: var(--lime); font: 700 9.5px var(--mono); letter-spacing: .06em; padding: 2px 6px; border-radius: 4px; }
+.rs-card .newtag { color: var(--lime); }
 canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; transition: left .22s ease; pointer-events: none; }
 
 .detail { margin: 0 14px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 10px; }
@@ -161,7 +163,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
   <header class="top">
     <div>
       <h1 class="brand">REPO <span>SAFARI</span></h1>
-      <p class="pitch">A new trail through open source every day. Each platform is a category. Drop into its room to see every repo in it, ranked by stars. Save the ones you like as stickers.</p>
+      <p class="pitch">A new trail through open source every day. Each platform is a category. Drop into its room to see every active repo in it, ranked by stars, with the new ones marked. Save the ones you like as stickers.</p>
     </div>
     <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag" id="nextTag">New trail at 00:00 UTC</span></div>
   </header>
@@ -214,7 +216,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
       <pre class="fb-out" id="fbOut" hidden></pre>
     </form>
   </section>
-  <p class="fine">Rooms are built automatically from GitHub topics; numbers come from the GitHub API as of <span id="asOf"></span>. Repo Safari is an independent fan project and isn't affiliated with GitHub.</p>
+  <p class="fine">Rooms are built automatically from GitHub topics and only include active projects (a commit in the last 6 months). Numbers come from the GitHub API as of <span id="asOf"></span>. Repo Safari is an independent fan project and isn't affiliated with GitHub.</p>
 </div>
 
 <script>
@@ -232,6 +234,10 @@ const RISING_COLORS = ['#D4F25C', '#EDF9B8'];
 const LICENSES = { 'Apache-2.0': 'Apache 2.0', MIT: 'MIT', 'BSD-3-Clause': 'BSD 3', 'BSD-2-Clause': 'BSD 2', 'GPL-3.0': 'GPL 3.0', 'GPL-2.0': 'GPL 2.0', 'MPL-2.0': 'MPL 2.0', 'AGPL-3.0': 'AGPL 3.0', 'LGPL-2.1': 'LGPL 2.1', 'LGPL-3.0': 'LGPL 3.0', ISC: 'ISC', 'BSL-1.0': 'Boost', Unlicense: 'Unlicense', 'CC0-1.0': 'CC0' };
 const kfmt = (n) => (n >= 100000 ? `${Math.round(n / 1000)}k` : n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
 const short = (name) => name.split('/')[1];
+/** Created within the last year of the data date. */
+const isNew = (r) => Date.parse(AS_OF) - Date.parse(r.created) <= 365 * DAY;
+const monthYear = (d) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+
 function ago(date) {
   const d = Math.round((Date.parse(AS_OF) - Date.parse(date)) / DAY);
   if (d <= 0) return 'today';
@@ -333,10 +339,13 @@ function renderCard(p) {
   const r = p.flag;
   card.style.setProperty('--c', p.color);
   card.replaceChildren(
-    h('div', { class: 'eyebrow' }, h('span', { class: 'rg' }, p.rising ? 'Rising this week' : 'Most stars in this room'), h('span', null, `★ ${kfmt(r.stars)}`)),
+    h('div', { class: 'eyebrow' },
+      h('span', { class: 'rg' }, p.rising ? 'Rising this week' : 'Most stars in this room'),
+      h('span', null, `★ ${kfmt(r.stars)}`)),
     h('h3', null, short(r.name)),
     h('div', { class: 'full' }, r.name),
     h('p', null, r.desc || 'No description on GitHub.'),
+    h('div', { class: 'full' }, `Last commit ${ago(r.pushed)}`, isNew(r) && !p.rising ? h('span', { class: 'newtag' }, ` · new, created ${monthYear(r.created)}`) : null),
     h('div', { class: 'roomline' },
       h('span', null, 'Room: ', h('b', null, p.room.title), ` · ${p.room.repos.length} repos`),
       h('button', { type: 'button', class: 'btn go', onclick: () => enterRoom() }, '▼ Drop in')),
@@ -426,6 +435,7 @@ function openRoom(p) {
   },
     i === 0 ? h('span', { class: 'mine' }, 'ON THE TRAIL') : null,
     h('span', { class: 'rank' }, `#${i + 1}`),
+    !p.rising && isNew(r) ? h('span', { class: 'newtag' }, `NEW · ${monthYear(r.created)}`) : null,
     h('span', { class: 'nm' }, short(r.name)),
     h('span', { class: 'ow' }, r.name.split('/')[0]),
     h('span', { class: 'st' }, `★ ${kfmt(r.stars)}`),
@@ -437,7 +447,7 @@ function openRoom(p) {
       h('div', { class: 'room-sign' },
         h('span', { class: 'k' }, p.rising ? 'Room · new this week' : 'Room'),
         h('h2', null, p.room.title),
-        h('span', { class: 'n' }, `${p.room.repos.length} repos, most stars first`)),
+        h('span', { class: 'n' }, `${p.room.repos.length} active repos, most stars first${p.rising ? '' : (() => { const n = p.room.repos.filter(isNew).length; return n ? ` · ${n} new this year` : ''; })()}`)),
       h('button', { type: 'button', class: 'btn', onclick: exitRoom }, '▲ Back to the trail ', h('kbd', null, 'Esc'))),
     h('div', { class: 'wall-wrap' }, h('div', { class: 'wall' }, h('div', { class: 'floor' }), stickers, walker)),
     h('div', { class: 'detail', 'aria-live': 'polite' }),
@@ -483,7 +493,7 @@ function renderDetail() {
       stat(kfmt(r.issues), 'Open issues'),
       stat(r.lang || 'mixed', 'Language'),
       stat(ago(r.pushed), 'Last commit'),
-      stat(p.rising ? ago(r.created) : r.created.slice(0, 4), p.rising ? 'Created' : 'Since')),
+      stat(p.rising || isNew(r) ? monthYear(r.created) : r.created.slice(0, 4), p.rising || isNew(r) ? 'Created (new)' : 'Since')),
     lic ? h('div', { class: 'full' }, `License: ${lic}`) : null,
   );
 }
