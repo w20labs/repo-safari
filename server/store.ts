@@ -1,7 +1,7 @@
 import { randomBytes, randomInt } from 'node:crypto';
 import { TOTAL_PLAYERS } from '../shared/constants.ts';
-import { dailyCourse, type Course } from '../shared/course.ts';
-import type { RisingPool, RunResult } from '../shared/types.ts';
+import { dailyCourse, pickDailyRepos, type Course } from '../shared/course.ts';
+import type { Repo, RisingPool, RunResult } from '../shared/types.ts';
 import { db, getMeta } from './db.ts';
 
 export const newId = (bytes = 9) => randomBytes(bytes).toString('base64url');
@@ -41,23 +41,37 @@ export function setPlayerName(id: string, name: string) {
 
 export function currentPool(): RisingPool | null {
   const asOf = getMeta('rising_as_of');
-  const rows = db.prepare('SELECT name, desc, lang, stars FROM rising ORDER BY rank').all() as RisingPool['repos'];
+  const rows = db.prepare('SELECT name, desc, lang, stars, orig_desc AS about FROM rising ORDER BY rank').all() as RisingPool['repos'];
   if (!asOf || rows.length < 2) return null;
   return { asOf, repos: rows };
 }
 
-/** The pool used for a date's course; frozen the first time anyone asks for that date. */
-export function poolForDate(date: string): RisingPool | null {
-  const row = db.prepare('SELECT pool FROM daily_pool WHERE date = ?').get(date) as { pool: string | null } | undefined;
-  if (row) return row.pool ? (JSON.parse(row.pool) as RisingPool) : null;
-  const pool = currentPool();
-  db.prepare('INSERT OR IGNORE INTO daily_pool (date, pool) VALUES (?, ?)').run(date, pool ? JSON.stringify(pool) : null);
-  return poolForDate(date);
+export interface DaySnapshot {
+  pool: RisingPool | null;
+  repos: Repo[];
 }
 
-export function courseForDate(date: string): { course: Course; pool: RisingPool | null } {
-  const pool = poolForDate(date);
-  return { course: dailyCourse(date, pool), pool };
+/**
+ * The rising pool and the 12 repos for a date, frozen the first time anyone asks for that date,
+ * so a mid-day refresh or a later catalog rebuild can't change the course.
+ */
+export function snapshotForDate(date: string): DaySnapshot {
+  const row = db.prepare('SELECT pool, repos FROM daily_pool WHERE date = ?').get(date) as { pool: string | null; repos: string | null } | undefined;
+  if (row?.repos) return { pool: row.pool ? (JSON.parse(row.pool) as RisingPool) : null, repos: JSON.parse(row.repos) as Repo[] };
+  const pool = row ? (row.pool ? (JSON.parse(row.pool) as RisingPool) : null) : currentPool();
+  const repos = pickDailyRepos(date, pool);
+  db.prepare(
+    `INSERT INTO daily_pool (date, pool, repos) VALUES (?, ?, ?)
+     ON CONFLICT(date) DO UPDATE SET repos = COALESCE(daily_pool.repos, excluded.repos)`,
+  ).run(date, pool ? JSON.stringify(pool) : null, JSON.stringify(repos));
+  return snapshotForDate(date);
+}
+
+export const poolForDate = (date: string): RisingPool | null => snapshotForDate(date).pool;
+
+export function courseForDate(date: string): { course: Course; pool: RisingPool | null; repos: Repo[] } {
+  const { pool, repos } = snapshotForDate(date);
+  return { course: dailyCourse(date, pool, repos), pool, repos };
 }
 
 // ---------- runs ----------

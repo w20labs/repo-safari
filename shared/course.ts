@@ -1,4 +1,4 @@
-import { CLASSIC } from './data/classic.ts';
+import { GAME_POOL } from './data/catalog.ts';
 import { COURSE, PHYS } from './constants.ts';
 import { poolRepos } from './rising.ts';
 import { mulberry32, rngFrom, shuffle, type Rng } from './rng.ts';
@@ -32,7 +32,7 @@ export interface Course {
   unlock: number | null;
 }
 
-const BAND_WIDTH: Record<Band, number> = { '200k+': 200, '100k+': 168, '50k+': 146, '20k+': 132, rising: 140 };
+const BAND_WIDTH: Record<Band, number> = { '200k+': 200, '100k+': 168, '50k+': 146, '20k+': 132, '<20k': 126, rising: 140 };
 const GOLD_WIDTH = 100;
 
 export const worldWidth = (n: number): number => COURSE.firstX + n * COURSE.stepX + COURSE.tail;
@@ -103,23 +103,37 @@ export const ARENA_PLATFORMS = 14;
 
 export const dailySeedKey = (date: string): string => `lcs-${date}`;
 
-/** Same 12 platforms for everyone on a UTC date: 10 classic + 2 rising when available. */
-export function dailyCourse(date: string, pool: RisingPool | null): Course {
+export const PRACTICE_PLATFORMS = 28;
+export const PRACTICE_RISING = 6;
+
+/**
+ * The 12 repos for a UTC date: 10 from the classic + catalog pool and 2 rising repos when the pool
+ * has them, shuffled with the date seed. The server stores this list the first time a date is
+ * requested, so later catalog edits can't change a past course.
+ */
+export function pickDailyRepos(date: string, pool: RisingPool | null): Repo[] {
   const rng = rngFrom(dailySeedKey(date));
   const rising = poolRepos(pool);
   const risingCount = rising.length >= 2 ? 2 : 0;
-  const classic = shuffle(rng, CLASSIC).slice(0, DAILY_PLATFORMS - risingCount);
+  const base = shuffle(rng, GAME_POOL).slice(0, DAILY_PLATFORMS - risingCount);
   const picked = risingCount ? shuffle(rng, rising).slice(0, risingCount) : [];
-  return buildCourse(shuffle(rng, [...classic, ...picked]), rng, { solo: true, unlock: DAILY_UNLOCK });
+  return shuffle(rng, [...base, ...picked]);
+}
+
+/** Same 12 platforms for everyone on a date. Pass the stored `repos` when you have them. */
+export function dailyCourse(date: string, pool: RisingPool | null, repos?: Repo[] | null): Course {
+  const list = repos?.length ? repos : pickDailyRepos(date, pool);
+  return buildCourse(list, rngFrom(`${dailySeedKey(date)}-layout`), { solo: true, unlock: DAILY_UNLOCK });
 }
 
 export function practiceCourse(rng: Rng, pool: RisingPool | null): Course {
-  const repos = shuffle(rng, [...CLASSIC, ...poolRepos(pool)]);
-  return buildCourse(repos, rng, { solo: true, unlock: PRACTICE_UNLOCK });
+  const base = shuffle(rng, GAME_POOL).slice(0, PRACTICE_PLATFORMS);
+  const rising = shuffle(rng, poolRepos(pool)).slice(0, PRACTICE_RISING);
+  return buildCourse(shuffle(rng, [...base, ...rising]), rng, { solo: true, unlock: PRACTICE_UNLOCK });
 }
 
 export function arenaCourse(seed: number): Course {
   const rng = mulberry32(seed);
-  const repos = shuffle(rng, CLASSIC).slice(0, ARENA_PLATFORMS);
+  const repos = shuffle(rng, GAME_POOL).slice(0, ARENA_PLATFORMS);
   return buildCourse(repos, rng, { solo: false, unlock: null });
 }

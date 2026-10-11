@@ -25,11 +25,11 @@ describe('rising filters', () => {
     expect(picked.filter((r) => r.language === 'Python')).toHaveLength(3);
   });
 
-  it('strips owner and repo names from clues', () => {
-    const r = repo('acme/rocket-cli', 'rocket-cli: a tiny launcher for scripts, by acme');
-    const s = stripName(r.description!, r);
-    expect(s).not.toBeNull();
-    expect(mentionsName(s!, r)).toBe(false);
+  it('strips a leading name and rejects clues that would leave a hole', () => {
+    const r = repo('acme/rocket-cli', 'rocket-cli: a tiny launcher for shell scripts');
+    expect(stripName(r.description!, r)).toBe('A tiny launcher for shell scripts.');
+    expect(stripName('rocket-cli: a tiny launcher for scripts, by acme', r)).toBeNull();
+    expect(stripName('The fast rocket-cli launcher for scripts', r)).toBeNull();
     expect(mentionsName('A tool for rockets', r)).toBe(false);
     expect(mentionsName('Rocket CLI makes launching easy', r)).toBe(true);
   });

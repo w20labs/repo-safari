@@ -54,6 +54,13 @@ db.exec(`
   );
 `);
 
+/** Adds a column if an older database doesn't have it yet. */
+function addColumn(table: string, column: string, decl: string) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (!cols.some((c) => c.name === column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${decl}`);
+}
+addColumn('daily_pool', 'repos', 'TEXT');
+
 export function getMeta(k: string): string | null {
   const row = db.prepare('SELECT v FROM meta WHERE k = ?').get(k) as { v: string } | undefined;
   return row?.v ?? null;

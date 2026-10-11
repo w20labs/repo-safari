@@ -1,5 +1,5 @@
 export type Region = 'ai' | 'web' | 'dev' | 'infra' | 'lang' | 'rising';
-export type Band = '200k+' | '100k+' | '50k+' | '20k+' | 'rising';
+export type Band = '200k+' | '100k+' | '50k+' | '20k+' | '<20k' | 'rising';
 
 export interface Trivia {
   q: string;
@@ -24,14 +24,35 @@ export interface Repo {
   trivia?: Trivia;
   /** present on rising repos only */
   rising?: { desc: string; stars: number; asOf: string };
+  /** catalog repos: facts fetched from the GitHub API (see scripts/build-catalog.ts) */
+  facts?: RepoFacts;
+  /** catalog repos: the repo's own GitHub description, shown after the question */
+  about?: string;
+  /** catalog repos: three other repos' "what" lines, chosen at build time */
+  whatWrong?: [string, string, string];
+}
+
+export interface RepoFacts {
+  /** year the GitHub repository was created */
+  created: number;
+  /** SPDX id, or null when GitHub reports none/other */
+  license: string | null;
+  stars: number;
+  /** YYYY-MM-DD the facts were fetched */
+  asOf: string;
+  /** share of code bytes in the primary language, 0..1 */
+  langShare: number;
 }
 
 /** A rising repo as served by GET /api/rising. */
 export interface RisingRepo {
   name: string;
+  /** name-free clue */
   desc: string;
   lang: string | null;
   stars: number;
+  /** the repo's own GitHub description, shown after playing */
+  about?: string | null;
 }
 
 export interface RisingPool {
@@ -39,7 +60,7 @@ export interface RisingPool {
   repos: RisingRepo[];
 }
 
-export type QuestionKind = 'identify' | 'what' | 'lang' | 'trivia' | 'stars';
+export type QuestionKind = 'identify' | 'what' | 'lang' | 'trivia' | 'stars' | 'year' | 'license';
 
 export interface Question {
   kind: QuestionKind;

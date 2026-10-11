@@ -3,7 +3,7 @@ import { dailyQuestion, defaultContext, makeQuestion } from '../shared/questions
 import { poolRepos } from '../shared/rising.ts';
 import { dateKey, prettyDate, randomRng } from '../shared/rng.ts';
 import { formatScore } from '../shared/scoring.ts';
-import type { RisingPool } from '../shared/types.ts';
+import type { Repo, RisingPool } from '../shared/types.ts';
 import { Stage } from './game/stage.ts';
 import { me, renderWho, setMe } from './identity.ts';
 import { Backdrop } from './modes/backdrop.ts';
@@ -140,20 +140,22 @@ async function startDaily() {
   let runId: string | null = null;
   let official = false;
   let pool: RisingPool | null = null;
+  let repos: Repo[] | null = null;
   try {
     const r = await api.dailyStart();
     runId = r.runId;
     official = r.official;
     pool = r.pool;
+    repos = r.repos;
     playedToday = true;
   } catch {
     try {
-      pool = (await api.dailyCourse(date)).pool;
+      ({ pool, repos } = await api.dailyCourse(date));
     } catch {
-      /* offline: classic-only course */
+      /* offline: computed locally from the date seed */
     }
   }
-  const course = dailyCourse(date, pool);
+  const course = dailyCourse(date, pool, repos);
   const ctx = defaultContext(poolRepos(pool));
   run = new SoloRun(stage, {
     kind: 'daily',

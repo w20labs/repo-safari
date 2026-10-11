@@ -64,20 +64,32 @@ export function mentionsName(text: string, r: Pick<GhRepo, 'name' | 'owner'>): b
 
 /** One sentence, at most ~160 characters, ending with a period. */
 export function tidySentence(text: string): string {
-  let s = text.replace(/\s+/g, ' ').replace(/^[\s"'`]+|[\s"'`]+$/g, '').trim();
-  s = s.replace(/^(an?|the)\s+(?=[:\-–])/i, '').replace(/^[:\-–\s]+/, '');
+  let s = text
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^[\s"'`*\-–:|>]+/, '');
+  // drop surrounding quotes only when they wrap the whole text
+  if (/^["'`].*["'`]$/.test(s)) s = s.slice(1, -1).trim();
+  s = s.replace(/\s+$/, '');
   const first = s.match(/^.+?[.!?](\s|$)/);
   if (first) s = first[0].trim();
-  if (s.length > 160) s = `${s.slice(0, 157).replace(/\s+\S*$/, '')}…`;
+  if (s.length > 150) s = `${s.slice(0, 147).replace(/[\s,;:]+\S*$/, '')}…`;
   if (!/[.!?…]$/.test(s)) s += '.';
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-/** Regex fallback: remove the owner/repo names; returns null if the result isn't usable. */
+/**
+ * Regex fallback: drop the owner/repo names. Only accepts the result when the name was a removable
+ * prefix ("Foo: a fast thing", "Foo is a fast thing") or absent; anything that would leave a hole
+ * mid-sentence returns null so a person (or Claude) can write the clue instead.
+ */
 export function stripName(desc: string, r: Pick<GhRepo, 'name' | 'owner'>): string | null {
-  let s = desc.replace(/:[a-z0-9_+-]+:/gi, ' ').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, ' ');
-  for (const t of nameTokens(r)) s = s.replace(new RegExp(`(^|[^a-z0-9])${escapeRe(t)}(?=$|[^a-z0-9])`, 'gi'), '$1this project');
-  s = s.replace(/\b(this project)(\s*[-:,]\s*this project)+/gi, '$1').replace(/^\s*this project\s*(is|[-:–])\s*/i, '');
+  let s = tidySentence(desc);
+  for (const t of nameTokens(r)) {
+    const lead = new RegExp(`^(the\\s+)?${escapeRe(t)}(\\s*[:\\-–|,]\\s*|\\s+(is|are)\\s+)`, 'i');
+    s = s.replace(lead, '');
+  }
   s = tidySentence(s);
   if (s.replace(/[^a-z]/gi, '').length < 15 || mentionsName(s, r)) return null;
   return s;

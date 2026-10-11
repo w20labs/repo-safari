@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { dailyCourse, practiceCourse } from '../shared/course.ts';
 import { CLASSIC } from '../shared/data/classic.ts';
+import { CATALOG, GAME_POOL } from '../shared/data/catalog.ts';
 import { availableKinds, buildQuestion, dailyQuestion, defaultContext, makeQuestion, starsBucket } from '../shared/questions.ts';
 import { poolRepos } from '../shared/rising.ts';
 import { mulberry32, rngFrom } from '../shared/rng.ts';
@@ -23,7 +24,7 @@ function assertValid(q: Question) {
 
 describe('questions', () => {
   it('every kind for every repo has 4 unique options and a valid answer', () => {
-    for (const repo of [...CLASSIC, ...ctx.rising]) {
+    for (const repo of [...GAME_POOL, ...ctx.rising]) {
       for (const kind of new Set(availableKinds(repo, ctx))) {
         for (let s = 0; s < 25; s++) assertValid(buildQuestion(kind, repo, mulberry32(s), ctx));
       }
@@ -72,4 +73,28 @@ describe('questions', () => {
   it('buckets stars', () => {
     expect([0, 999, 1000, 4999, 5000, 24999, 25000].map(starsBucket)).toEqual([0, 0, 1, 1, 2, 2, 3]);
   });
+
+  it('catalog repos never leak their name in identify or what questions', () => {
+    for (const repo of CATALOG) {
+      const tokens = [repo.name, repo.name.split('/')[1], repo.short].map((t) => t.toLowerCase());
+      for (const kind of ['identify', 'what'] as const) {
+        if (!availableKinds(repo, ctx).includes(kind)) continue;
+        const q = buildQuestion(kind, repo, mulberry32(1), ctx);
+        const text = (kind === 'identify' ? q.clue! : q.options[q.answer]).toLowerCase();
+        const esc = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        for (const t of tokens) expect(new RegExp(`(^|[^a-z0-9])${esc(t)}($|[^a-z0-9])`).test(text), `${repo.name} ${kind}: ${text}`).toBe(false);
+      }
+    }
+  });
+
+  it('catalog has 150+ repos with facts and sensible year/license questions', () => {
+    expect(CATALOG.length).toBeGreaterThanOrEqual(150);
+    for (const repo of CATALOG) {
+      expect(repo.facts!.created).toBeGreaterThanOrEqual(2008);
+      const y = buildQuestion('year', repo, mulberry32(3), ctx);
+      expect(y.options[y.answer]).toBe(String(repo.facts!.created));
+      expect([...y.options].sort()).toEqual(y.options);
+    }
+  });
 });
+

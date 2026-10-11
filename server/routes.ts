@@ -59,16 +59,16 @@ const routes: [string, RegExp, Handler][] = [
     const date = url.searchParams.get('date') ?? dateKey();
     if (!validDate(date)) throw new HttpError(400, 'bad date');
     if (date > dateKey()) throw new HttpError(404, 'not yet');
-    const { pool } = courseForDate(date);
-    json(res, 200, { date, pool });
+    const { pool, repos } = courseForDate(date);
+    json(res, 200, { date, pool, repos });
   }],
 
   ['POST', /^\/api\/daily\/start$/, (req, res) => {
     const p = ensurePlayer(req, res);
     const date = dateKey();
-    const { pool } = courseForDate(date);
+    const { pool, repos } = courseForDate(date);
     const run = startOfficialRun(p.id, date);
-    json(res, 200, run ? { runId: run.id, official: true, date, pool } : { runId: null, official: false, date, pool });
+    json(res, 200, { runId: run?.id ?? null, official: !!run, date, pool, repos });
   }],
 
   ['POST', /^\/api\/daily\/finish$/, async (req, res) => {

@@ -1,4 +1,4 @@
-import type { RisingPool, RunResult } from '../../shared/types.ts';
+import type { Repo, RisingPool, RunResult } from '../../shared/types.ts';
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -48,8 +48,8 @@ export interface BoardResponse {
 export const api = {
   me: () => call<MeResponse>('GET', '/api/me'),
   setName: (name: string) => call<{ name: string }>('POST', '/api/me', { name }),
-  dailyCourse: (date: string) => call<{ date: string; pool: RisingPool | null }>('GET', `/api/daily/course?date=${date}`),
-  dailyStart: () => call<{ runId: string | null; official: boolean; date: string; pool: RisingPool | null }>('POST', '/api/daily/start'),
+  dailyCourse: (date: string) => call<{ date: string; pool: RisingPool | null; repos: Repo[] }>('GET', `/api/daily/course?date=${date}`),
+  dailyStart: () => call<{ runId: string | null; official: boolean; date: string; pool: RisingPool | null; repos: Repo[] }>('POST', '/api/daily/start'),
   dailyFinish: (body: { runId: string; results: RunResult[]; score: number; won: boolean; outLabel: string }) =>
     call<{ ok: true; score: number; rank: number; url: string; outLabel: string }>('POST', '/api/daily/finish', body),
   leaderboard: (date: string) => call<BoardResponse>('GET', `/api/daily/leaderboard?date=${date}`),
