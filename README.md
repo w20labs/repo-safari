@@ -1,3 +1,25 @@
+# Repo Safari
+
+**Play: https://w20labs.github.io/repo-safari/**
+
+A new trail through open source every day. Each platform is a category of active GitHub repos
+(OCR, vector databases, game engines…), grouped automatically from GitHub topics. Drop into a
+category's room to compare its repos as stickers, ranked by stars, and collect the ones you like.
+It's an early playtest: no sign-up, and your sticker album stays in your browser.
+
+| | |
+|---|---|
+| Page template | `prototypes/repo-safari.template.html` |
+| Category rooms | `npm run build-rooms` → `shared/data/rooms.json` (rules in `scripts/build-rooms.ts`) |
+| Rising repos | `npm run refresh-rising` → `shared/data/rising.json` |
+| Build the site | `npm run build-safari -- https://w20labs.github.io/repo-safari/ --site _site` |
+| Deploy | `.github/workflows/pages.yml`: every push to `main`, plus a weekly data refresh on Mondays |
+
+The rest of this README covers **Last Commit Standing**, the quiz platformer this repo started as.
+Its client, server and tests are still here and still pass.
+
+---
+
 # Last Commit Standing
 
 A 2D elimination platformer for developers. Every platform is a GitHub repo. Land on one, answer a

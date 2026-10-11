@@ -26,7 +26,7 @@ I've been building a small browser game called **Repo Safari** and I'd love feed
 
 No sign-up, no quiz, nothing to fail. A run takes about 3 minutes.
 
-**Play:** https://claude.ai/artifact/Wi6XStZgYy1A7svUHNTyhD
+**Play:** https://w20labs.github.io/repo-safari/
 
 Controls: arrow keys to walk, Space to jump (twice for a double jump), ↓ to drop into a room, E to save, Enter to open on GitHub. There's an on-screen pad on phones.
 

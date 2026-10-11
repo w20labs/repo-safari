@@ -1,21 +1,29 @@
 /**
- * Builds the standalone Repo Safari playtest page from the template, the automatic rooms
- * (shared/data/rooms.json) and this week's rising pool (data/lcs.db, filled by refresh-rising).
+ * Builds the Repo Safari page from the template, the automatic rooms (shared/data/rooms.json)
+ * and this week's rising pool (data/lcs.db, filled by `npm run refresh-rising`; saved to
+ * shared/data/rising.json so builds without the database use the same pool).
  *
  *   GITHUB_TOKEN=$(gh auth token) npm run build-safari -- [share-url]
+ *       -> prototypes/repo-safari.html (page body only, for publishing as a claude.ai artifact)
+ *   GITHUB_TOKEN=... npm run build-safari -- https://w20labs.github.io/repo-safari/ --site _site
+ *       -> _site/index.html (a complete document with link-preview tags, for GitHub Pages)
  */
 import Database from 'better-sqlite3';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const token = process.env.GITHUB_TOKEN;
 const headers: Record<string, string> = { Accept: 'application/vnd.github+json', 'User-Agent': 'repo-safari-page', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
-const shareUrl = process.argv[2] ?? '';
+const args = process.argv.slice(2);
+const siteDir = args.includes('--site') ? args[args.indexOf('--site') + 1] : null;
+const shareUrl = (args.find((a) => /^https?:\/\//.test(a)) ?? '').replace(/[^a-zA-Z0-9:/._-]/g, '');
 
 const rooms = JSON.parse(readFileSync('shared/data/rooms.json', 'utf8'));
+const RISING_JSON = 'shared/data/rising.json';
 
 let rising: { id: string; title: string; repos: unknown[] } | null = null;
 try {
-  const db = new Database(process.env.DB_PATH ?? 'data/lcs.db', { readonly: true });
+  const db = new Database(process.env.DB_PATH ?? 'data/lcs.db', { readonly: true, fileMustExist: true });
   const names = (db.prepare('SELECT name FROM rising ORDER BY rank').all() as { name: string }[]).map((r) => r.name);
   const repos = [];
   for (const name of names) {
@@ -29,17 +37,62 @@ try {
   }
   repos.sort((a, b) => b.stars - a.stars);
   rising = { id: 'rising', title: 'Rising this week', repos };
+  // keep a copy in the repo so builds without the database (CI on push) use the same pool
+  writeFileSync(RISING_JSON, `${JSON.stringify(rising, null, 1)}\n`);
 } catch (e) {
-  console.warn(`No rising pool (${(e as Error).message}); the page will skip the rising room. Run npm run refresh-rising first.`);
+  if (existsSync(RISING_JSON)) {
+    rising = JSON.parse(readFileSync(RISING_JSON, 'utf8'));
+    console.log(`Using the saved rising pool from ${RISING_JSON}.`);
+  } else {
+    console.warn(`No rising pool (${(e as Error).message}); the page will skip the rising room. Run npm run refresh-rising first.`);
+  }
 }
 
 /** JSON that is safe inside <script>: no "</script>", "<!--" or line separators can break out. */
 const scriptJson = (v: unknown) =>
   JSON.stringify(v).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 // replacer functions, so "$&" or "$'" inside the data is never treated as a replacement pattern
-const html = readFileSync('prototypes/repo-safari.template.html', 'utf8')
+const page = readFileSync('prototypes/repo-safari.template.html', 'utf8')
   .replace('__ROOMS__', () => scriptJson(rooms))
   .replace('__RISING__', () => scriptJson(rising))
-  .replace('__SHARE_URL__', () => shareUrl.replace(/[^a-zA-Z0-9:/._-]/g, ''));
-writeFileSync('prototypes/repo-safari.html', html);
-console.log(`Wrote prototypes/repo-safari.html: ${rooms.rooms.length} rooms, ${rising?.repos.length ?? 0} rising repos, ${(html.length / 1024).toFixed(0)} KB`);
+  .replace('__SHARE_URL__', () => shareUrl);
+
+if (!siteDir) {
+  writeFileSync('prototypes/repo-safari.html', page);
+  console.log(`Wrote prototypes/repo-safari.html: ${rooms.rooms.length} rooms, ${rising?.repos.length ?? 0} rising repos, ${(page.length / 1024).toFixed(0)} KB`);
+} else {
+  // the template starts with <title>, font links and <style>; those belong in <head>
+  const split = page.indexOf('<div class="wrap">');
+  const head = page.slice(0, split);
+  const body = page.slice(split);
+  const desc = 'A new trail through open source every day. Drop into a category, compare its active repos as stickers, and collect the ones you like.';
+  const ogImage = shareUrl ? new URL('og.png', shareUrl).href : '';
+  const favicon = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#0A0C14"/><rect x="5" y="19" width="22" height="7" rx="2" fill="#121626" stroke="#D4F25C" stroke-width="1.5"/><rect x="9" y="8" width="14" height="9" rx="2" fill="#BFE9F5"/></svg>')}`;
+  const doc = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="${desc}">
+<meta name="theme-color" content="#0A0C14">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Repo Safari">
+<meta property="og:title" content="Repo Safari: a new trail through open source every day">
+<meta property="og:description" content="${desc}">
+${shareUrl ? `<meta property="og:url" content="${shareUrl}">` : ''}
+${ogImage ? `<meta property="og:image" content="${ogImage}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">` : ''}
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="${favicon}">
+${head}
+<style>html,body{margin:0}</style>
+</head>
+<body>
+${body}
+</body>
+</html>
+`;
+  mkdirSync(siteDir, { recursive: true });
+  writeFileSync(join(siteDir, 'index.html'), doc);
+  if (existsSync('assets/og-safari.png')) copyFileSync('assets/og-safari.png', join(siteDir, 'og.png'));
+  console.log(`Wrote ${join(siteDir, 'index.html')}: ${rooms.rooms.length} rooms, ${rising?.repos.length ?? 0} rising repos, ${(doc.length / 1024).toFixed(0)} KB`);
+}

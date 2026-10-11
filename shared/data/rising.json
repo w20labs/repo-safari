@@ -1,0 +1,138 @@
+{
+ "id": "rising",
+ "title": "Rising this week",
+ "repos": [
+  {
+   "name": "deepseek-ai/deepseek-harness",
+   "desc": "DeepSeek Harness: Everything is a Plugin.",
+   "lang": "TypeScript",
+   "stars": 247155,
+   "forks": 29682,
+   "issues": 0,
+   "created": "2026-08-13",
+   "pushed": "2026-10-09",
+   "license": "MIT"
+  },
+  {
+   "name": "storytold/photocraft",
+   "desc": "An open-source, clean-room reimplementation of Adobe Photoshop in pure Rust",
+   "lang": "Rust",
+   "stars": 43286,
+   "forks": 6563,
+   "issues": 1069,
+   "created": "2026-09-30",
+   "pushed": "2026-10-11",
+   "license": "Apache-2.0"
+  },
+  {
+   "name": "NandhaKishorM/laya",
+   "desc": "Non-autoregressive System 1 decision engine. Typed choice, score and yes/no decisions over any text in a single forward pass, in 100+ languages, with a router that picks the right checkpoint per request.",
+   "lang": "Python",
+   "stars": 32202,
+   "forks": 2860,
+   "issues": 122,
+   "created": "2026-09-18",
+   "pushed": "2026-10-10",
+   "license": "Apache-2.0"
+  },
+  {
+   "name": "browser-use/jev-ultrafast",
+   "desc": "Fastest and cheapest web agent",
+   "lang": "Python",
+   "stars": 22572,
+   "forks": 1656,
+   "issues": 191,
+   "created": "2026-09-16",
+   "pushed": "2026-09-30",
+   "license": "MIT"
+  },
+  {
+   "name": "Niko1221/Strata",
+   "desc": "Qwen3.8-Flash-Next on any consumer hardware: one-click install for Windows / Linux. Strata inference engine, OpenAI/Anthropic API on localhost, optional image input.",
+   "lang": "C++",
+   "stars": 20928,
+   "forks": 1958,
+   "issues": 650,
+   "created": "2026-09-24",
+   "pushed": "2026-10-10",
+   "license": "MIT"
+  },
+  {
+   "name": "robbietilton/Compositor",
+   "desc": "The Photoshop alternative for Mac",
+   "lang": "Swift",
+   "stars": 15614,
+   "forks": 1476,
+   "issues": 54,
+   "created": "2026-09-16",
+   "pushed": "2026-10-11",
+   "license": "MIT"
+  },
+  {
+   "name": "google/artemis",
+   "desc": "ARTEMIS turns natural-language instructions into reliable Android automation. It automates end-to-end workflows, captures logs, and integrates seamlessly with AI coding assistants such as Antigravity, Codex, and Claude Code.  It also achieves 99%+ success rate on AndroidWorld Benchmark.",
+   "lang": "Python",
+   "stars": 11315,
+   "forks": 1157,
+   "issues": 133,
+   "created": "2026-08-13",
+   "pushed": "2026-10-01",
+   "license": "Apache-2.0"
+  },
+  {
+   "name": "storytold/lightcraft",
+   "desc": "An open-source, clean-room reimplementation of Adobe Lightroom in pure Rust.",
+   "lang": "Rust",
+   "stars": 9258,
+   "forks": 2971,
+   "issues": 370,
+   "created": "2026-09-30",
+   "pushed": "2026-10-11",
+   "license": "Apache-2.0"
+  },
+  {
+   "name": "lnkiai/m3e-canvas",
+   "desc": "Sketch Material 3 Expressive screens in the browser and turn them into vibe-coding prompts.",
+   "lang": "TypeScript",
+   "stars": 9137,
+   "forks": 975,
+   "issues": 6,
+   "created": "2026-09-02",
+   "pushed": "2026-10-08",
+   "license": "MIT"
+  },
+  {
+   "name": "shihabal3amri/DiPlay",
+   "desc": "Independent CarPlay receiver for compatible Android head units. Wired and wireless public preview.",
+   "lang": "Kotlin",
+   "stars": 9055,
+   "forks": 1156,
+   "issues": 230,
+   "created": "2026-09-24",
+   "pushed": "2026-10-10",
+   "license": "GPL-3.0"
+  },
+  {
+   "name": "storytold/filmcraft",
+   "desc": "An open-source, clean-room reimplementation of Adobe Premiere Pro built in pure Rust.",
+   "lang": "Rust",
+   "stars": 8936,
+   "forks": 3284,
+   "issues": 360,
+   "created": "2026-09-30",
+   "pushed": "2026-10-11",
+   "license": "Apache-2.0"
+  },
+  {
+   "name": "yetone/magpie",
+   "desc": "Every agent's model. One place. Codex on DeepSeek, Claude Code on Kimi, from the menu bar.",
+   "lang": "Go",
+   "stars": 8747,
+   "forks": 576,
+   "issues": 450,
+   "created": "2026-09-23",
+   "pushed": "2026-10-11",
+   "license": "MIT"
+  }
+ ]
+}

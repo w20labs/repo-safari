@@ -1,0 +1,66 @@
+name: Deploy Repo Safari
+
+# Builds the Repo Safari page and publishes it to GitHub Pages.
+# - every push to main: rebuild from the data committed in shared/data/
+# - every Monday (and on demand): refresh rooms and rising repos from the GitHub API first,
+#   commit the new data, then publish
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write # the weekly run commits refreshed data
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SITE_URL: https://w20labs.github.io/repo-safari/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      - name: Refresh rising repos and rooms
+        if: github.event_name != 'push'
+        run: |
+          npm run refresh-rising
+          npm run build-rooms
+
+      - name: Build the page
+        run: npm run build-safari -- "$SITE_URL" --site _site
+
+      - name: Commit refreshed data
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shared/data/rooms.json shared/data/rising.json
+          git diff --cached --quiet || { git commit -m "Weekly data refresh"; git push; }
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

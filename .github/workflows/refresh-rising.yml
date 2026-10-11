@@ -1,8 +1,8 @@
 name: Refresh rising repos
 
+# Only for the Fly.io deployment of the original game. Repo Safari's weekly refresh lives in pages.yml.
+# Run it by hand once there's a Fly app and a FLY_API_TOKEN secret.
 on:
-  schedule:
-    - cron: '0 6 * * 1' # Mondays 06:00 UTC
   workflow_dispatch:
 
 jobs:
