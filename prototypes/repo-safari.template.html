@@ -650,7 +650,7 @@ function renderDetail() {
       stat(r.lang || 'mixed', 'Language'),
       stat(ago(r.pushed), 'Last commit'),
       stat(p.rising || isNew(r) ? monthYear(r.created) : r.created.slice(0, 4), p.rising || isNew(r) ? 'Created (new)' : 'Since')),
-    lic ? h('div', { class: 'full' }, `License: ${lic}`) : null,
+    lic ? h('div', { class: 'full' }, `License: ${lic}`) : '', // replaceChildren would print null
   );
 }
 
