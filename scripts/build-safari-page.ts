@@ -20,6 +20,8 @@ const shareUrl = (args.find((a) => /^https?:\/\//.test(a)) ?? '').replace(/[^a-z
 
 const rooms = JSON.parse(readFileSync('shared/data/rooms.json', 'utf8'));
 const RISING_JSON = 'shared/data/rising.json';
+/** Anonymous, cookie-free visit counts for the published site (dashboard: repo-safari.goatcounter.com). */
+const GOATCOUNTER = 'https://repo-safari.goatcounter.com/count';
 
 let rising: { id: string; title: string; repos: unknown[] } | null = null;
 try {
@@ -83,6 +85,7 @@ ${shareUrl ? `<meta property="og:url" content="${shareUrl}">` : ''}
 ${ogImage ? `<meta property="og:image" content="${ogImage}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">` : ''}
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="${favicon}">
+<script data-goatcounter="${GOATCOUNTER}" async src="https://gc.zgo.at/count.js"></script>
 ${head}
 <style>html,body{margin:0}</style>
 </head>

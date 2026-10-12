@@ -77,7 +77,9 @@ The rules live in [`scripts/build-rooms.ts`](scripts/build-rooms.ts) and [`serve
 
 ## Your data
 
-There's no server and no account. Your sticker album is saved in your own browser (`localStorage`) and never leaves it. Clearing your browser data clears your album. The page doesn't use cookies or analytics.
+There's no server and no account. Your sticker album is saved in your own browser (`localStorage`) and never leaves it. Clearing your browser data clears your album.
+
+To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts four anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, and Share pressed.
 
 ## Run it locally
 
