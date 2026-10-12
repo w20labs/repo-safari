@@ -233,7 +233,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
       <h2>Your sticker album <small id="albumCount" tabindex="-1">0 stickers</small></h2>
       <div class="album" id="album"></div>
       <p class="empty" id="albumEmpty">No stickers yet. In any room, press <kbd>E</kbd> on a repo to keep it. Rising repos are rare stickers: they're only on the trail for a week.</p>
-      <p class="fine">Your album is saved in this browser only. Use × on a sticker to remove it.</p>
+      <p class="fine">Your album is saved in this browser only. Use × on a sticker to remove it. We count visits anonymously with GoatCounter: no cookies, nothing personal.</p>
     </div>
     <form class="box fb" id="fb">
       <h2>Tell us what you think</h2>
@@ -392,6 +392,9 @@ $('soundBtn').addEventListener('click', () => {
   if (soundOn) tone(660, { dur: 0.1, vol: 0.4 });
 });
 renderSound();
+
+/** Anonymous event count (GoatCounter, published site only); a no-op until or unless the counter loads. */
+function track(path, title) { try { window.goatcounter?.count?.({ path, title: title || path, event: true }); } catch { /* counting is optional */ } }
 
 /** Restart a one-shot CSS animation class on an element. */
 function replay(el, cls) { if (!el || reduced) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); el.addEventListener('animationend', () => el.classList.remove(cls), { once: true }); }
@@ -561,6 +564,7 @@ function toggleSave(repo, p) {
     album.set(repo.name, { name: repo.name, stars: repo.stars, room: p.room.title, paper: p.paper, rare: p.rising, day: TODAY });
     toast(p.rising ? `Rare sticker! ${short(repo.name)} is in your album` : `${short(repo.name)} is in your album`);
     (p.rising ? sfx.rare : sfx.slap)();
+    track(`save/${repo.name}`, `Saved: ${repo.name}`);
     justSaved = repo.name;
   }
   saveAlbum();
@@ -578,6 +582,7 @@ function enterRoom() {
 
 function openRoom(p) {
   roomPlat = p;
+  track(`room/${p.room.id}`, `Room: ${p.room.title}`);
   p.entered = true;
   state = 'room';
   sel = 0;
@@ -703,6 +708,7 @@ function shareText() {
 /** Phones get the native share sheet; everything else copies to the clipboard. */
 async function share() {
   const text = shareText();
+  track('share', 'Shared a trail');
   if (navigator.share && matchMedia('(pointer: coarse)').matches) {
     try { await navigator.share({ text }); return; }
     catch (e) { if (e?.name === 'AbortError') return; }
@@ -736,6 +742,7 @@ async function copy(text, done) {
 
 function showEnd() {
   ended = true; state = 'end';
+  track('trail-end', 'Reached the end of the trail');
   card.dataset.open = 'false';
   const text = shareText();
   endBox.replaceChildren(h('div', { class: 'summary', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'End of today’s trail' },
