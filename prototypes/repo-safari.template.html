@@ -781,7 +781,8 @@ addEventListener('keydown', (e) => {
   const k = KEYMAP[e.code];
   if (!k || typing()) return;
   if (state === 'room') {
-    if (k === 'open' && e.target.closest?.('button, a')) return;
+    // Enter on a focused control (Back, Save…) activates it; on a sticker it opens the repo.
+    if (k === 'open' && e.target.closest?.('button, a') && !e.target.closest('.sticker')) return;
     e.preventDefault();
     roomKey(k);
     return;
