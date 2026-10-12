@@ -650,7 +650,7 @@ function renderDetail() {
       stat(r.lang || 'mixed', 'Language'),
       stat(ago(r.pushed), 'Last commit'),
       stat(p.rising || isNew(r) ? monthYear(r.created) : r.created.slice(0, 4), p.rising || isNew(r) ? 'Created (new)' : 'Since')),
-    lic ? h('div', { class: 'full' }, `License: ${lic}`) : null,
+    lic ? h('div', { class: 'full' }, `License: ${lic}`) : '', // replaceChildren would print null
   );
 }
 
@@ -781,7 +781,8 @@ addEventListener('keydown', (e) => {
   const k = KEYMAP[e.code];
   if (!k || typing()) return;
   if (state === 'room') {
-    if (k === 'open' && e.target.closest?.('button, a')) return;
+    // Enter on a focused control (Back, Save…) activates it; on a sticker it opens the repo.
+    if (k === 'open' && e.target.closest?.('button, a') && !e.target.closest('.sticker')) return;
     e.preventDefault();
     roomKey(k);
     return;
