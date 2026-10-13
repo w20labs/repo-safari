@@ -34,7 +34,7 @@ Keep the ones you like. No sign-up, no quiz, nothing to lose. A walk takes about
 | Climb back out | <kbd>Esc</kbd> | ▲ in a room |
 
 1. **Walk the trail.** Each platform is a category. Stand on one to see its best-known repo.
-2. **Drop in.** The room shows up to eight selected active repos from that category as stickers, most stars first, with forks, open issues, language and last commit.
+2. **Drop in.** The room shows up to eight selected active repos from that category as stickers, most stars first, with forks, open issues, language and last commit. A 🤝 badge shows how many pull requests from outside contributors were merged in the last 90 days: a project other people actually contribute to, not just one that's still being pushed to.
 3. **Collect.** Save the ones you want to remember. They go into your sticker album.
 4. **Reach the end.** This week's rising repos sit on a high platform at the end of the trail. Getting there takes a double jump, and their stickers are rare.
 
@@ -67,6 +67,7 @@ flowchart LR
 | Rule | Why |
 |---|---|
 | A commit in the last 6 months, not archived | The trail is about what's alive now |
+| 🤝 counts merged PRs from outside the core team (not owners, members, collaborators or bots) over 90 days | A lone maintainer keeps a repo active; outside PRs show a community |
 | The repo is about the topic (name or opening words), or carries two of its topics | Keeps out repos that just mention a word |
 | At most two repos from the same owner | A room compares alternatives, not one team's projects |
 | No room named after one of its own repos | "Vite" would just be Vite's family |
@@ -95,6 +96,7 @@ open _site/index.html
 |---|---|
 | `npm run build-rooms` | Rebuild the rooms from the GitHub API (`-- --cached` reuses the last fetch) |
 | `npm run refresh-rising` | Refresh this week's rising repos |
+| `npm run community` | Add the 🤝 outside-PR counts to the current rooms and rising repos (needs `GITHUB_TOKEN`) |
 | `npm run build-safari -- <url> --site _site` | Build the page into `_site/` |
 | `npm run typecheck` / `npm test` / `npm run test:e2e` | Type-check, unit tests, browser tests |
 
