@@ -103,6 +103,7 @@ canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: bl
 .sticker .bar span { display: block; height: 100%; background: var(--ink); }
 .sticker .mine { position: absolute; left: 10px; bottom: -11px; background: var(--ink); color: var(--paper); font: 700 10px var(--mono); padding: 2px 7px; border-radius: 999px; letter-spacing: .04em; }
 .sticker .saved { position: absolute; right: 26px; top: 8px; font-size: 14px; }
+.sticker .comm { justify-self: start; font: 700 10.5px var(--mono); padding: 2px 7px; border-radius: 999px; background: rgba(18,20,28,.1); }
 .sticker .newtag { justify-self: start; background: var(--ink); color: var(--lime); font: 700 9.5px var(--mono); letter-spacing: .06em; padding: 2px 6px; border-radius: 4px; }
 .rs-card .newtag { color: var(--lime); }
 canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; transition: left .22s ease; pointer-events: none; }
@@ -112,7 +113,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .detail h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 18px; overflow-wrap: anywhere; }
 .detail .full { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 .detail p { margin: 0; font-size: 14.5px; max-width: 72ch; }
-.stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.stats { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .stat { background: var(--sunken); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; }
 .stat .v { font-family: var(--mono); font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .stat .l { font-size: 11px; color: var(--muted); }
@@ -432,6 +433,8 @@ $('dayTag').textContent = `Trail for ${new Date(TODAY + 'T00:00:00Z').toLocaleDa
   setTimeout(nextTrail, 30000);
 })();
 
+/** "14 outside PRs" (or "100+ outside PRs" for busy projects we stopped counting). */
+function communityText(r) { const n = `${r.outsidePrs}${r.outsideCapped ? '+' : ''}`; return `${n} outside PR${r.outsidePrs === 1 && !r.outsideCapped ? '' : 's'}`; }
 function h(tag, attrs, ...kids) {
   const el = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs || {})) {
@@ -471,7 +474,7 @@ function renderCard(p) {
     h('h3', null, short(r.name)),
     h('div', { class: 'full' }, r.name),
     h('p', null, r.desc || 'No description on GitHub.'),
-    h('div', { class: 'full' }, `Last commit ${ago(r.pushed)}`, isNew(r) && !p.rising ? h('span', { class: 'newtag' }, ` · new, created ${monthYear(r.created)}`) : null),
+    h('div', { class: 'full' }, `Last commit ${ago(r.pushed)}`, r.outsidePrs ? ` · 🤝 ${communityText(r)}` : '', isNew(r) && !p.rising ? h('span', { class: 'newtag' }, ` · new, created ${monthYear(r.created)}`) : null),
     h('div', { class: 'roomline' },
       h('span', null, 'Room: ', h('b', null, p.room.title), ` · ${p.room.repos.length} repos`),
       h('button', { type: 'button', class: 'btn go', onclick: () => enterRoom() }, '▼ Drop in')),
@@ -600,6 +603,7 @@ function openRoom(p) {
     h('span', { class: 'nm' }, short(r.name)),
     h('span', { class: 'ow' }, r.name.split('/')[0]),
     h('span', { class: 'st' }, `★ ${kfmt(r.stars)}`),
+    r.outsidePrs ? h('span', { class: 'comm', title: `${communityText(r)} merged in the last 90 days` }, `🤝 ${r.outsidePrs}${r.outsideCapped ? '+' : ''}`) : null,
     h('span', { class: 'bar', 'aria-hidden': 'true' }, h('span', { style: `width:${Math.max(4, Math.round((r.stars / max) * 100))}%` })),
   ));
   const walker = h('canvas', { class: 'walker', width: 72, height: 96, 'aria-hidden': 'true' });
@@ -608,7 +612,7 @@ function openRoom(p) {
       h('div', { class: 'room-sign' },
         h('span', { class: 'k' }, p.rising ? 'Room · new this week' : 'Room'),
         h('h2', null, p.room.title),
-        h('span', { class: 'n' }, `${p.room.repos.length} active repos, most stars first${p.rising ? '' : (() => { const n = p.room.repos.filter(isNew).length; return n ? ` · ${n} new this year` : ''; })()}`)),
+        h('span', { class: 'n' }, `${p.room.repos.length} active repos, most stars first${p.rising ? '' : (() => { const n = p.room.repos.filter(isNew).length; return n ? ` · ${n} new this year` : ''; })()}${p.room.repos.some((r) => r.outsidePrs) ? ' · 🤝 outside PRs merged in 90 days' : ''}`)),
       h('button', { type: 'button', class: 'btn', onclick: exitRoom }, '▲ Back to the trail ', h('kbd', null, 'Esc'))),
     h('div', { class: 'wall-wrap' }, h('div', { class: 'wall' }, h('div', { class: 'floor' }), stickers, walker)),
     h('div', { class: 'detail', 'aria-live': 'polite' }),
@@ -654,7 +658,12 @@ function renderDetail() {
       stat(kfmt(r.issues), 'Open issues'),
       stat(r.lang || 'mixed', 'Language'),
       stat(ago(r.pushed), 'Last commit'),
+      stat(r.outsidePrs == null || (r.outsidePrs === 0 && r.outsideCapped) ? '–' : `🤝 ${r.outsidePrs}${r.outsideCapped ? '+' : ''}`, 'Outside PRs, 90 days'),
       stat(p.rising || isNew(r) ? monthYear(r.created) : r.created.slice(0, 4), p.rising || isNew(r) ? 'Created (new)' : 'Since')),
+    h('div', { class: 'full' }, r.outsidePrs == null ? 'Outside contributions: not counted yet.'
+      : r.outsidePrs === 0 && r.outsideCapped ? 'Not counted: too busy. None of the 300 most recently updated merged PRs came from outside the core team, and counting stops there.'
+      : r.outsidePrs === 0 ? 'No pull requests from outside the core team were merged in the last 90 days.'
+      : `${communityText(r)} merged in the last 90 days (from people outside the core team; bots don't count).`),
     lic ? h('div', { class: 'full' }, `License: ${lic}`) : '', // replaceChildren would print null
   );
 }

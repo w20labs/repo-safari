@@ -18,6 +18,7 @@
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { exclusionReason, type GhRepo } from '../server/rising-filter.ts';
+import { COMMUNITY_DAYS, countOutsidePrs, githubGraphql } from './community.ts';
 
 const token = process.env.GITHUB_TOKEN;
 const headers = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'repo-safari-rooms', Authorization: `Bearer ${token}` };
@@ -115,7 +116,7 @@ async function main() {
   const asOf = new Date().toISOString().slice(0, 10);
   if (process.argv.includes('--cached') && existsSync(CACHE)) {
     const c = JSON.parse(readFileSync(CACHE, 'utf8')) as { fetchedAt?: string; repos: Repo[]; members: Record<string, string[]> };
-    return buildRooms(c.fetchedAt ?? asOf, new Map(c.repos.map((r) => [r.full_name, r])), new Map(Object.entries(c.members).map(([k, v]) => [k, new Set(v)])));
+    return await buildRooms(c.fetchedAt ?? asOf, new Map(c.repos.map((r) => [r.full_name, r])), new Map(Object.entries(c.members).map(([k, v]) => [k, new Set(v)])));
   }
   if (!token) throw new Error('Set GITHUB_TOKEN (e.g. GITHUB_TOKEN=$(gh auth token)); the search API needs it. Or pass --cached to rebuild from the last fetch.');
   const all = new Map<string, Repo>();
@@ -141,10 +142,10 @@ async function main() {
   // repos from the top-1000 pass also count toward the topics they carry
   for (const r of all.values()) for (const t of r.topics ?? []) members.get(t)?.add(r.full_name);
   writeFileSync(CACHE, JSON.stringify({ fetchedAt: asOf, repos: [...all.values()], members: Object.fromEntries([...members].map(([k, v]) => [k, [...v]])) }));
-  buildRooms(asOf, all, members);
+  await buildRooms(asOf, all, members);
 }
 
-function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<string, Set<string>>) {
+async function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<string, Set<string>>) {
   // drop anything the (possibly newer) filters reject, and umbrella topics added since the cache was made
   // only active projects: a commit in the last ~6 months, not archived
   const cutoff = Date.parse(asOf) - ACTIVE_DAYS * 86_400_000;
@@ -233,10 +234,17 @@ function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<strin
   rooms = rooms.filter((r) => r.repos.length >= 4).map((r) => ({ ...r, repos: r.repos.slice(0, 8) }));
   rooms.sort((a, b) => b.repos[0].stargazers_count - a.repos[0].stargazers_count);
 
+  // community: PRs from outside contributors merged in the last 90 days (see scripts/community.ts)
+  const names = rooms.flatMap((room) => room.repos.map((r) => r.full_name));
+  if (token) console.log(`Counting outside contributions for ${new Set(names).size} repos…`);
+  const community = token ? await countOutsidePrs(names, new Date(asOf), githubGraphql(token)) : new Map();
+  const communityOf = (name: string) => { const c = community.get(name); return c ? { outsidePrs: c.outsidePrs, ...(c.capped ? { outsideCapped: true } : {}) } : {}; };
+
   const out = {
     asOf,
     source: 'GitHub topics, grouped automatically by scripts/build-rooms.ts',
     activeDays: ACTIVE_DAYS,
+    communityDays: COMMUNITY_DAYS,
     rooms: rooms.map((room) => ({
       id: room.id,
       title: room.title,
@@ -251,6 +259,7 @@ function buildRooms(asOf: string, allIn: Map<string, Repo>, membersIn: Map<strin
         created: r.created_at.slice(0, 10),
         pushed: r.pushed_at.slice(0, 10),
         license: r.license?.spdx_id && r.license.spdx_id !== 'NOASSERTION' ? r.license.spdx_id : null,
+        ...communityOf(r.full_name),
       })),
     })),
   };

@@ -11,6 +11,7 @@
 import Database from 'better-sqlite3';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { countOutsidePrs, githubGraphql } from './community.ts';
 
 const token = process.env.GITHUB_TOKEN;
 const headers: Record<string, string> = { Accept: 'application/vnd.github+json', 'User-Agent': 'repo-safari-page', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
@@ -38,6 +39,10 @@ try {
     });
   }
   repos.sort((a, b) => b.stars - a.stars);
+  if (token) {
+    const community = await countOutsidePrs(repos.map((r) => r.name), new Date(), githubGraphql(token));
+    for (const r of repos) { const c = community.get(r.name); if (c) Object.assign(r, { outsidePrs: c.outsidePrs, ...(c.capped ? { outsideCapped: true } : {}) }); }
+  }
   rising = { id: 'rising', title: 'Rising this week', repos };
   // keep a copy in the repo so builds without the database (CI on push) use the same pool
   writeFileSync(RISING_JSON, `${JSON.stringify(rising, null, 1)}\n`);

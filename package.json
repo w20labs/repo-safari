@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "build-catalog": "tsx scripts/build-catalog.ts",
     "build-rooms": "tsx scripts/build-rooms.ts",
-    "build-safari": "tsx scripts/build-safari-page.ts"
+    "build-safari": "tsx scripts/build-safari-page.ts",
+    "community": "tsx scripts/add-community.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
