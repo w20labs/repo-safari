@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countOutsidePrs, isOutside, type PrNode } from '../scripts/community.ts';
+import { countOutsidePrs, isOutside, usableData, type PrNode } from '../scripts/community.ts';
 
 const pr = (authorAssociation: string, login = 'someone', type = 'User'): PrNode => ({ authorAssociation, author: { __typename: type, login } });
 
@@ -29,7 +29,7 @@ describe('outside contributions', () => {
         const all = prs[repo] ?? [], start = Number(after ?? 0), page = all.slice(start, start + 100), next = start + 100 < all.length;
         out[alias] = { pullRequests: { pageInfo: { hasNextPage: next, endCursor: next ? String(start + 100) : null }, nodes: page } };
       }
-      return out as never;
+      return { data: out } as never;
     };
     return { query, calls };
   }
@@ -60,5 +60,21 @@ describe('outside contributions', () => {
     const m = await countOutsidePrs(['ok/repo', 'gone/repo'], new Date(), fakeGithub({ 'ok/repo': [merged(pr('CONTRIBUTOR'))] }, ['gone/repo']).query);
     expect(m.get('ok/repo')?.outsidePrs).toBe(1);
     expect(m.has('gone/repo')).toBe(false);
+  });
+  it('drops a repo whose nested fields failed, even though it came back with data', async () => {
+    const page = (nodes: PrNode[]) => ({ pullRequests: { pageInfo: { hasNextPage: false, endCursor: null }, nodes: nodes.map((n) => merged(n)) } });
+    // GitHub couldn't resolve one author: that PR comes back with author null, and the error names the path
+    const query = async () => ({
+      data: { r0: page([{ authorAssociation: 'CONTRIBUTOR', author: null }]), r1: page([pr('CONTRIBUTOR')]) },
+      errors: [{ message: 'Something went wrong while resolving author', path: ['r0', 'pullRequests', 'nodes', 0, 'author'] }],
+    }) as never;
+    const m = await countOutsidePrs(['a/broken', 'b/fine'], new Date('2026-10-13T00:00:00Z'), query);
+    expect(m.has('a/broken')).toBe(false); // not { outsidePrs: 0 }
+    expect(m.get('b/fine')).toEqual({ outsidePrs: 1, capped: false });
+  });
+  it('discards a whole response when an error names no repo', () => {
+    expect(() => usableData({ data: { r0: null }, errors: [{ message: 'timeout' }] })).toThrow('timeout');
+    expect(() => usableData({ data: { r0: null }, errors: [{ message: 'odd', path: ['r9'] }] })).toThrow('odd');
+    expect(() => usableData({ data: null, errors: [{ message: 'bad query' }] })).toThrow('bad query');
   });
 });

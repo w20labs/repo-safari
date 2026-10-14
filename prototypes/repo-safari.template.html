@@ -658,9 +658,10 @@ function renderDetail() {
       stat(kfmt(r.issues), 'Open issues'),
       stat(r.lang || 'mixed', 'Language'),
       stat(ago(r.pushed), 'Last commit'),
-      stat(r.outsidePrs == null ? '–' : `🤝 ${r.outsidePrs}${r.outsideCapped ? '+' : ''}`, 'Outside PRs, 90 days'),
+      stat(r.outsidePrs == null || (r.outsidePrs === 0 && r.outsideCapped) ? '–' : `🤝 ${r.outsidePrs}${r.outsideCapped ? '+' : ''}`, 'Outside PRs, 90 days'),
       stat(p.rising || isNew(r) ? monthYear(r.created) : r.created.slice(0, 4), p.rising || isNew(r) ? 'Created (new)' : 'Since')),
     h('div', { class: 'full' }, r.outsidePrs == null ? 'Outside contributions: not counted yet.'
+      : r.outsidePrs === 0 && r.outsideCapped ? 'Not counted: too busy. None of the 300 most recently updated merged PRs came from outside the core team, and counting stops there.'
       : r.outsidePrs === 0 ? 'No pull requests from outside the core team were merged in the last 90 days.'
       : `${communityText(r)} merged in the last 90 days (from people outside the core team; bots don't count).`),
     lic ? h('div', { class: 'full' }, `License: ${lic}`) : '', // replaceChildren would print null

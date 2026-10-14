@@ -24,7 +24,27 @@ export function isOutside(n: PrNode): boolean {
 export type Community = { outsidePrs: number; capped: boolean };
 type PrPage = { pageInfo: { hasNextPage: boolean; endCursor: string | null }; nodes: (PrNode & { mergedAt: string; updatedAt: string })[] };
 type RepoResult = { pullRequests: PrPage } | null;
-type Fetch = (query: string) => Promise<Record<string, RepoResult>>;
+type GraphqlError = { message: string; path?: (string | number)[] };
+/** A GraphQL response body. `data` and `errors` can both be present: a nested field can fail while its repo stays. */
+export type GraphqlBody = { data?: Record<string, RepoResult> | null; errors?: GraphqlError[] };
+type Fetch = (query: string) => Promise<GraphqlBody>;
+
+/**
+ * The repos in a response we can trust. A repo touched by any error (its alias is the error path's first segment)
+ * is dropped, so a failed author lookup can't turn into an exact but wrong count. An error we can't tie to one repo
+ * discards the whole response.
+ */
+export function usableData(body: GraphqlBody): Record<string, RepoResult> {
+  const errors = body.errors ?? [];
+  if (!body.data) throw new Error(`GitHub GraphQL: ${errors.map((e) => e.message).join('; ') || 'no data'}`);
+  const data = { ...body.data };
+  for (const e of errors) {
+    const alias = e.path?.[0];
+    if (typeof alias !== 'string' || !(alias in data)) throw new Error(`GitHub GraphQL: ${e.message}`);
+    data[alias] = null;
+  }
+  return data;
+}
 
 const prsField = (alias: string, repo: string, after: string | null) => {
   const [owner, name] = repo.split('/');
@@ -49,8 +69,8 @@ export function githubGraphql(token: string): Fetch {
         body: JSON.stringify({ query: `{ ${query} }` }),
       });
       if (res.status === 403 || res.status === 429 || res.status >= 500) continue;
-      const json = (await res.json()) as { data?: Record<string, RepoResult>; errors?: { message: string }[] };
-      if (json.data) return json.data; // partial errors leave that repo's field null
+      const json = (await res.json()) as GraphqlBody;
+      if (json.data) return json; // may carry errors too: usableData sorts them out
       throw new Error(`GitHub GraphQL: ${json.errors?.map((e) => e.message).join('; ') ?? res.status}`);
     }
     throw new Error('GitHub GraphQL: rate limited');
@@ -59,7 +79,8 @@ export function githubGraphql(token: string): Fetch {
 
 /**
  * Outside PRs merged in the last COMMUNITY_DAYS, per repo. A repo whose lookup fails is left out of the map,
- * so the page shows nothing for it rather than a wrong number.
+ * so the page shows nothing for it rather than a wrong number. `capped` means counting stopped early: the count is
+ * a lower bound, and a capped 0 means none were found in what was scanned, not that there are none.
  */
 export async function countOutsidePrs(repos: string[], asOf: Date, query: Fetch): Promise<Map<string, Community>> {
   const since = new Date(asOf.getTime() - COMMUNITY_DAYS * 864e5).toISOString();
@@ -69,7 +90,7 @@ export async function countOutsidePrs(repos: string[], asOf: Date, query: Fetch)
   for (let i = 0; i < unique.length; i += PER_REQUEST) {
     const batch = unique.slice(i, i + PER_REQUEST);
     let data: Record<string, RepoResult>;
-    try { data = await query(batch.map((r, j) => prsField(`r${j}`, r, null)).join('\n')); } catch (e) { console.warn(`  community: ${(e as Error).message}`); continue; }
+    try { data = usableData(await query(batch.map((r, j) => prsField(`r${j}`, r, null)).join('\n'))); } catch (e) { console.warn(`  community: ${(e as Error).message}`); continue; }
     batch.forEach((repo, j) => {
       const page = data[`r${j}`]?.pullRequests;
       if (!page) return;
@@ -83,7 +104,7 @@ export async function countOutsidePrs(repos: string[], asOf: Date, query: Fetch)
     let { after, count, pages } = m, capped = true;
     try {
       while (pages < MAX_PAGES) {
-        const page = (await query(prsField('r0', m.repo, after)))['r0']?.pullRequests;
+        const page = usableData(await query(prsField('r0', m.repo, after)))['r0']?.pullRequests;
         if (!page) throw new Error('no result');
         const t = tally(page, since);
         count += t.count; pages++;
