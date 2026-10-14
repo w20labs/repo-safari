@@ -74,7 +74,7 @@ canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: bl
 .btn.on { color: var(--lime); border-color: rgba(212,242,92,.6); }
 
 /* ---------- a room: the sticker wall for one category ---------- */
-.room { position: absolute; inset: 0; z-index: 3; display: grid; grid-template-rows: auto minmax(290px, 1fr) auto; overflow-y: auto; background:
+.room { position: absolute; inset: 0; z-index: 3; display: grid; grid-template-rows: auto minmax(330px, 1fr) auto; overflow-y: auto; background:
   radial-gradient(ellipse at 50% -20%, color-mix(in srgb, var(--c) 18%, transparent), transparent 60%),
   repeating-linear-gradient(90deg, transparent 0 79px, rgba(38,44,66,.35) 79px 80px), #0C0F1B; }
 .room[hidden] { display: none; }
@@ -96,8 +96,9 @@ canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: bl
 .sticker[aria-pressed="true"] { transform: rotate(0deg) translateY(-14px) scale(1.06); box-shadow: 0 0 0 4px #F3F4F8, 0 0 0 7px var(--c), 0 18px 34px rgba(0,0,0,.55); z-index: 1; }
 .sticker::after { content: ''; position: absolute; right: 0; top: 0; width: 22px; height: 22px; border-radius: 0 14px 0 10px; background: linear-gradient(225deg, #0C0F1B 50%, rgba(0,0,0,.18) 50%); }
 .sticker .rank { font-family: var(--display); font-size: 22px; line-height: 1; }
-.sticker .nm { font-family: var(--display); font-size: 14px; line-height: 1.15; overflow-wrap: anywhere; }
+.sticker .nm { font-family: var(--display); font-size: 14px; line-height: 1.15; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; max-height: calc(1.15em * 3); }
 .sticker .ow { font-family: var(--mono); font-size: 10.5px; opacity: .7; overflow-wrap: anywhere; }
+.sticker .ds { font-size: 11px; line-height: 1.3; opacity: .85; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 4; line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; max-height: calc(1.3em * 4); align-self: start; }
 .sticker .st { font-family: var(--mono); font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .sticker .bar { height: 6px; border-radius: 6px; background: rgba(18,20,28,.15); overflow: hidden; }
 .sticker .bar span { display: block; height: 100%; background: var(--ink); }
@@ -168,6 +169,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
   .below { grid-template-columns: 1fr; }
   .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .sticker { width: 128px; }
+  .sticker .ds { -webkit-line-clamp: 3; line-clamp: 3; max-height: calc(1.3em * 3); }
   .detail p { font-size: 13.5px; }
 }
 /* ---------- feel: sticker slap, album pop, counter bump, confetti ---------- */
@@ -264,6 +266,8 @@ const RISING_COLORS = ['#D4F25C', '#EDF9B8'];
 const LICENSES = { 'Apache-2.0': 'Apache 2.0', MIT: 'MIT', 'BSD-3-Clause': 'BSD 3', 'BSD-2-Clause': 'BSD 2', 'GPL-3.0': 'GPL 3.0', 'GPL-2.0': 'GPL 2.0', 'MPL-2.0': 'MPL 2.0', 'AGPL-3.0': 'AGPL 3.0', 'LGPL-2.1': 'LGPL 2.1', 'LGPL-3.0': 'LGPL 3.0', ISC: 'ISC', 'BSL-1.0': 'Boost', Unlicense: 'Unlicense', 'CC0-1.0': 'CC0' };
 const kfmt = (n) => (n >= 100000 ? `${Math.round(n / 1000)}k` : n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
 const short = (name) => name.split('/')[1];
+/** A repo's GitHub description for its sticker: emoji and :shortcodes: taken out (the sticker cuts it to four lines). */
+const tagline = (desc) => (desc || '').replace(/(^|\s):[a-z_+-][a-z0-9_+-]*:(?=\s|$)/gi, '$1').replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\uFE0F\u200D]/gu, ' ').replace(/\s+/g, ' ').trim();
 /** Created within the last year of the data date. */
 const isNew = (r) => Date.parse(AS_OF) - Date.parse(r.created) <= 365 * DAY;
 const monthYear = (d) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
@@ -593,8 +597,8 @@ function openRoom(p) {
   roomEl.style.setProperty('--paper', p.paper);
   const max = p.room.repos[0].stars;
   const stickers = p.room.repos.map((r, i) => h('button', {
-    type: 'button', class: 'sticker', 'aria-pressed': 'false', 'aria-label': `#${i + 1} ${r.name}, ${kfmt(r.stars)} stars`,
-    style: `--rot:${ROTS[i % ROTS.length]}deg; min-height:${Math.round(150 + (r.stars / max) * 70)}px`,
+    type: 'button', class: 'sticker', 'aria-pressed': 'false', 'aria-label': `#${i + 1} ${r.name}, ${kfmt(r.stars)} stars${tagline(r.desc) ? `. ${tagline(r.desc)}` : ''}`, title: tagline(r.desc) || null,
+    style: `--rot:${ROTS[i % ROTS.length]}deg; min-height:${Math.round(150 + (r.stars / max) * 30)}px`,
     onclick: () => select(i),
   },
     i === 0 ? h('span', { class: 'mine' }, 'ON THE TRAIL') : null,
@@ -602,6 +606,7 @@ function openRoom(p) {
     !p.rising && isNew(r) ? h('span', { class: 'newtag' }, `NEW · ${monthYear(r.created)}`) : null,
     h('span', { class: 'nm' }, short(r.name)),
     h('span', { class: 'ow' }, r.name.split('/')[0]),
+    tagline(r.desc) ? h('span', { class: 'ds' }, tagline(r.desc)) : null,
     h('span', { class: 'st' }, `★ ${kfmt(r.stars)}`),
     r.outsidePrs ? h('span', { class: 'comm', title: `${communityText(r)} merged in the last 90 days` }, `🤝 ${r.outsidePrs}${r.outsideCapped ? '+' : ''}`) : null,
     h('span', { class: 'bar', 'aria-hidden': 'true' }, h('span', { style: `width:${Math.max(4, Math.round((r.stars / max) * 100))}%` })),
