@@ -35,13 +35,21 @@ jobs:
           cache: npm
       - run: npm ci
 
+      # Only a data branch that truly doesn't exist yet (the first run) may fall back to the older copies on main. If it
+      # exists but can't be fetched or read, stop: deploying, or saving main's older data over it, would lose the last good data.
       - name: Use the latest saved data
         run: |
-          if git fetch --depth=1 origin data 2>/dev/null; then
+          set -euo pipefail
+          status=0; git ls-remote --exit-code --heads origin data > /dev/null || status=$?
+          if [ "$status" = 0 ]; then
+            git fetch --depth=1 origin data
             git checkout FETCH_HEAD -- shared/data/rooms.json shared/data/rising.json
+            node -e "const fs=require('fs'); const r=JSON.parse(fs.readFileSync('shared/data/rooms.json','utf8')); const p=JSON.parse(fs.readFileSync('shared/data/rising.json','utf8')); if (!r.rooms?.length) throw new Error('saved rooms are empty'); if (!Array.isArray(p.repos)) throw new Error('saved rising pool is unreadable')"
             echo "Using data from the data branch"
+          elif [ "$status" = 2 ]; then
+            echo "No data branch yet (first run); using the data on main"
           else
-            echo "No data branch yet; using the data on main"
+            echo "::error::Couldn't check for the data branch (git ls-remote exited $status)"; exit 1
           fi
 
       - name: Refresh rising repos and rooms

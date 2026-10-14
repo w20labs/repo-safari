@@ -33,20 +33,24 @@ export async function freshPool(names: string[], lookup: Lookup, wait = (ms: num
 }
 
 /**
- * Which pool the page shows, and whether it replaces the saved copy. Only a complete lookup is saved. When some lookups
- * fail, those repos come from the saved pool where it has them; if that still leaves too few, the saved pool is used.
+ * Which pool the page shows, and whether it replaces the saved copy. A complete lookup (every name found or confirmed
+ * gone) is the truth: shown and saved. When some lookups fail, those repos come from the saved pool where it has them;
+ * if that still leaves too few, the saved pool is used. Repos GitHub confirmed are gone never come back from it.
  */
-export function choosePool(names: string[], fresh: { repos: RisingRepo[]; failed: string[] }, saved: Pool | null): { pool: Pool | null; save: boolean; warning: string | null } {
-  const enough = (n: number) => names.length > 0 && n >= Math.max(2, Math.ceil(names.length * MIN_SHARE));
+export function choosePool(names: string[], fresh: { repos: RisingRepo[]; failed: string[]; gone: string[] }, saved: Pool | null): { pool: Pool | null; save: boolean; warning: string | null } {
   const pool = (repos: RisingRepo[]): Pool => ({ id: 'rising', title: 'Rising this week', repos: [...repos].sort((a, b) => b.stars - a.stars) });
-  if (!fresh.failed.length && enough(fresh.repos.length)) return { pool: pool(fresh.repos), save: true, warning: null };
+  const gone = new Set(fresh.gone), live = names.filter((n) => !gone.has(n));
+  const still = saved ? saved.repos.filter((r) => !gone.has(r.name)) : [];
+  const goneNote = gone.size ? ` (${gone.size} gone from GitHub: ${[...gone].slice(0, 3).join(', ')}${gone.size > 3 ? ', …' : ''})` : '';
+  if (names.length && !fresh.failed.length && fresh.repos.length + gone.size === names.length) return { pool: pool(fresh.repos), save: true, warning: gone.size ? `left out ${gone.size} rising repo(s) no longer on GitHub${goneNote}` : null };
+  const enough = (n: number) => live.length > 0 && n >= Math.max(2, Math.ceil(live.length * MIN_SHARE));
   const failedNames = new Set(fresh.failed.map((f) => f.split(' ')[0]));
-  const filled = saved?.repos.filter((r) => failedNames.has(r.name)) ?? [];
+  const filled = still.filter((r) => failedNames.has(r.name));
   const merged = [...fresh.repos, ...filled];
   const why = !names.length ? 'the rising table is empty'
-    : `${fresh.failed.length} of ${names.length} rising repos couldn't be looked up (${fresh.failed.slice(0, 3).join(', ')}${fresh.failed.length > 3 ? ', …' : ''})`;
+    : `${fresh.failed.length} of ${names.length} rising repos couldn't be looked up (${fresh.failed.slice(0, 3).join(', ')}${fresh.failed.length > 3 ? ', …' : ''})${goneNote}`;
   if (enough(merged.length)) return { pool: pool(merged), save: false, warning: `${why}; ${filled.length ? `${filled.length} filled in from the saved pool, ` : ''}showing ${merged.length} and keeping the saved copy as it is` };
-  if (saved && saved.repos.length >= 2) return { pool: saved, save: false, warning: `${why}; keeping the saved pool (${saved.repos.length} repos)` };
+  if (still.length >= 2) return { pool: pool(still), save: false, warning: `${why}; using the saved pool (${still.length} repos${still.length < (saved?.repos.length ?? 0) ? ', without the ones that are gone' : ''})` };
   return { pool: merged.length ? pool(merged) : null, save: false, warning: `${why}, and there's no saved pool to fall back on` };
 }
 
