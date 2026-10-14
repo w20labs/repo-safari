@@ -74,7 +74,7 @@ canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: bl
 .btn.on { color: var(--lime); border-color: rgba(212,242,92,.6); }
 
 /* ---------- a room: the sticker wall for one category ---------- */
-.room { position: absolute; inset: 0; z-index: 3; display: grid; grid-template-rows: auto minmax(330px, 1fr) auto; overflow-y: auto; background:
+.room { position: absolute; inset: 0; z-index: 3; display: grid; grid-template-rows: auto minmax(360px, 1fr) auto; overflow-y: auto; background:
   radial-gradient(ellipse at 50% -20%, color-mix(in srgb, var(--c) 18%, transparent), transparent 60%),
   repeating-linear-gradient(90deg, transparent 0 79px, rgba(38,44,66,.35) 79px 80px), #0C0F1B; }
 .room[hidden] { display: none; }
@@ -83,7 +83,7 @@ canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: bl
 .room-sign .k { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--c); }
 .room-sign h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(18px, 3vw, 26px); line-height: 1.1; }
 .room-sign span.n { color: var(--muted); font-size: 13px; }
-.wall-wrap { position: relative; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; padding: 18px 14px 0; min-height: 0; }
+.wall-wrap { position: relative; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; padding: 40px 14px 0; min-height: 0; } /* headroom for a selected sticker: lifted 14px, scaled up, 7px outline */
 .wall { display: flex; gap: 16px; align-items: flex-end; height: 100%; padding-bottom: 46px; position: relative; min-width: max-content; }
 .floor { position: absolute; left: 0; right: 0; bottom: 30px; height: 3px; background: var(--c); opacity: .7; }
 .sticker {
@@ -266,8 +266,28 @@ const RISING_COLORS = ['#D4F25C', '#EDF9B8'];
 const LICENSES = { 'Apache-2.0': 'Apache 2.0', MIT: 'MIT', 'BSD-3-Clause': 'BSD 3', 'BSD-2-Clause': 'BSD 2', 'GPL-3.0': 'GPL 3.0', 'GPL-2.0': 'GPL 2.0', 'MPL-2.0': 'MPL 2.0', 'AGPL-3.0': 'AGPL 3.0', 'LGPL-2.1': 'LGPL 2.1', 'LGPL-3.0': 'LGPL 3.0', ISC: 'ISC', 'BSL-1.0': 'Boost', Unlicense: 'Unlicense', 'CC0-1.0': 'CC0' };
 const kfmt = (n) => (n >= 100000 ? `${Math.round(n / 1000)}k` : n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
 const short = (name) => name.split('/')[1];
-/** A repo's GitHub description for its sticker: emoji and :shortcodes: taken out (the sticker cuts it to four lines). */
-const tagline = (desc) => (desc || '').replace(/(^|\s):[a-z_+-][a-z0-9_+-]*:(?=\s|$)/gi, '$1').replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\uFE0F\u200D]/gu, ' ').replace(/\s+/g, ' ').trim();
+/**
+ * A repo's GitHub description for its sticker (cut to four lines by CSS): whole emoji and :shortcodes: taken out,
+ * ordinary symbols such as © ® ™ kept. Never empty, so every sticker has a description to show and read out.
+ */
+const EMOJI = /(?:[0-9#*]\uFE0F?\u20E3|[\u{1F1E6}-\u{1F1FF}]{2}|(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F)\p{Emoji_Modifier}?\uFE0F?(?:\u200D\p{Extended_Pictographic}\uFE0F?\p{Emoji_Modifier}?)*)/gu;
+const tagline = (desc) => {
+  const raw = (desc || '').trim();
+  if (!raw) return 'No description on GitHub.';
+  // removed pieces become a marker first, so punctuation is only tidied where something was actually taken out
+  const X = '\u0000';
+  const text = raw
+    .replace(/(^|[\s(\[])(:[a-z_+][a-z0-9_+-]*:)(?=$|[\s,.;!?)\]])/gi, `$1${X}`) // :rocket: as a word, not 12:00:30 or a:b:c
+    .replace(EMOJI, X)
+    .replace(/[\u{1F3FB}-\u{1F3FF}\uFE0F\u20E3\u200D]/gu, X) // pieces of a sequence left on their own
+    .replace(new RegExp(`${X}+\\s*[,;]`, 'g'), X) // a removed list item takes its comma with it
+    .replace(new RegExp(`[,;:]?(?:\\s*${X})+\\s*(?=[.!?)\\]]|$)`, 'g'), '') // "Tools: X." -> "Tools.", "(and X)" -> "(and)"
+    .replace(new RegExp(`([(\\[])(?:\\s*${X})+\\s*`, 'g'), '$1')
+    .replace(new RegExp(`^(?:\\s*${X})+\\s*[,;:-]?\\s*`), '')
+    .replace(new RegExp(X, 'g'), ' ')
+    .replace(/\s+/g, ' ').trim();
+  return text || 'No text description provided.';
+};
 /** Created within the last year of the data date. */
 const isNew = (r) => Date.parse(AS_OF) - Date.parse(r.created) <= 365 * DAY;
 const monthYear = (d) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
@@ -597,7 +617,7 @@ function openRoom(p) {
   roomEl.style.setProperty('--paper', p.paper);
   const max = p.room.repos[0].stars;
   const stickers = p.room.repos.map((r, i) => h('button', {
-    type: 'button', class: 'sticker', 'aria-pressed': 'false', 'aria-label': `#${i + 1} ${r.name}, ${kfmt(r.stars)} stars${tagline(r.desc) ? `. ${tagline(r.desc)}` : ''}`, title: tagline(r.desc) || null,
+    type: 'button', class: 'sticker', 'aria-pressed': 'false', 'aria-label': `#${i + 1} ${r.name}, ${kfmt(r.stars)} stars. ${tagline(r.desc)}`, title: tagline(r.desc),
     style: `--rot:${ROTS[i % ROTS.length]}deg; min-height:${Math.round(150 + (r.stars / max) * 30)}px`,
     onclick: () => select(i),
   },
@@ -606,7 +626,7 @@ function openRoom(p) {
     !p.rising && isNew(r) ? h('span', { class: 'newtag' }, `NEW · ${monthYear(r.created)}`) : null,
     h('span', { class: 'nm' }, short(r.name)),
     h('span', { class: 'ow' }, r.name.split('/')[0]),
-    tagline(r.desc) ? h('span', { class: 'ds' }, tagline(r.desc)) : null,
+    h('span', { class: 'ds' }, tagline(r.desc)),
     h('span', { class: 'st' }, `★ ${kfmt(r.stars)}`),
     r.outsidePrs ? h('span', { class: 'comm', title: `${communityText(r)} merged in the last 90 days` }, `🤝 ${r.outsidePrs}${r.outsideCapped ? '+' : ''}`) : null,
     h('span', { class: 'bar', 'aria-hidden': 'true' }, h('span', { style: `width:${Math.max(4, Math.round((r.stars / max) * 100))}%` })),
