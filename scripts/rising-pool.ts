@@ -51,9 +51,11 @@ export function choosePool(names: string[], fresh: { repos: RisingRepo[]; failed
   const why = !names.length ? 'the rising table is empty'
     : `${fresh.failed.length} of ${names.length} rising repos couldn't be looked up (${fresh.failed.slice(0, 3).join(', ')}${fresh.failed.length > 3 ? ', …' : ''})${goneNote}`;
   if (enough(merged.length)) return { pool: pool(merged), save: true, warning: `${why}; ${filled.length ? `${filled.length} kept from the saved pool, ` : ''}showing ${merged.length}` };
-  if (still.length >= 2) return { pool: pool(still), save: true, warning: `${why}; using the saved pool (${still.length} repos${still.length < (saved?.repos.length ?? 0) ? ', without the ones that are gone' : ''})` };
-  // nothing trustworthy to save: leave the saved copy alone
-  return { pool: merged.length ? pool(merged) : null, save: false, warning: `${why}, and there's no saved pool to fall back on` };
+  // too few: the saved pool (without deleted repos), plus anything found fresh. Still saved, even if it's empty, so a
+  // deletion GitHub confirmed is never undone by the next build without the database.
+  const fallback = [...fresh.repos, ...still.filter((r) => !fresh.repos.some((f) => f.name === r.name))];
+  if (!fallback.length && !gone.size) return { pool: saved, save: false, warning: `${why}, and there's no saved pool to fall back on` };
+  return { pool: pool(fallback), save: true, warning: `${why}; using the saved pool${gone.size ? ' without the ones that are gone' : ''} (${fallback.length} repo${fallback.length === 1 ? '' : 's'})` };
 }
 
 /** GitHub's repo API as a Lookup. */
