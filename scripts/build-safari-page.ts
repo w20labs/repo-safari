@@ -12,6 +12,7 @@ import Database from 'better-sqlite3';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { countOutsidePrs, githubGraphql } from './community.ts';
+import { choosePool, freshPool, githubLookup, type Pool } from './rising-pool.ts';
 
 const token = process.env.GITHUB_TOKEN;
 const headers: Record<string, string> = { Accept: 'application/vnd.github+json', 'User-Agent': 'repo-safari-page', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
@@ -24,35 +25,29 @@ const RISING_JSON = 'shared/data/rising.json';
 /** Anonymous, cookie-free visit counts for the published site (dashboard: repo-safari.goatcounter.com). */
 const GOATCOUNTER = 'https://repo-safari.goatcounter.com/count';
 
-let rising: { id: string; title: string; repos: unknown[] } | null = null;
+const saved: Pool | null = existsSync(RISING_JSON) ? JSON.parse(readFileSync(RISING_JSON, 'utf8')) : null;
+let rising: Pool | null = null;
+let names: string[] | null = null;
 try {
   const db = new Database(process.env.DB_PATH ?? 'data/lcs.db', { readonly: true, fileMustExist: true });
-  const names = (db.prepare('SELECT name FROM rising ORDER BY rank').all() as { name: string }[]).map((r) => r.name);
-  const repos = [];
-  for (const name of names) {
-    const res = await fetch(`https://api.github.com/repos/${name}`, { headers });
-    if (!res.ok) continue;
-    const j = await res.json();
-    repos.push({
-      name: j.full_name, desc: j.description ?? '', lang: j.language, stars: j.stargazers_count, forks: j.forks_count, issues: j.open_issues_count,
-      created: j.created_at.slice(0, 10), pushed: j.pushed_at.slice(0, 10), license: j.license?.spdx_id && j.license.spdx_id !== 'NOASSERTION' ? j.license.spdx_id : null,
-    });
-  }
-  repos.sort((a, b) => b.stars - a.stars);
-  if (token) {
-    const community = await countOutsidePrs(repos.map((r) => r.name), new Date(), githubGraphql(token));
-    for (const r of repos) { const c = community.get(r.name); if (c) Object.assign(r, { outsidePrs: c.outsidePrs, ...(c.capped ? { outsideCapped: true } : {}) }); }
-  }
-  rising = { id: 'rising', title: 'Rising this week', repos };
-  // keep a copy in the repo so builds without the database (CI on push) use the same pool
-  writeFileSync(RISING_JSON, `${JSON.stringify(rising, null, 1)}\n`);
+  names = (db.prepare('SELECT name FROM rising ORDER BY rank').all() as { name: string }[]).map((r) => r.name);
 } catch (e) {
-  if (existsSync(RISING_JSON)) {
-    rising = JSON.parse(readFileSync(RISING_JSON, 'utf8'));
-    console.log(`Using the saved rising pool from ${RISING_JSON}.`);
-  } else {
-    console.warn(`No rising pool (${(e as Error).message}); the page will skip the rising room. Run npm run refresh-rising first.`);
+  // no database (a push deploy, or a fresh checkout): the saved pool is the pool
+  rising = saved;
+  if (saved) console.log(`Using the saved rising pool from ${RISING_JSON}.`);
+  else console.warn(`No rising pool (${(e as Error).message}); the page will skip the rising room. Run npm run refresh-rising first.`);
+}
+if (names) {
+  const fresh = await freshPool(names, githubLookup(headers));
+  if (token) {
+    const community = await countOutsidePrs(fresh.repos.map((r) => r.name), new Date(), githubGraphql(token));
+    for (const r of fresh.repos) { const c = community.get(r.name); if (c) Object.assign(r, { outsidePrs: c.outsidePrs, ...(c.capped ? { outsideCapped: true } : {}) }); }
   }
+  const choice = choosePool(names, fresh, saved);
+  rising = choice.pool;
+  if (choice.warning) console.warn(process.env.GITHUB_ACTIONS ? `::warning title=Rising pool::${choice.warning}` : `Warning: ${choice.warning}`);
+  // keep a copy in the repo so builds without the database (CI on push) use the same pool; never a pool we didn't trust
+  if (choice.save && rising) writeFileSync(RISING_JSON, `${JSON.stringify(rising, null, 1)}\n`);
 }
 
 /** JSON that is safe inside <script>: no "</script>", "<!--" or line separators can break out. */
