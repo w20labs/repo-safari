@@ -21,22 +21,21 @@ describe('rising pool', () => {
     expect(c).toMatchObject({ save: true, warning: null });
     expect(c.pool!.repos.map((r) => r.name)[0]).toBe('o/r11'); // most stars first
   });
-  it('keeps the saved pool, unsaved, when GitHub rate-limits every lookup', async () => {
+  it('keeps the saved pool when GitHub rate-limits every lookup', async () => {
     const fresh = await freshPool(names, github({ ok: () => false }), noWait);
     expect(fresh.repos).toHaveLength(0);
     const c = choosePool(names, fresh, saved);
-    expect(c.pool!.repos).toEqual(saved.repos);
-    expect(c.save).toBe(false);
+    expect(c.pool!.repos).toEqual(saved.repos); // saving it changes nothing
     expect(c.warning).toMatch(/12 of 12 rising repos couldn't be looked up .*HTTP 403.*using the saved pool \(3 repos\)/);
   });
   it('keeps the saved pool when fewer than half come back', async () => {
     const fresh = await freshPool(names, github({ ok: (n) => Number(n.slice(3)) < 5 }), noWait);
-    expect(choosePool(names, fresh, saved)).toMatchObject({ pool: { repos: saved.repos }, save: false });
+    expect(choosePool(names, fresh, saved)).toMatchObject({ pool: { repos: saved.repos } });
   });
-  it('shows a mostly complete pool but never saves one with gaps', async () => {
+  it('shows (and saves) a mostly complete pool when the saved one has nothing to fill the gap with', async () => {
     const fresh = await freshPool(names, github({ ok: (n) => n !== 'o/r3' }), noWait);
     const c = choosePool(names, fresh, saved);
-    expect(c.save).toBe(false);
+    expect(c.save).toBe(true);
     expect(c.pool!.repos).toHaveLength(11);
     expect(c.warning).toMatch(/o\/r3 \(HTTP 403\)/);
   });
@@ -44,9 +43,9 @@ describe('rising pool', () => {
     const lastWeek: Pool = { id: 'rising', title: 'Rising this week', repos: names.map((n) => repo(n, 1)) };
     const fresh = await freshPool(names, github({ ok: (n) => Number(n.slice(3)) >= 5 }), noWait); // 7 of 12 come back
     const c = choosePool(names, fresh, lastWeek);
-    expect(c).toMatchObject({ save: false });
+    expect(c).toMatchObject({ save: true });
     expect(c.pool!.repos.map((r) => r.name).sort()).toEqual([...names].sort());
-    expect(c.warning).toMatch(/5 filled in from the saved pool, showing 12/);
+    expect(c.warning).toMatch(/5 kept from the saved pool, showing 12/);
   });
   it('retries a lookup that fails for a moment', async () => {
     const waits: number[] = [];
@@ -60,7 +59,7 @@ describe('rising pool', () => {
     expect(choosePool(names, fresh, saved)).toMatchObject({ save: true, warning: expect.stringMatching(/left out 1 rising repo\(s\) no longer on GitHub \(1 gone from GitHub: o\/r7\)/) });
   });
   it('keeps the saved pool when the rising table is empty', async () => {
-    expect(choosePool([], await freshPool([], github(), noWait), saved)).toMatchObject({ pool: { repos: saved.repos }, save: false, warning: expect.stringMatching(/rising table is empty/) });
+    expect(choosePool([], await freshPool([], github(), noWait), saved)).toMatchObject({ pool: { repos: saved.repos }, warning: expect.stringMatching(/rising table is empty/) });
   });
   it('without a saved pool, shows whatever came back but saves nothing', async () => {
     const fresh = await freshPool(names, github({ ok: (n) => n === 'o/r1' }), noWait);
@@ -80,7 +79,7 @@ describe('rising pool', () => {
     const gone = names.slice(0, 4), down = (n: string) => !names.slice(4, 10).includes(n); // 4 gone, 6 errors, 2 found
     const fresh = await freshPool(names, github({ gone, ok: down }), noWait);
     const c = choosePool(names, fresh, lastWeek);
-    expect(c.save).toBe(false);
+    expect(c.save).toBe(true);
     const shown = c.pool!.repos.map((r) => r.name);
     expect(shown.some((n) => gone.includes(n))).toBe(false);
     expect(shown.sort()).toEqual(names.slice(4).sort()); // 2 found + 6 filled from the saved pool
@@ -90,8 +89,18 @@ describe('rising pool', () => {
     const older: Pool = { id: 'rising', title: 'Rising this week', repos: [repo('o/r0', 9), repo('o/r1', 8), repo('old/x', 7), repo('old/y', 6), repo('old/z', 5)] };
     const fresh = await freshPool(names, github({ gone: ['o/r0', 'o/r1'], ok: () => false }), noWait);
     const c = choosePool(names, fresh, older);
-    expect(c.save).toBe(false);
+    expect(c.save).toBe(true);
     expect(c.pool!.repos.map((r) => r.name)).toEqual(['old/x', 'old/y', 'old/z']);
     expect(c.warning).toMatch(/using the saved pool \(3 repos, without the ones that are gone\)/);
+  });
+  it('a cached build after a partial refresh shows the same pool, without the deleted repos', async () => {
+    // build 1 (weekly, with the database): 4 deleted, 6 errors, 2 found
+    const gone = names.slice(0, 4), down = (n: string) => !names.slice(4, 10).includes(n);
+    const c = choosePool(names, await freshPool(names, github({ gone, ok: down }), noWait), lastWeek);
+    const savedAfter = c.save ? c.pool! : lastWeek; // what build-safari-page.ts writes to rising.json
+    // build 2 (push deploy, no database): it uses the saved file as is
+    expect(savedAfter.repos.map((r) => r.name).sort()).toEqual(c.pool!.repos.map((r) => r.name).sort());
+    expect(savedAfter.repos.some((r) => gone.includes(r.name))).toBe(false);
+    expect(savedAfter.repos).toHaveLength(8);
   });
 });

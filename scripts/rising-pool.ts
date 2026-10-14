@@ -33,9 +33,10 @@ export async function freshPool(names: string[], lookup: Lookup, wait = (ms: num
 }
 
 /**
- * Which pool the page shows, and whether it replaces the saved copy. A complete lookup (every name found or confirmed
- * gone) is the truth: shown and saved. When some lookups fail, those repos come from the saved pool where it has them;
- * if that still leaves too few, the saved pool is used. Repos GitHub confirmed are gone never come back from it.
+ * Which pool the page shows; it is also what gets saved, so the next build without the database (a push deploy) shows
+ * the same thing. A complete lookup (every name found or confirmed gone) is used as is. When some lookups fail, those
+ * repos come from the saved pool where it has them; if that still leaves too few, the saved pool is used. Repos GitHub
+ * confirmed are gone are dropped from every fallback, and so from the saved copy too.
  */
 export function choosePool(names: string[], fresh: { repos: RisingRepo[]; failed: string[]; gone: string[] }, saved: Pool | null): { pool: Pool | null; save: boolean; warning: string | null } {
   const pool = (repos: RisingRepo[]): Pool => ({ id: 'rising', title: 'Rising this week', repos: [...repos].sort((a, b) => b.stars - a.stars) });
@@ -49,8 +50,9 @@ export function choosePool(names: string[], fresh: { repos: RisingRepo[]; failed
   const merged = [...fresh.repos, ...filled];
   const why = !names.length ? 'the rising table is empty'
     : `${fresh.failed.length} of ${names.length} rising repos couldn't be looked up (${fresh.failed.slice(0, 3).join(', ')}${fresh.failed.length > 3 ? ', …' : ''})${goneNote}`;
-  if (enough(merged.length)) return { pool: pool(merged), save: false, warning: `${why}; ${filled.length ? `${filled.length} filled in from the saved pool, ` : ''}showing ${merged.length} and keeping the saved copy as it is` };
-  if (still.length >= 2) return { pool: pool(still), save: false, warning: `${why}; using the saved pool (${still.length} repos${still.length < (saved?.repos.length ?? 0) ? ', without the ones that are gone' : ''})` };
+  if (enough(merged.length)) return { pool: pool(merged), save: true, warning: `${why}; ${filled.length ? `${filled.length} kept from the saved pool, ` : ''}showing ${merged.length}` };
+  if (still.length >= 2) return { pool: pool(still), save: true, warning: `${why}; using the saved pool (${still.length} repos${still.length < (saved?.repos.length ?? 0) ? ', without the ones that are gone' : ''})` };
+  // nothing trustworthy to save: leave the saved copy alone
   return { pool: merged.length ? pool(merged) : null, save: false, warning: `${why}, and there's no saved pool to fall back on` };
 }
 
