@@ -36,6 +36,7 @@ header.top { display: flex; align-items: end; justify-content: space-between; ga
 .today { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .tag { font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); border: 1px solid rgba(242,181,68,.45); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
 .tag.lime { color: var(--lime); border-color: rgba(212,242,92,.45); }
+.tag.at-risk { color: var(--amber); border-color: rgba(242,181,68,.45); }
 .progress { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; align-items: center; max-width: 100%; }
 .btn.share[hidden] { display: none; }
 .btn.share { min-height: 0; padding: 4px 12px; font-size: 12.5px; border-radius: 999px; pointer-events: auto; }
@@ -124,6 +125,8 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .overlay[hidden] { display: none; }
 .summary { width: min(560px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 12px; }
 .summary h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 26px; }
+.summary .tomorrow { margin: 0; color: var(--muted); font-size: 14px; }
+.summary .tomorrow b { color: var(--text); font-weight: 600; }
 .summary pre, .fb-out { margin: 0; background: var(--sunken); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font: 13px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
 .toast { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 5; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--lime); border-radius: 10px; padding: 7px 14px; font-size: 14px; pointer-events: none; max-width: calc(100% - 24px); }
 .toast[hidden] { display: none; }
@@ -194,7 +197,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
       <h1 class="brand">REPO <span>SAFARI</span></h1>
       <p class="pitch">A new trail through open source every day. Each platform is a category. Drop into its room to compare its leading active repos, ranked by stars, with the new ones marked. Save the ones you like as stickers.</p>
     </div>
-    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag" id="nextTag">New trail at 00:00 UTC</span><button type="button" class="btn sound" id="soundBtn" aria-pressed="true">♪ Sound on</button></div>
+    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag lime" id="streakTag" hidden></span><span class="tag" id="nextTag">New trail at 00:00 UTC</span><button type="button" class="btn sound" id="soundBtn" aria-pressed="true">♪ Sound on</button></div>
   </header>
 
   <section class="stage" id="stage" aria-label="Today's trail">
@@ -349,6 +352,29 @@ const album = new Map();
 try { for (const s of JSON.parse(localStorage.getItem(ALBUM_KEY) || '[]')) album.set(s.name, s); } catch { /* storage unavailable */ }
 const saveAlbum = () => { try { localStorage.setItem(ALBUM_KEY, JSON.stringify([...album.values()])); } catch { /* fine */ } };
 
+// ---------- streak (this browser only) ----------
+/** UTC days this browser played: dropped into a room or saved a sticker. Stickers saved before streaks existed count too. */
+const DAYS_KEY = 'repo-safari-days-v1';
+const isDay = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
+const played = new Set([...album.values()].map((s) => s.day).filter(isDay));
+try { for (const d of JSON.parse(localStorage.getItem(DAYS_KEY) || '[]')) if (isDay(d)) played.add(d); } catch { /* storage unavailable */ }
+const dayBefore = (d) => new Date(Date.parse(d) - DAY).toISOString().slice(0, 10);
+/** Days in a row up to today, or up to yesterday while today's walk hasn't started. */
+function streak() {
+  let n = 0;
+  for (let d = played.has(TODAY) ? TODAY : dayBefore(TODAY); played.has(d); d = dayBefore(d)) n++;
+  return n;
+}
+/** Count today as played (once), and anonymously count how long streaks get. */
+function markPlayed() {
+  if (played.has(TODAY)) return;
+  played.add(TODAY);
+  try { localStorage.setItem(DAYS_KEY, JSON.stringify([...played].sort().slice(-400))); } catch { /* fine */ }
+  const n = streak();
+  track(`streak/${n > 30 ? '30+' : n}`, `Streak: ${n > 30 ? '30+' : n} days`);
+  renderStreak();
+}
+
 const body = { x: 140, y: FLOOR, vx: 0, vy: 0, ground: -2, jumps: 0, coyote: 0, face: 1, runT: 0 };
 let cam = 0, viewW = 1200, scale = 1, state = 'walk', current = -1, sinkT = 0, ended = false;
 let roomPlat = null, sel = 0;
@@ -418,6 +444,13 @@ $('soundBtn').addEventListener('click', () => {
   if (soundOn) tone(660, { dur: 0.1, vol: 0.4 });
 });
 renderSound();
+function renderStreak() {
+  const n = streak(), tag = $('streakTag'), today = played.has(TODAY);
+  tag.hidden = n === 0;
+  tag.classList.toggle('at-risk', !today);
+  tag.textContent = today ? `🔥 ${n}-day streak` : `🔥 ${n}-day streak · walk today`;
+}
+renderStreak();
 
 /** Anonymous event count (GoatCounter, published site only); a no-op until or unless the counter loads. */
 function track(path, title) { try { window.goatcounter?.count?.({ path, title: title || path, event: true }); } catch { /* counting is optional */ } }
@@ -593,6 +626,7 @@ function toggleSave(repo, p) {
     toast(p.rising ? `Rare sticker! ${short(repo.name)} is in your album` : `${short(repo.name)} is in your album`);
     (p.rising ? sfx.rare : sfx.slap)();
     track(`save/${repo.name}`, `Saved: ${repo.name}`);
+    markPlayed();
     justSaved = repo.name;
   }
   saveAlbum();
@@ -611,6 +645,7 @@ function enterRoom() {
 function openRoom(p) {
   roomPlat = p;
   track(`room/${p.room.id}`, `Room: ${p.room.title}`);
+  markPlayed();
   p.entered = true;
   state = 'room';
   sel = 0;
@@ -732,7 +767,7 @@ function shareText() {
   const rare = todays.filter((s) => s.rare).length;
   const picks = [...todays].sort((a, b) => b.rare - a.rare).slice(0, 3);
   return [
-    `Repo Safari #${TRAIL_NO} 🧭`,
+    `Repo Safari #${TRAIL_NO} 🧭${streak() >= 2 ? ` 🔥${streak()}` : ''}`,
     main.map(cell).join('') + (rise ? ` ${cell(rise)}` : ''),
     `${entered}/${plats.length} rooms · ${todays.length} sticker${todays.length === 1 ? '' : 's'}${rare ? ` · ${rare} rare` : ''}`,
     ...picks.map((s) => `★ ${s.name}`),
@@ -775,6 +810,18 @@ async function copy(text, done) {
   catch { toast('Copy failed. Select the text and copy it yourself.'); return false; }
 }
 
+/**
+ * A peek at tomorrow's trail: it's picked from the date, so the first few rooms are known today.
+ * Except on Sundays: the rooms are rebuilt on Monday, so Monday's trail isn't known yet.
+ */
+function tomorrowLine() {
+  const next = new Date(Date.parse(TODAY) + DAY);
+  if (next.getUTCDay() === 1) return [h('b', null, 'Tomorrow is Monday:'), ' fresh rooms from GitHub and a new set of rising repos.'];
+  const rooms = trailFor(next.toISOString().slice(0, 10));
+  const shown = rooms.slice(0, 3).map((r) => r.title);
+  return [h('b', null, 'Tomorrow’s trail:'), ` ${shown.join(', ')}${rooms.length > shown.length ? ` and ${rooms.length - shown.length} more` : ''}. Opens at 00:00 UTC.`];
+}
+
 function showEnd() {
   ended = true; state = 'end';
   track('trail-end', 'Reached the end of the trail');
@@ -782,7 +829,7 @@ function showEnd() {
   const text = shareText();
   endBox.replaceChildren(h('div', { class: 'summary', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'End of today’s trail' },
     h('h2', null, 'End of today’s trail'),
-    h('p', { class: 'empty', style: 'margin:0' }, `A new trail opens at 00:00 UTC. Your stickers stay in your album.`),
+    h('p', { class: 'tomorrow' }, ...tomorrowLine()),
     h('pre', null, text),
     h('div', { class: 'acts' },
       h('button', { type: 'button', class: 'btn go', onclick: () => share() }, 'Share my trail'),

@@ -78,9 +78,9 @@ The rules live in [`scripts/build-rooms.ts`](scripts/build-rooms.ts) and [`serve
 
 ## Your data
 
-There's no server and no account. Your sticker album is saved in your own browser (`localStorage`) and never leaves it. Clearing your browser data clears your album.
+There's no server and no account. Your sticker album is saved in your own browser (`localStorage`) and never leaves it, and so do the days you played (for your streak). Clearing your browser data clears both.
 
-To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts four anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, and Share pressed.
+To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts five anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, Share pressed, and the length of your streak on the first walk of each day.
 
 ## Run it locally
 
