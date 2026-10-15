@@ -353,11 +353,28 @@ try { for (const s of JSON.parse(localStorage.getItem(ALBUM_KEY) || '[]')) album
 const saveAlbum = () => { try { localStorage.setItem(ALBUM_KEY, JSON.stringify([...album.values()])); } catch { /* fine */ } };
 
 // ---------- streak (this browser only) ----------
-/** UTC days this browser played: dropped into a room or saved a sticker. Stickers saved before streaks existed count too. */
+/** UTC days this browser played: dropped into a room or saved a sticker. */
 const DAYS_KEY = 'repo-safari-days-v1';
 const isDay = (d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d);
-const played = new Set([...album.values()].map((s) => s.day).filter(isDay));
-try { for (const d of JSON.parse(localStorage.getItem(DAYS_KEY) || '[]')) if (isDay(d)) played.add(d); } catch { /* storage unavailable */ }
+/** The saved days, or null if there are none yet (or they can't be read). */
+function storedDays() {
+  try { const v = JSON.parse(localStorage.getItem(DAYS_KEY) || 'null'); return Array.isArray(v) ? v.filter(isDay) : null; } catch { return null; }
+}
+const storeDays = () => { try { localStorage.setItem(DAYS_KEY, JSON.stringify([...played].sort().slice(-400))); } catch { /* fine */ } };
+const firstDays = storedDays();
+// Before streaks existed: the days stickers were saved on count, saved once now so removing a sticker can't erase them.
+const played = new Set(firstDays ?? [...album.values()].map((s) => s.day).filter(isDay));
+if (!firstDays && played.size) storeDays();
+// Another tab played: keep this tab's streak in step.
+addEventListener('storage', (e) => { if (e.key === DAYS_KEY) { for (const d of storedDays() ?? []) played.add(d); renderStreak(); } });
+/** The page was opened on an earlier UTC day: its trail is yesterday's, and play now doesn't count for it. */
+const isStale = () => new Date().toISOString().slice(0, 10) !== TODAY;
+let staleNoticed = false;
+function noticeStale() {
+  if (staleNoticed) return;
+  staleNoticed = true;
+  toast('A new trail is open.', { label: 'Load it', run: () => location.reload() });
+}
 const dayBefore = (d) => new Date(Date.parse(d) - DAY).toISOString().slice(0, 10);
 /** Days in a row up to today, or up to yesterday while today's walk hasn't started. */
 function streak() {
@@ -367,11 +384,15 @@ function streak() {
 }
 /** Count today as played (once), and anonymously count how long streaks get. */
 function markPlayed() {
+  if (isStale()) { noticeStale(); return; }
   if (played.has(TODAY)) return;
+  // merge what other tabs saved since this one loaded; if one of them already counted today, don't count it again
+  for (const d of storedDays() ?? []) played.add(d);
+  const first = !played.has(TODAY);
   played.add(TODAY);
-  try { localStorage.setItem(DAYS_KEY, JSON.stringify([...played].sort().slice(-400))); } catch { /* fine */ }
+  storeDays();
   const n = streak();
-  track(`streak/${n > 30 ? '30+' : n}`, `Streak: ${n > 30 ? '30+' : n} days`);
+  if (first) track(`streak/${n > 30 ? '30+' : n}`, `Streak: ${n > 30 ? '30+' : n} days`);
   renderStreak();
 }
 
@@ -484,12 +505,15 @@ function confetti() {
 $('total').textContent = plats.length;
 $('asOf').textContent = AS_OF;
 $('dayTag').textContent = `Trail for ${new Date(TODAY + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
-(function nextTrail() {
+function nextTrail() {
+  if (isStale()) { $('nextTag').textContent = 'New trail is open: reload'; noticeStale(); return; }
   const ms = Date.parse(TODAY) + DAY - Date.now();
   const hrs = Math.floor(ms / 3600000), mins = Math.floor((ms % 3600000) / 60000);
   $('nextTag').textContent = `New trail in ${hrs}h ${mins}m`;
-  setTimeout(nextTrail, 30000);
-})();
+}
+nextTrail();
+setInterval(nextTrail, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) nextTrail(); });
 
 /** "14 outside PRs" (or "100+ outside PRs" for busy projects we stopped counting). */
 function communityText(r) { const n = `${r.outsidePrs}${r.outsideCapped ? '+' : ''}`; return `${n} outside PR${r.outsidePrs === 1 && !r.outsideCapped ? '' : 's'}`; }
@@ -810,13 +834,24 @@ async function copy(text, done) {
   catch { toast('Copy failed. Select the text and copy it yourself.'); return false; }
 }
 
+/** When the rooms are next rebuilt: the first Monday 06:00 UTC after the data's date (.github/workflows/pages.yml). */
+function nextRebuild() {
+  const d = new Date(`${AS_OF}T06:00:00Z`);
+  do d.setUTCDate(d.getUTCDate() + 1); while (d.getUTCDay() !== 1);
+  return d.getTime();
+}
 /**
  * A peek at tomorrow's trail: it's picked from the date, so the first few rooms are known today.
- * Except on Sundays: the rooms are rebuilt on Monday, so Monday's trail isn't known yet.
+ * Unless the rooms are rebuilt before tomorrow's trail ends: then they aren't known yet.
  */
 function tomorrowLine() {
+  if (isStale()) return [h('b', null, 'Today’s new trail is open.'), ' Reload the page to walk it.'];
   const next = new Date(Date.parse(TODAY) + DAY);
-  if (next.getUTCDay() === 1) return [h('b', null, 'Tomorrow is Monday:'), ' fresh rooms from GitHub and a new set of rising repos.'];
+  if (nextRebuild() < next.getTime() + DAY) {
+    return next.getUTCDay() === 1
+      ? [h('b', null, 'Tomorrow is Monday:'), ' fresh rooms from GitHub and a new set of rising repos.']
+      : [h('b', null, 'Tomorrow’s trail:'), ' a surprise. This week’s rooms are being rebuilt from GitHub.'];
+  }
   const rooms = trailFor(next.toISOString().slice(0, 10));
   const shown = rooms.slice(0, 3).map((r) => r.title);
   return [h('b', null, 'Tomorrow’s trail:'), ` ${shown.join(', ')}${rooms.length > shown.length ? ` and ${rooms.length - shown.length} more` : ''}. Opens at 00:00 UTC.`];
