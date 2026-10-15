@@ -840,27 +840,23 @@ async function copy(text, done) {
   catch { toast('Copy failed. Select the text and copy it yourself.'); return false; }
 }
 
-/**
- * When the rooms are next rebuilt: the first scheduled Monday 06:00 UTC (.github/workflows/pages.yml) from the data's
- * date on that hasn't happened yet. Data dated a Monday may come from a manual run before that day's 06:00 rebuild.
- */
-function nextRebuild() {
-  const d = new Date(`${AS_OF}T06:00:00Z`);
-  while (d.getUTCDay() !== 1 || d.getTime() <= Date.now()) d.setUTCDate(d.getUTCDate() + 1);
+/** Monday 00:00 UTC of the week a time falls in. */
+function mondayOf(t) {
+  const d = new Date(t);
+  d.setUTCHours(0, 0, 0, 0);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
   return d.getTime();
 }
 /**
  * A peek at tomorrow's trail: it's picked from the date, so the first few rooms are known today.
- * Unless the rooms are rebuilt before tomorrow's trail ends: then they aren't known yet.
+ * The rooms are rebuilt on Mondays (.github/workflows/pages.yml), and the data only says which day it was built, not
+ * whether that day's rebuild has finished. So rooms are named only Tuesday to Saturday, from this week's data.
  */
 function tomorrowLine() {
   if (isStale()) return [h('b', null, 'Today’s new trail is open.'), ' Reload the page to walk it.'];
-  const next = new Date(Date.parse(TODAY) + DAY);
-  if (nextRebuild() < next.getTime() + DAY) {
-    return next.getUTCDay() === 1
-      ? [h('b', null, 'Tomorrow is Monday:'), ' fresh rooms from GitHub and a new set of rising repos.']
-      : [h('b', null, 'Tomorrow’s trail:'), ' a surprise. This week’s rooms are being rebuilt from GitHub.'];
-  }
+  const today = Date.parse(TODAY), next = new Date(today + DAY), dow = new Date(today).getUTCDay();
+  if (dow === 0) return [h('b', null, 'Tomorrow is Monday:'), ' fresh rooms from GitHub and a new set of rising repos.'];
+  if (dow === 1 || Date.parse(AS_OF) < mondayOf(today)) return [h('b', null, 'Tomorrow’s trail:'), ' a surprise. The rooms are rebuilt from GitHub every Monday.'];
   const rooms = trailFor(next.toISOString().slice(0, 10));
   const shown = rooms.slice(0, 3).map((r) => r.title);
   return [h('b', null, 'Tomorrow’s trail:'), ` ${shown.join(', ')}${rooms.length > shown.length ? ` and ${rooms.length - shown.length} more` : ''}. Opens at 00:00 UTC.`];
