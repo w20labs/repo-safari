@@ -362,9 +362,10 @@ function storedDays() {
 }
 const storeDays = () => { try { localStorage.setItem(DAYS_KEY, JSON.stringify([...played].sort().slice(-400))); } catch { /* fine */ } };
 const firstDays = storedDays();
-// Before streaks existed: the days stickers were saved on count, saved once now so removing a sticker can't erase them.
+// Before streaks existed: the days stickers were saved on count. Saved once now (even none), so removing a sticker
+// can't erase them and a sticker saved later can't pass for an old play day.
 const played = new Set(firstDays ?? [...album.values()].map((s) => s.day).filter(isDay));
-if (!firstDays && played.size) storeDays();
+if (!firstDays) storeDays();
 // Another tab played: keep this tab's streak in step.
 addEventListener('storage', (e) => { if (e.key === DAYS_KEY) { for (const d of storedDays() ?? []) played.add(d); renderStreak(); } });
 /** The page was opened on an earlier UTC day: its trail is yesterday's, and play now doesn't count for it. */
@@ -506,7 +507,12 @@ $('total').textContent = plats.length;
 $('asOf').textContent = AS_OF;
 $('dayTag').textContent = `Trail for ${new Date(TODAY + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
 function nextTrail() {
-  if (isStale()) { $('nextTag').textContent = 'New trail is open: reload'; noticeStale(); return; }
+  if (isStale()) {
+    $('nextTag').textContent = 'New trail is open: reload';
+    endBox.querySelector('.tomorrow')?.replaceChildren(...tomorrowLine()); // an open end screen still points at "tomorrow"
+    noticeStale();
+    return;
+  }
   const ms = Date.parse(TODAY) + DAY - Date.now();
   const hrs = Math.floor(ms / 3600000), mins = Math.floor((ms % 3600000) / 60000);
   $('nextTag').textContent = `New trail in ${hrs}h ${mins}m`;
@@ -834,10 +840,13 @@ async function copy(text, done) {
   catch { toast('Copy failed. Select the text and copy it yourself.'); return false; }
 }
 
-/** When the rooms are next rebuilt: the first Monday 06:00 UTC after the data's date (.github/workflows/pages.yml). */
+/**
+ * When the rooms are next rebuilt: the first scheduled Monday 06:00 UTC (.github/workflows/pages.yml) from the data's
+ * date on that hasn't happened yet. Data dated a Monday may come from a manual run before that day's 06:00 rebuild.
+ */
 function nextRebuild() {
   const d = new Date(`${AS_OF}T06:00:00Z`);
-  do d.setUTCDate(d.getUTCDate() + 1); while (d.getUTCDay() !== 1);
+  while (d.getUTCDay() !== 1 || d.getTime() <= Date.now()) d.setUTCDate(d.getUTCDate() + 1);
   return d.getTime();
 }
 /**
