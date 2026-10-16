@@ -98,7 +98,7 @@ Open https://repo-safari.goatcounter.com and set the date range to the launch pe
 | `share/copy` | Copied a share link | Once per page load |
 | `share/open` | Opened a valid shared link | Every time |
 | `entry/top` | Opened the machine from the 🧪 Idea Shower button at the top | Once per page load |
-| `entry/surprise` | Used 🎲 Surprise me (album bar) or 🎲 Shuffle (machine) | Once per page load |
+| `entry/surprise` | Used 🎲 Surprise me (album bar) or 🎲 Shuffle (machine). Picks from the album; with fewer than 3 stickers it fills up with repos from this week's trail, so it also works for new visitors | Once per page load |
 | `entry/nudge` | Pressed Mix them on the one-time toast at the 3rd sticker | Once per page load |
 
 GoatCounter can't follow a person, so these are ratios of events, not of people. A page load is the closest thing to a visit.

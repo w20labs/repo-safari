@@ -312,7 +312,7 @@ body.mix-open { overflow: hidden; }
         <span class="mixbar-t">🧪 Idea Shower</span>
         <span class="mixbar-n" id="mixCount">Ingredients 0/3</span>
         <span class="mix-chips" id="mixChips"></span>
-        <button type="button" class="btn" id="mixSurprise" disabled>🎲 Surprise me</button>
+        <button type="button" class="btn" id="mixSurprise">🎲 Surprise me</button>
         <button type="button" class="btn go" id="mixGo" disabled>Mix 3 stickers</button>
       </div>
       <p class="fine" id="mixHint" hidden></p>
@@ -1273,21 +1273,25 @@ function renderMixbar() {
   $('showerTop').hidden = false;
   $('showerTop').classList.toggle('ready', ready >= 3);
   $('showerBadge').textContent = ready >= 3 ? 'ready' : `${ready}/3`;
-  $('mixSurprise').disabled = ready < 3;
   $('mixGo').disabled = ingredients.length !== 3;
   $('mixGo').textContent = ingredients.length === 3 ? 'Open the machine' : 'Mix 3 stickers';
   $('mixHint').textContent = album.size >= 3 || ingredients.length
     ? 'Press “+ mix” on 3 stickers to turn them into product ideas.'
-    : 'Save 3 stickers on the trail, then mix them here into product ideas.';
+    : 'Save 3 stickers on the trail and mix them into product ideas, or press “🎲 Surprise me” to mix repos from this week’s trail.';
 }
 $('mixGo').addEventListener('click', () => openMix('mix'));
 
 // ----- quick ways in: the top button, "Surprise me" and a one-time nudge at the 3rd sticker -----
 /** Album stickers that can go in a mix: only repos in this week's data. Oldest first (the album keeps save order). */
 function mixable() { return [...album.values()].map((s) => s.name).filter((n) => REPOS.has(n)); }
-/** Three ingredients: `keep` plus random album stickers, avoiding the exact set in `avoid` when there's another. */
+/**
+ * Three ingredients: `keep` plus random album stickers, avoiding the exact set in `avoid` when there's another.
+ * With fewer than 3 stickers, all of them go in and random repos from this week's trail fill the rest.
+ */
 function pickThree(keep = [], avoid = []) {
-  const pool = mixable().filter((n) => !keep.includes(n));
+  const stickers = mixable();
+  if (stickers.length < 3) keep = [...new Set([...keep, ...stickers])];
+  const pool = (stickers.length < 3 ? [...REPOS.keys()] : stickers).filter((n) => !keep.includes(n));
   let pick = keep.slice(0, 3);
   for (let tries = 0; tries < 8; tries++) {
     const rest = [...pool];
@@ -1419,7 +1423,7 @@ function renderMix() {
   } else {
     const label = busy ? 'Mixing…' : ideas ? 'Turn It On Again' : 'Turn On the Idea Shower';
     $('mixActs').replaceChildren(h('button', { type: 'button', class: 'btn go', id: 'showerBtn', disabled: busy || limited || repos.length !== 3, onclick: shower }, label),
-      mixable().length > 3 ? h('button', { type: 'button', class: 'btn', id: 'shuffleBtn', disabled: busy, onclick: shuffleMix }, '🎲 Shuffle') : null);
+      mixable().length !== 3 ? h('button', { type: 'button', class: 'btn', id: 'shuffleBtn', disabled: busy, onclick: shuffleMix }, '🎲 Shuffle') : null);
   }
   $('ideas').replaceChildren(...(ideas ?? []).map((i) => ideaCard(i, repos, isShared)));
   $('mixAfter').replaceChildren(...(!isShared && ideas ? [copyButtonPlain('Share this mix', () => shareLink(repos, ideas), 'share/copy')] : []));
