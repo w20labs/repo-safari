@@ -139,7 +139,7 @@ async function generate(env: Env, repos: Repo[]): Promise<Idea[] | null> {
   const msg = await client.messages.create({
     model: MODEL,
     max_tokens: 1200,
-    thinking: { type: 'disabled' }, // short creative answer: no reasoning tokens eating the 1,200 budget
+    thinking: { type: 'between_tools' }, // Sonnet 5.5's "off" (it rejects 'disabled'): with no tools, no reasoning tokens eat the 1,200 budget
     system: SYSTEM,
     messages: [{ role: 'user', content: userPrompt(repos) }],
     output_config: { format: { type: 'json_schema', schema: SCHEMA } },
@@ -177,7 +177,8 @@ export async function handle(req: Request, env: Env): Promise<Response> {
     try {
       const ideas = await generate(env, repos as Repo[]);
       return ideas ? json(200, { ideas }) : json(502, { error: 'bad_answer' });
-    } catch {
+    } catch (e) {
+      console.error('anthropic call failed:', e instanceof Error ? e.message : e);
       return json(502, { error: 'upstream' });
     }
 }

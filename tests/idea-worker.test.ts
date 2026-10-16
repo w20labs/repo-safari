@@ -54,9 +54,10 @@ describe('Idea Shower worker', () => {
     const body = (await res.json()) as { ideas: { kind: string; name: string }[] };
     expect(body.ideas.map((i) => i.kind)).toEqual(['useful', 'unexpected', 'ridiculous']);
     expect(modelCalls).toHaveLength(1);
-    const sent = modelCalls[0].body as { model: string; max_tokens: number; messages: { content: string }[] };
+    const sent = modelCalls[0].body as { model: string; max_tokens: number; thinking: unknown; messages: { content: string }[] };
     expect(sent.model).toBe('claude-sonnet-5-5');
     expect(sent.max_tokens).toBe(1200);
+    expect(sent.thinking).toEqual({ type: 'between_tools' }); // Sonnet 5.5 rejects { type: 'disabled' } with a 400
     expect(sent.messages[0].content).toContain('acme/kites: Kite physics');
   });
 
