@@ -83,7 +83,7 @@ There's no account. Your sticker album is saved in your own browser (`localStora
 
 **Idea Shower:** the 3 repo names you pick are sent to our server and to Anthropic to generate ideas. Shared links contain the mix itself in the URL and aren't stored by us. We collect no email or other personal data.
 
-To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts five anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, Share pressed, and the length of your streak on the first walk of each day. The Idea Shower adds eleven more, each at most once per visit: machine opened, 3 ingredients picked, which way it was opened (the top button, Surprise me or the 3-sticker nudge), ideas generated, generated again, idea copied, build prompt copied, mix shared, and a shared mix opened. The mix itself is never counted.
+To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts six anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, Share pressed, the length of your streak on the first walk of each day, and which W20 Labs link was clicked. The Idea Shower adds eleven more, each at most once per visit: machine opened, 3 ingredients picked, which way it was opened (the top button, Surprise me or the 3-sticker nudge), ideas generated, generated again, idea copied, build prompt copied, mix shared, and a shared mix opened. The mix itself is never counted.
 
 ## Run it locally
 

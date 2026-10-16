@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Bungee&family=JetBrains+Mono:wght@400;600;700&display=swap">
 <style>
-/* Layout: header, the stage (today's trail, or a room once you drop in), touch pad, then album + feedback side by side. */
+/* Layout: header, the stage (today's trail, or a room once you drop in), touch pad, then the album and the W20 Labs card side by side. */
 :root {
   --bg: #0A0C14;
   --panel: #121626;
@@ -128,7 +128,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .summary h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 26px; }
 .summary .tomorrow { margin: 0; color: var(--muted); font-size: 14px; }
 .summary .tomorrow b { color: var(--text); font-weight: 600; }
-.summary pre, .fb-out { margin: 0; background: var(--sunken); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font: 13px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+.summary pre { margin: 0; background: var(--sunken); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font: 13px/1.55 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
 .toast { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 5; background: var(--panel); border: 1px solid var(--line); border-left: 3px solid var(--lime); border-radius: 10px; padding: 7px 14px; font-size: 14px; pointer-events: none; max-width: calc(100% - 24px); }
 .toast[hidden] { display: none; }
 .toast.actionable { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
@@ -140,7 +140,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .pad .sp { flex: 1; max-width: 50px; }
 @media (pointer: coarse), (max-width: 700px) { .pad { display: flex; } }
 
-/* ---------- album + feedback ---------- */
+/* ---------- album + W20 Labs card ---------- */
 .below { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
 .box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; min-width: 0; display: grid; gap: 12px; align-content: start; }
 .box h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 15px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
@@ -165,8 +165,14 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .mini.rare::before { content: 'RARE'; position: absolute; right: 6px; bottom: 6px; font: 700 9px var(--mono); letter-spacing: .08em; }
 .mini.new::after { content: 'NEW'; position: absolute; left: 6px; top: -9px; background: var(--ink); color: var(--lime); font: 700 9px var(--mono); padding: 1px 6px; border-radius: 99px; }
 .empty { color: var(--muted); margin: 0; font-size: 14px; }
-.fb label { display: grid; gap: 4px; font-size: 14px; }
-.fb textarea { background: var(--sunken); color: var(--text); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; font: 14px/1.4 var(--ui); min-height: 54px; resize: vertical; width: 100%; }
+.w20-pitch { margin: -4px 0 0; color: var(--muted); font-size: 14px; }
+.w20-list { display: grid; gap: 10px; }
+.w20-item { display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px; border-radius: 12px; background: var(--sunken); border: 1px solid var(--line); color: var(--text); text-decoration: none; }
+.w20-item:hover, .w20-item:focus-visible { border-color: var(--lime); }
+.w20-ic { width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; background: var(--raised); font-size: 21px; }
+.w20-item b { display: block; font-family: var(--display); font-weight: 400; font-size: 15px; }
+.w20-item small { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; line-height: 1.35; }
+.w20-go { color: var(--lime); font-weight: 700; }
 .howto { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--muted); }
 .fine { font-size: 12.5px; color: var(--muted); margin: 0; }
 @media (max-width: 760px) {
@@ -321,15 +327,15 @@ body.mix-open { overflow: hidden; }
       <p class="fine">Your album is saved in this browser only. Use × on a sticker to remove it. We count visits anonymously with GoatCounter: no cookies, nothing personal.</p>
       <p class="fine" id="mixPrivacy" hidden>Idea Shower: the 3 repo names you pick are sent to our server and to Anthropic to generate ideas. Shared links contain the mix itself in the URL and aren't stored by us. We collect no email or other personal data.</p>
     </div>
-    <form class="box fb" id="fb">
-      <h2>Tell us what you think</h2>
-      <p class="fine" style="margin-top:-6px">This is an early playtest. Three quick questions; then copy your answers and paste them in the thread you came from.</p>
-      <label for="fb1">What did you save, and why?<textarea id="fb1" rows="2"></textarea></label>
-      <label for="fb2">Would you come back tomorrow for a new trail? What would make you?<textarea id="fb2" rows="2"></textarea></label>
-      <label for="fb3">What felt slow, confusing or pointless?<textarea id="fb3" rows="2"></textarea></label>
-      <div class="acts"><button class="btn go" type="submit">Copy my feedback</button></div>
-      <pre class="fb-out" id="fbOut" hidden></pre>
-    </form>
+    <aside class="box w20" aria-labelledby="w20Title">
+      <h2 id="w20Title">Made by W20 Labs</h2>
+      <p class="w20-pitch">An AI-native product lab building World 2.0, one small tool at a time. We run experiments, use them every day, and ship the ones that earn the green light. Repo Safari is one of them.</p>
+      <div class="w20-list">
+        <a class="w20-item" href="https://w20labs.github.io/benchmark-brawl/" target="_blank" rel="noopener" data-w20="benchmark-brawl"><span class="w20-ic" aria-hidden="true">🥊</span><span><b>Benchmark Brawl</b><small>Real AI models fight with real benchmark scores. Bigger gap, bigger weapon.</small></span><span class="w20-go" aria-hidden="true">→</span></a>
+        <a class="w20-item" href="https://reed.w20.ai" target="_blank" rel="noopener" data-w20="reed"><span class="w20-ic" aria-hidden="true">🎙️</span><span><b>Reed Dictation</b><small>Free, private dictation for Mac. Hold a shortcut, speak, release: clean text lands in the app you're using.</small></span><span class="w20-go" aria-hidden="true">→</span></a>
+      </div>
+      <div class="acts"><a class="btn go" href="https://w20.ai" target="_blank" rel="noopener" data-w20="site">Visit w20.ai</a><a class="btn" href="https://github.com/w20labs" target="_blank" rel="noopener" data-w20="github">W20 Labs on GitHub</a></div>
+    </aside>
   </section>
   <div class="mix" id="mix" hidden>
     <div class="mix-box" role="dialog" aria-modal="true" aria-labelledby="mixTitle">
@@ -973,27 +979,14 @@ function showEnd() {
     h('pre', null, text),
     h('div', { class: 'acts' },
       h('button', { type: 'button', class: 'btn go', onclick: () => share() }, 'Share my trail'),
-      h('button', { type: 'button', class: 'btn', onclick: () => { endBox.hidden = true; state = 'walk'; body.x = END_X - 140; body.vx = 0; } }, 'Keep exploring'),
-      h('button', { type: 'button', class: 'btn', onclick: () => { endBox.hidden = true; $('fb1').focus(); } }, 'Give feedback'))));
+      h('button', { type: 'button', class: 'btn', onclick: () => { endBox.hidden = true; state = 'walk'; body.x = END_X - 140; body.vx = 0; } }, 'Keep exploring'))));
   endBox.hidden = false;
   sfx.end();
   confetti();
 }
 
-// ---------- feedback ----------
-$('fb').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const entered = plats.filter((p) => p.entered).length;
-  const text = [
-    `Repo Safari feedback · trail ${TODAY} · ${entered}/${plats.length} rooms entered · ${album.size} stickers`,
-    `1. What I saved and why: ${$('fb1').value.trim() || '-'}`,
-    `2. Would I come back tomorrow: ${$('fb2').value.trim() || '-'}`,
-    `3. Slow, confusing or pointless: ${$('fb3').value.trim() || '-'}`,
-  ].join('\n');
-  const out = $('fbOut');
-  out.textContent = text; out.hidden = false;
-  copy(text, 'Feedback copied. Paste it in the thread. Thank you!');
-});
+// ---------- W20 Labs card: count which link gets clicked ----------
+for (const a of document.querySelectorAll('[data-w20]')) a.addEventListener('click', () => track(`w20/${a.dataset.w20}`, `W20 Labs link: ${a.dataset.w20}`));
 
 // ---------- input ----------
 const keys = new Set(), pressed = new Set();
