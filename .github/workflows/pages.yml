@@ -58,7 +58,10 @@ jobs:
           npm run refresh-rising
           npm run build-rooms
 
+      # IDEAS_URL (a repository variable) turns on the Idea Shower; unset, the page has none. See docs/idea-shower-results.md.
       - name: Build the page
+        env:
+          IDEAS_URL: ${{ vars.IDEAS_URL }}
         run: npm run build-safari -- "$SITE_URL" --site _site
 
       - name: Save refreshed data to the data branch

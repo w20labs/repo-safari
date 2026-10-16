@@ -1,0 +1,14 @@
+# Idea Shower: one Worker, one route (POST /ideas), KV only for rate limits.
+# Secrets (never in this file): `npx wrangler secret put ANTHROPIC_API_KEY` and `npx wrangler secret put IP_SALT`.
+name = "repo-safari-ideas"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+[vars]
+REPOS_URL = "https://w20labs.github.io/repo-safari/repos.json"
+ALLOWED_ORIGINS = "https://w20labs.github.io"
+
+# Create with `npx wrangler kv namespace create LIMITS` and paste the id here.
+[[kv_namespaces]]
+binding = "LIMITS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"

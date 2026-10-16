@@ -37,6 +37,7 @@ Keep the ones you like. No sign-up, no quiz, nothing to lose. A walk takes about
 2. **Drop in.** The room shows up to eight selected active repos from that category as stickers, most stars first, with forks, open issues, language and last commit. A 🤝 badge shows how many pull requests from outside contributors were merged in the last 90 days: a project other people actually contribute to, not just one that's still being pushed to.
 3. **Collect.** Save the ones you want to remember. They go into your sticker album.
 4. **Reach the end.** This week's rising repos sit on a high platform at the end of the trail. Getting there takes a double jump, and their stickers are rare.
+5. **Mix (experiment).** In the Idea Shower, press "+ mix" on 3 album stickers and turn them into three product ideas: useful, unexpected and ridiculous. Copy an idea, copy a ready-made prompt for your coding agent, or share the mix as a link.
 
 <table>
   <tr>
@@ -78,9 +79,11 @@ The rules live in [`scripts/build-rooms.ts`](scripts/build-rooms.ts) and [`serve
 
 ## Your data
 
-There's no server and no account. Your sticker album is saved in your own browser (`localStorage`) and never leaves it, and so do the days you played (for your streak). Clearing your browser data clears both.
+There's no account. Your sticker album is saved in your own browser (`localStorage`) and never leaves it, and so do the days you played (for your streak). Clearing your browser data clears both.
 
-To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts five anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, Share pressed, and the length of your streak on the first walk of each day.
+**Idea Shower:** the 3 repo names you pick are sent to our server and to Anthropic to generate ideas. Shared links contain the mix itself in the URL and aren't stored by us. We collect no email or other personal data.
+
+To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts five anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, Share pressed, and the length of your streak on the first walk of each day. The Idea Shower adds eight more, each at most once per visit: machine opened, 3 ingredients picked, ideas generated, generated again, idea copied, build prompt copied, mix shared, and a shared mix opened. The mix itself is never counted.
 
 ## Run it locally
 
@@ -97,8 +100,10 @@ open _site/index.html
 | `npm run build-rooms` | Rebuild the rooms from the GitHub API (`-- --cached` reuses the last fetch) |
 | `npm run refresh-rising` | Refresh this week's rising repos |
 | `npm run community` | Add the 🤝 outside-PR counts to the current rooms and rising repos (needs `GITHUB_TOKEN`) |
-| `npm run build-safari -- <url> --site _site` | Build the page into `_site/` |
+| `npm run build-safari -- <url> --site _site` | Build the page into `_site/` (`IDEAS_URL=mock` adds the Idea Shower with canned ideas) |
 | `npm run typecheck` / `npm test` / `npm run test:e2e` | Type-check, unit tests, browser tests |
+
+The Idea Shower's server is one Cloudflare Worker in [`worker/`](worker); [docs/idea-shower-results.md](docs/idea-shower-results.md) covers running it, launching it and reading the results.
 
 Every push to `main` deploys through [`.github/workflows/pages.yml`](.github/workflows/pages.yml), and on Mondays it refreshes the rooms and rising repos first.
 
