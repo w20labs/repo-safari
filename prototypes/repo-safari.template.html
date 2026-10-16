@@ -186,6 +186,10 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .mix-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mix-chip button { border: 0; background: none; color: var(--muted); font: 700 15px/1 var(--ui); cursor: pointer; min-width: 28px; min-height: 28px; }
 .mix-chip button:hover { color: var(--text); }
+.btn.shower-top[hidden] { display: none; }
+.btn.shower-top { border-color: rgba(212,242,92,.6); color: var(--lime); }
+.shower-top b { padding: 1px 7px; border-radius: 999px; background: var(--sunken); color: var(--muted); font: 700 11px var(--mono); }
+.shower-top.ready b { background: var(--lime); color: #12160a; }
 .album.mixing { row-gap: 24px; }
 .mini-mix { position: absolute; left: 6px; bottom: -11px; z-index: 1; min-height: 24px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: 700 10.5px var(--mono); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
 .mini-mix.on { background: var(--lime); border-color: var(--lime); color: #12160a; }
@@ -264,7 +268,7 @@ body.mix-open { overflow: hidden; }
       <h1 class="brand">REPO <span>SAFARI</span></h1>
       <p class="pitch">A new trail through open source every day. Each platform is a category. Drop into its room to compare its leading active repos, ranked by stars, with the new ones marked. Save the ones you like as stickers.</p>
     </div>
-    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag lime" id="streakTag" hidden></span><span class="tag" id="nextTag">New trail at 00:00 UTC</span><button type="button" class="btn sound" id="soundBtn" aria-pressed="true">♪ Sound on</button></div>
+    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag lime" id="streakTag" hidden></span><span class="tag" id="nextTag">New trail at 00:00 UTC</span><button type="button" class="btn shower-top" id="showerTop" hidden aria-label="Idea Shower: mix 3 stickers into product ideas">🧪 Idea Shower <b id="showerBadge"></b></button><button type="button" class="btn sound" id="soundBtn" aria-pressed="true">♪ Sound on</button></div>
   </header>
 
   <section class="stage" id="stage" aria-label="Today's trail">
@@ -308,6 +312,7 @@ body.mix-open { overflow: hidden; }
         <span class="mixbar-t">🧪 Idea Shower</span>
         <span class="mixbar-n" id="mixCount">Ingredients 0/3</span>
         <span class="mix-chips" id="mixChips"></span>
+        <button type="button" class="btn" id="mixSurprise" disabled>🎲 Surprise me</button>
         <button type="button" class="btn go" id="mixGo" disabled>Mix 3 stickers</button>
       </div>
       <p class="fine" id="mixHint" hidden></p>
@@ -748,7 +753,7 @@ function toggleSave(repo, p) {
   if (album.has(repo.name)) { album.delete(repo.name); toast(`Removed ${short(repo.name)} from your album`); sfx.remove(); }
   else {
     album.set(repo.name, { name: repo.name, stars: repo.stars, room: p.room.title, paper: p.paper, rare: p.rising, day: TODAY });
-    toast(p.rising ? `Rare sticker! ${short(repo.name)} is in your album` : `${short(repo.name)} is in your album`);
+    if (!maybeNudge(repo.name)) toast(p.rising ? `Rare sticker! ${short(repo.name)} is in your album` : `${short(repo.name)} is in your album`);
     (p.rising ? sfx.rare : sfx.slap)();
     track(`save/${repo.name}`, `Saved: ${repo.name}`);
     markPlayed();
@@ -1264,6 +1269,11 @@ function renderMixbar() {
   $('mixCount').textContent = `Ingredients ${ingredients.length}/3`;
   $('mixChips').replaceChildren(...ingredients.map((n) => h('span', { class: 'mix-chip', title: n }, h('span', null, short(n)),
     h('button', { type: 'button', 'aria-label': `Take ${n} out of the mix`, onclick: () => toggleIngredient(n) }, '×'))));
+  const ready = mixable().length;
+  $('showerTop').hidden = false;
+  $('showerTop').classList.toggle('ready', ready >= 3);
+  $('showerBadge').textContent = ready >= 3 ? 'ready' : `${ready}/3`;
+  $('mixSurprise').disabled = ready < 3;
   $('mixGo').disabled = ingredients.length !== 3;
   $('mixGo').textContent = ingredients.length === 3 ? 'Open the machine' : 'Mix 3 stickers';
   $('mixHint').textContent = album.size >= 3 || ingredients.length
@@ -1271,6 +1281,53 @@ function renderMixbar() {
     : 'Save 3 stickers on the trail, then mix them here into product ideas.';
 }
 $('mixGo').addEventListener('click', () => openMix('mix'));
+
+// ----- quick ways in: the top button, "Surprise me" and a one-time nudge at the 3rd sticker -----
+/** Album stickers that can go in a mix: only repos in this week's data. Oldest first (the album keeps save order). */
+function mixable() { return [...album.values()].map((s) => s.name).filter((n) => REPOS.has(n)); }
+/** Three ingredients: `keep` plus random album stickers, avoiding the exact set in `avoid` when there's another. */
+function pickThree(keep = [], avoid = []) {
+  const pool = mixable().filter((n) => !keep.includes(n));
+  let pick = keep.slice(0, 3);
+  for (let tries = 0; tries < 8; tries++) {
+    const rest = [...pool];
+    for (let i = rest.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [rest[i], rest[j]] = [rest[j], rest[i]]; }
+    pick = [...keep, ...rest].slice(0, 3);
+    if (!sameMix([...pick].sort(), [...avoid].sort())) break;
+  }
+  return pick;
+}
+/** Load 3 ingredients in one go and open the machine. `via` says which way in, for the stats. */
+function quickMix(names, via) {
+  if (names.length !== 3) return;
+  ingredients.splice(0, ingredients.length, ...names);
+  trackOnce('machine/open', 'Idea Shower: first ingredient');
+  trackOnce('machine/three', 'Idea Shower: 3 ingredients');
+  trackOnce(`entry/${via}`, `Idea Shower: opened from ${via}`);
+  renderAlbum();
+  openMix('mix');
+}
+$('mixSurprise').addEventListener('click', () => quickMix(pickThree([], ingredients), 'surprise'));
+$('showerTop').addEventListener('click', () => {
+  const missing = 3 - mixable().length;
+  if (missing > 0) { toast(`Save ${missing} more sticker${missing === 1 ? '' : 's'} to mix them into product ideas. In a room, press E on a repo.`); return; }
+  if (ingredients.length === 3) { trackOnce('entry/top', 'Idea Shower: opened from top'); openMix('mix'); }
+  else quickMix(pickThree(ingredients), 'top');
+});
+const NUDGE_KEY = 'repo-safari-mix-nudged-v1';
+let nudged = false;
+try { nudged = localStorage.getItem(NUDGE_KEY) === '1'; } catch { /* storage unavailable: once per page load */ }
+/** Once per browser: when a save makes 3 mixable stickers, offer to mix the 3 newest. True if it showed the offer. */
+function maybeNudge(saved) {
+  if (!SHOWER || nudged || !$('mix').hidden || !REPOS.has(saved)) return false;
+  const ready = mixable();
+  if (ready.length < 3) return false;
+  nudged = true;
+  try { localStorage.setItem(NUDGE_KEY, '1'); } catch { /* fine */ }
+  const three = ready.slice(-3);
+  toast(`🧪 ${short(saved)} saved. Mix 3 stickers into product ideas?`, { label: 'Mix them', run: () => quickMix(three, 'nudge') });
+  return true;
+}
 
 // ----- the machine -----
 function openMix(mode) {
@@ -1361,10 +1418,17 @@ function renderMix() {
     $('mixStatus').textContent = '';
   } else {
     const label = busy ? 'Mixing…' : ideas ? 'Turn It On Again' : 'Turn On the Idea Shower';
-    $('mixActs').replaceChildren(h('button', { type: 'button', class: 'btn go', id: 'showerBtn', disabled: busy || limited || repos.length !== 3, onclick: shower }, label));
+    $('mixActs').replaceChildren(h('button', { type: 'button', class: 'btn go', id: 'showerBtn', disabled: busy || limited || repos.length !== 3, onclick: shower }, label),
+      mixable().length > 3 ? h('button', { type: 'button', class: 'btn', id: 'shuffleBtn', disabled: busy, onclick: shuffleMix }, '🎲 Shuffle') : null);
   }
   $('ideas').replaceChildren(...(ideas ?? []).map((i) => ideaCard(i, repos, isShared)));
   $('mixAfter').replaceChildren(...(!isShared && ideas ? [copyButtonPlain('Share this mix', () => shareLink(repos, ideas), 'share/copy')] : []));
+}
+/** Swap in 3 other random stickers, keeping the machine open. */
+function shuffleMix() {
+  quickMix(pickThree([], ingredients), 'surprise');
+  status('');
+  $('shuffleBtn')?.focus({ preventScroll: true });
 }
 function copyButtonPlain(label, text, event) {
   const b = h('button', { type: 'button', class: 'btn' }, label);

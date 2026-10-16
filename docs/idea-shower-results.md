@@ -1,6 +1,6 @@
 # Idea Shower: running, launching and reading the results
 
-The Idea Shower is a small experiment inside Repo Safari. A player picks 3 stickers from their album (with "+ mix"), the pipe machine sends them to one Cloudflare Worker, and the Worker asks Claude for 3 ideas: useful, unexpected and ridiculous. Each idea can be copied, or copied as a build prompt for a coding agent, and a whole mix can be shared as a link.
+The Idea Shower is a small experiment inside Repo Safari. A player picks 3 stickers from their album (with the **🧪 Idea Shower** button at the top, "🎲 Surprise me", the one-time nudge at their 3rd sticker, or "+ mix" by hand), the pipe machine sends them to one Cloudflare Worker, and the Worker asks Claude for 3 ideas: useful, unexpected and ridiculous. Each idea can be copied, or copied as a build prompt for a coding agent, and a whole mix can be shared as a link.
 
 It answers two questions:
 
@@ -15,7 +15,7 @@ It answers two questions:
 | Repo list | `_site/repos.json` | Written by the build: every repo in the rooms and the Rising room. The Worker only accepts these |
 | Worker | `worker/src/ideas.ts` (entry `worker/src/index.ts`) | `POST /ideas` with `{repos: [3 names]}`. One `claude-sonnet-5-5` call, at most 1,200 output tokens, JSON-schema output, validated before it's returned |
 | Limits | Worker KV `LIMITS` | 5 generations per visitor per day (salted hash of the IP, never the IP), 300 per day in total. KV is eventually consistent, so both are approximate |
-| Analytics | GoatCounter, https://repo-safari.goatcounter.com | 8 events, each counted at most once per page load |
+| Analytics | GoatCounter, https://repo-safari.goatcounter.com | 11 events, each counted at most once per page load |
 
 ## Run it locally
 
@@ -89,7 +89,7 @@ Open https://repo-safari.goatcounter.com and set the date range to the launch pe
 
 | Event | Means | Counted |
 |---|---|---|
-| `machine/open` | Picked a first ingredient (or pressed Mix these yourself) | Once per page load |
+| `machine/open` | Started a mix: a first "+ mix", any of the quick ways in below, or Mix these yourself | Once per page load |
 | `machine/three` | Reached 3 ingredients | Once per page load |
 | `ideas/generated` | Got a first set of ideas | Once per page load |
 | `ideas/again` | Generated a second time | Once per page load |
@@ -97,6 +97,9 @@ Open https://repo-safari.goatcounter.com and set the date range to the launch pe
 | `prompt/copy` | Copied a build prompt | Once per page load |
 | `share/copy` | Copied a share link | Once per page load |
 | `share/open` | Opened a valid shared link | Every time |
+| `entry/top` | Opened the machine from the 🧪 Idea Shower button at the top | Once per page load |
+| `entry/surprise` | Used 🎲 Surprise me (album bar) or 🎲 Shuffle (machine) | Once per page load |
+| `entry/nudge` | Pressed Mix them on the one-time toast at the 3rd sticker | Once per page load |
 
 GoatCounter can't follow a person, so these are ratios of events, not of people. A page load is the closest thing to a visit.
 
@@ -107,6 +110,8 @@ GoatCounter can't follow a person, so these are ratios of events, not of people.
 | Fun, part 2 | (`ideas/again` + `idea/copy` + `prompt/copy` + `share/copy`) ÷ `ideas/generated` | ≥ 20% |
 | Spread | `share/open` ÷ `share/copy` | ≥ 25% (approximate: it includes sharers opening their own links) |
 | Build interest (for information) | `prompt/copy` ÷ `ideas/generated` | no pass or fail: clicks show curiosity, not demand |
+
+Which way in works best: compare `entry/top`, `entry/surprise` and `entry/nudge` with `machine/open` (the rest started by hand with "+ mix"). The nudge shows once per browser, so it mostly reaches new players.
 
 Fun is a yes only if both parts pass. Also note the funnel step `machine/three` ÷ `machine/open`: if it's low, people start a mix but don't finish choosing, which points at the album selection rather than the ideas.
 
