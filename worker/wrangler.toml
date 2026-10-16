@@ -3,12 +3,14 @@
 name = "repo-safari-ideas"
 main = "src/index.ts"
 compatibility_date = "2026-10-01"
+workers_dev = true
+preview_urls = false # only the one public address can spend the key
 
 [vars]
 REPOS_URL = "https://w20labs.github.io/repo-safari/repos.json"
 ALLOWED_ORIGINS = "https://w20labs.github.io"
 
-# Create with `npx wrangler kv namespace create LIMITS` and paste the id here.
+# Created with `npx wrangler kv namespace create LIMITS`.
 [[kv_namespaces]]
 binding = "LIMITS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "8316eaa8a4bd448c8b45611a9b1b048a"
