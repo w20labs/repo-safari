@@ -37,7 +37,7 @@ Keep the ones you like. No sign-up, no quiz, nothing to lose. A walk takes about
 2. **Drop in.** The room shows up to eight selected active repos from that category as stickers, most stars first, with forks, open issues, language and last commit. A 🤝 badge shows how many pull requests from outside contributors were merged in the last 90 days: a project other people actually contribute to, not just one that's still being pushed to.
 3. **Collect.** Save the ones you want to remember. They go into your sticker album.
 4. **Reach the end.** This week's rising repos sit on a high platform at the end of the trail. Getting there takes a double jump, and their stickers are rare.
-5. **Mix (experiment).** The Idea Shower card at the top offers 3 repos: your stickers, or random repos from this week's trail. Press **Mix these 3**, shuffle them, search for your own, or press "+ mix" on album stickers, and turn them into three product ideas: useful, unexpected and ridiculous. Copy an idea, copy a ready-made prompt for your coding agent, or share the mix as a link.
+5. **Mix (experiment).** The Idea Shower card at the top offers 3 repos: your stickers, or random repos from this week's trail. Press **Mix these 3**, shuffle them, or build your own (your stickers are one tap away, or search this week's repos), and turn them into three product ideas: useful, unexpected and ridiculous. Copy an idea, copy a ready-made prompt for your coding agent, or share the mix as a link.
 
 <table>
   <tr>
