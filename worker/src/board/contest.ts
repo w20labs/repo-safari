@@ -2,7 +2,7 @@
  * Weekly contest rules, as pure functions (the database code in store.ts feeds them).
  *
  * - A week runs Monday 00:00 UTC (inclusive) to the next Monday 00:00 UTC (exclusive). The first contest starts when
- *   the board launches and ends at the next Monday: a partial week.
+ *   the board launches and ends at the next Monday; if that would leave it under 3 days, it runs on to the Monday after.
  * - A star counts once per GitHub account per idea, in the week of its first star, if it is still active and valid at
  *   that week's closing instant.
  * - Eligible: published before the close, not hidden, held or declined at the close, and never selected before.
@@ -22,12 +22,22 @@ export function mondayOf(t: number): number {
 
 export type Week = { start: number; end: number; partial: boolean };
 
+/** A launch week shorter than this runs on through the following week, so the first contest has time to collect stars. */
+export const MIN_FIRST_WEEK = 3 * DAY;
+
+/** The end of the first contest: the Monday after launch, or the one after that if the launch week would be too short. */
+export function firstWeekEnd(launchAt: number): number {
+  const monday = mondayOf(launchAt);
+  return monday === launchAt || monday + WEEK - launchAt >= MIN_FIRST_WEEK ? monday + WEEK : monday + 2 * WEEK;
+}
+
 /** The contest week that `t` falls in, or null before launch. */
 export function weekAt(t: number, launchAt: number): Week | null {
   if (t < launchAt) return null;
+  const first = firstWeekEnd(launchAt);
+  if (t < first) return { start: launchAt, end: first, partial: launchAt !== mondayOf(launchAt) };
   const monday = mondayOf(t);
-  const start = Math.max(monday, launchAt);
-  return { start, end: monday + WEEK, partial: start !== monday };
+  return { start: monday, end: monday + WEEK, partial: false };
 }
 
 /**

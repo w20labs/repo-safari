@@ -146,7 +146,7 @@
     const li = (t) => h('li', null, t);
     return h('details', { class: 'board-rules' }, h('summary', null, 'How the weekly pick works'),
       h('ul', null,
-        li('Weeks run Monday 00:00 UTC to the next Monday 00:00 UTC. The first week started when the board launched.'),
+        li('Weeks run Monday 00:00 UTC to the next Monday 00:00 UTC. The first week started when the board launched; launching less than 3 days before a Monday made it run on to the Monday after.'),
         li('Only new stars count: stars first given this week to an idea that is still collecting. Lifetime stars are shown but don’t decide the week.'),
         li('Sign in with GitHub to star. One star per GitHub account per idea; you can star as many ideas as you like. Tap a star again to remove it. Removing it before Monday takes it out of this week; starring again later doesn’t move it into a new week.'),
         li('One star can win. If no eligible idea gets a star, nothing is picked that week.'),
@@ -218,7 +218,7 @@
     const parts = [];
     if (c.week) {
       parts.push(h('p', { class: 'board-week' },
-        h('b', null, c.week.partial ? 'Launch week (partial): ' : 'This week: '),
+        h('b', null, c.week.partial ? 'Launch week: ' : 'This week: '),
         `${utc(c.week.start)} → ${utc(c.week.end)}`),
         h('p', null, `Voting closes ${utc(c.week.end)} · in ${until(c.week.end, now)}.`));
       parts.push(c.leader
