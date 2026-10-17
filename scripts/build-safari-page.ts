@@ -6,7 +6,10 @@
  *   GITHUB_TOKEN=$(gh auth token) npm run build-safari -- [share-url]
  *       -> prototypes/repo-safari.html (page body only, for publishing as a claude.ai artifact)
  *   GITHUB_TOKEN=... npm run build-safari -- https://w20labs.github.io/repo-safari/ --site _site
- *       -> _site/index.html (a complete document with link-preview tags, for GitHub Pages)
+ *       -> _site/index.html (a complete document with link-preview tags, for GitHub Pages) and _site/repos.json
+ *
+ * Idea Shower: set IDEAS_URL to the Worker's address (e.g. https://repo-safari-ideas.<account>.workers.dev),
+ * or to "mock" for canned ideas while developing. Unset, the page has no Idea Shower at all.
  */
 import Database from 'better-sqlite3';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -19,6 +22,8 @@ const headers: Record<string, string> = { Accept: 'application/vnd.github+json',
 const args = process.argv.slice(2);
 const siteDir = args.includes('--site') ? args[args.indexOf('--site') + 1] : null;
 const shareUrl = (args.find((a) => /^https?:\/\//.test(a)) ?? '').replace(/[^a-zA-Z0-9:/._-]/g, '');
+const ideasUrl = (process.env.IDEAS_URL ?? '').trim().replace(/\/+$/, '');
+if (ideasUrl && ideasUrl !== 'mock' && !/^https?:\/\/[a-zA-Z0-9.:-]+$/.test(ideasUrl)) throw new Error(`IDEAS_URL must be an origin like https://name.workers.dev, or "mock" (got ${ideasUrl})`);
 
 const rooms = JSON.parse(readFileSync('shared/data/rooms.json', 'utf8'));
 const RISING_JSON = 'shared/data/rising.json';
@@ -57,7 +62,8 @@ const scriptJson = (v: unknown) =>
 const page = readFileSync('prototypes/repo-safari.template.html', 'utf8')
   .replace('__ROOMS__', () => scriptJson(rooms))
   .replace('__RISING__', () => scriptJson(rising))
-  .replace('__SHARE_URL__', () => shareUrl);
+  .replace('__SHARE_URL__', () => shareUrl)
+  .replace('__IDEAS_URL__', () => ideasUrl);
 
 if (!siteDir) {
   writeFileSync('prototypes/repo-safari.html', page);
@@ -97,5 +103,9 @@ ${body}
   mkdirSync(siteDir, { recursive: true });
   writeFileSync(join(siteDir, 'index.html'), doc);
   if (existsSync('assets/og-safari.png')) copyFileSync('assets/og-safari.png', join(siteDir, 'og.png'));
-  console.log(`Wrote ${join(siteDir, 'index.html')}: ${rooms.rooms.length} rooms, ${rising?.repos.length ?? 0} rising repos, ${(doc.length / 1024).toFixed(0)} KB`);
+  // the Idea Shower Worker only accepts repos listed here, so it can't be used as a general AI proxy
+  const listed = new Map<string, { name: string; desc: string }>();
+  for (const r of [...rooms.rooms.flatMap((room: { repos: { name: string; desc?: string }[] }) => room.repos), ...(rising?.repos ?? [])]) listed.set(r.name, { name: r.name, desc: r.desc ?? '' });
+  writeFileSync(join(siteDir, 'repos.json'), JSON.stringify([...listed.values()]));
+  console.log(`Wrote ${join(siteDir, 'index.html')}: ${rooms.rooms.length} rooms, ${rising?.repos.length ?? 0} rising repos, ${(doc.length / 1024).toFixed(0)} KB${ideasUrl ? `, Idea Shower: ${ideasUrl}` : ''}`);
 }

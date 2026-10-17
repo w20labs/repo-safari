@@ -16,5 +16,5 @@
     "noEmit": true,
     "isolatedModules": true
   },
-  "include": ["client", "server", "shared", "scripts", "tests", "e2e", "*.ts"]
+  "include": ["client", "server", "shared", "scripts", "tests", "e2e", "worker/src", "*.ts"]
 }
