@@ -80,7 +80,7 @@ canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: bl
 
 /* ---------- a room: the sticker wall for one category ---------- */
 /* head, sticker wall, details, then the action bar, which sticks to the bottom while the rest scrolls; scroll-padding keeps focused controls clear of it */
-.room { --wall-min: 360px; position: absolute; inset: 0; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(var(--wall-min), 1fr) auto auto; overflow-y: auto; scroll-padding-bottom: 72px; background:
+.room { --wall-min: 360px; position: absolute; inset: 0; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(max(var(--wall-min), var(--wall-fit, 0px)), 1fr) auto auto; overflow-y: auto; scroll-padding-bottom: 72px; background:
   radial-gradient(ellipse at 50% -20%, color-mix(in srgb, var(--c) 18%, transparent), transparent 60%),
   repeating-linear-gradient(90deg, transparent 0 79px, rgba(38,44,66,.35) 79px 80px), #0C0F1B; }
 .room[hidden] { display: none; }
@@ -128,7 +128,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .stat .l { font-size: 11px; color: var(--muted); }
 .acts { display: flex; gap: 6px; flex-wrap: wrap; }
 .room-bar { position: sticky; bottom: 0; z-index: 2; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 10px 14px; background: #0C0F1B; border-top: 1px solid var(--line); box-shadow: 0 -10px 18px rgba(12,15,27,.85); }
-.room-bar .btn { min-height: 44px; }
+.room-bar .btn { min-height: 44px; gap: .3em; } /* the gap is the space between "Open on" and "GitHub" */
 .rb-name { margin-right: auto; min-width: 0; font-family: var(--display); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .swipe { display: none; color: var(--muted); font-size: 13px; }
 @media (pointer: coarse) {
@@ -211,7 +211,6 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
   .sticker .ds { -webkit-line-clamp: 3; line-clamp: 3; max-height: calc(1.3em * 3); }
   .detail p { font-size: 13.5px; }
   .room { --wall-min: 280px; }
-  .wall-wrap { padding-top: 30px; }
 }
 @media (max-width: 560px) {
   .wrap { padding-block: 12px 32px; gap: 10px; }
@@ -279,10 +278,11 @@ body.in-room .hero-expand { display: inline-flex; min-height: 36px; padding: 4px
 .own-head h3:focus { outline: none; }
 .own-done { min-height: 40px; }
 .own-intro { margin: -2px 0 0; color: var(--muted); font-size: 13px; text-wrap: pretty; }
-.own-picked { display: flex; align-items: center; gap: 6px; min-height: 32px; min-width: 0; }
-.own-count { flex: none; font: 600 12px var(--mono); color: var(--lime); }
-.own-chips { display: flex; flex: 1; gap: 6px; min-width: 0; }
-.mix-chip { display: inline-flex; flex: 0 1 150px; min-width: 0; align-items: center; max-width: 150px; padding: 1px 2px 1px 10px; border-radius: 999px; background: var(--raised); border: 1px solid rgba(212,242,92,.5); color: var(--text); font: 600 12px var(--mono); }
+.own-picked { display: grid; gap: 6px; min-width: 0; }
+.own-count { font: 600 12px var(--mono); color: var(--lime); }
+/* chosen repos wrap at their natural width, so each name stays readable; one row is kept free so the first pick doesn't shift the list */
+.own-chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; min-height: 32px; }
+.mix-chip { display: inline-flex; flex: 0 1 auto; min-width: 0; align-items: center; max-width: 100%; padding: 1px 2px 1px 10px; border-radius: 999px; background: var(--raised); border: 1px solid rgba(212,242,92,.5); color: var(--text); font: 600 12px var(--mono); }
 .mix-chip span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mix-chip button { flex: none; border: 0; background: none; color: var(--muted); font: 700 15px/1 var(--ui); cursor: pointer; min-width: 30px; min-height: 30px; }
 .mix-chip button:hover { color: var(--text); }
@@ -301,8 +301,11 @@ body.in-room .hero-expand { display: inline-flex; min-height: 36px; padding: 4px
 .own-foot .btn.go { min-height: 44px; font-size: 15px; }
 .own-foot .hero-privacy { margin: 0; }
 .own:modal { position: fixed; inset: auto 0 var(--kb, 0px) 0; width: 100%; max-width: 100%; max-height: none; border-radius: 18px 18px 0 0; border-bottom: 0; }
-.own:modal .own-in { height: min(560px, calc(var(--vvh, 100dvh) * .85)); grid-template-rows: auto auto auto auto minmax(0, 1fr) auto; padding: 14px 16px calc(12px + env(safe-area-inset-bottom)); }
-.own:modal .own-list { max-height: none; }
+.own:modal .own-in { display: flex; flex-direction: column; height: min(560px, calc(var(--vvh, 100dvh) - 12px)); overflow-y: auto; overscroll-behavior: contain; padding: 14px 16px calc(12px + env(safe-area-inset-bottom)); }
+.own:modal .own-in > * { flex: none; }
+/* short screens (landscape, or a small phone with the keyboard up): the sheet scrolls as a whole and the results keep room for 2–3 rows */
+@media (max-height: 480px) { .own:modal .own-intro { display: none; } }
+.own:modal .own-in > .own-list { flex: 1 1 0; min-height: 132px; max-height: none; }
 .own::backdrop { background: rgba(6,8,14,.7); }
 @media (max-width: 860px) { header.top.has-hero { grid-template-columns: minmax(0, 1fr); } }
 /* phones: the ingredients become three full-width rows so each description has room */
@@ -972,10 +975,17 @@ function openRoom(p) {
   const g = walker.getContext('2d');
   g.setTransform(2, 0, 0, 2, 18, 46);
   drawWalker(g, 0, 0, 1, 0, false, 1, 0);
+  fitWall();
   select(0, true);
   renderStickerSaved();
   stickers[0].focus({ preventScroll: true });
   updateCounts();
+}
+
+/** The wall is at least as tall as its tallest sticker plus headroom (40px) and floor (46px), so a selected sticker is never cut off; the room scrolls instead. */
+function fitWall() {
+  const tallest = Math.max(...[...roomEl.querySelectorAll('.sticker')].map((s) => s.offsetHeight));
+  roomEl.style.setProperty('--wall-fit', `${Math.ceil(tallest + 40 + 46)}px`);
 }
 
 function select(i, instant) {
@@ -1605,7 +1615,12 @@ sheetQuery.addEventListener?.('change', () => setOwn(false, false)); // popover 
 $('ownToggle').addEventListener('click', () => setOwn(!pickerOpen()));
 $('ownDone').addEventListener('click', () => setOwn(false));
 $('ownGo').addEventListener('click', () => startMix($('ownToggle')));
-$('ownQ').addEventListener('input', renderOwn);
+$('ownQ').addEventListener('input', () => {
+  renderOwn();
+  // on a sheet too short for everything, bring the search box to the top so the results show right under it
+  const box = $('ownPanel').querySelector('.own-in');
+  if (box.scrollHeight > box.clientHeight) box.scrollTop = $('ownQ').offsetTop - 8;
+});
 $('ownPanel').addEventListener('cancel', (e) => { e.preventDefault(); setOwn(false); }); // Escape on the sheet
 $('ownPanel').addEventListener('close', () => $('ownToggle').setAttribute('aria-expanded', 'false'));
 // the sheet's backdrop is the <dialog> itself (its content sits in .own-in)
@@ -1902,7 +1917,7 @@ setCurrent(0);
 setInterval(() => {
   $('where').textContent = state === 'room' && roomPlat ? `Room · ${roomPlat.room.title}` : current >= 0 ? plats[current].room.title : 'Today’s trail';
 }, 200);
-addEventListener('resize', () => { if (state === 'room') select(sel, true); });
-document.fonts?.ready.then(() => placeCard());
+addEventListener('resize', () => { if (state === 'room') { fitWall(); select(sel, true); } });
+document.fonts?.ready.then(() => { placeCard(); if (state === 'room') fitWall(); });
 requestAnimationFrame(frame);
 </script>
