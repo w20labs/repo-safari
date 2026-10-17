@@ -1,0 +1,40 @@
+# Local preview of the idea board: never deployed. Run through worker/dev/preview.sh.
+# This file lives in worker/dev/ on purpose: Wrangler reads .dev.vars next to the config, so the real secrets in
+# worker/.dev.vars are never loaded here. Every "secret" below is a fake, local-only value.
+name = "repo-safari-ideas-preview"
+main = "../src/index.ts"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+[vars]
+REPOS_URL = "http://127.0.0.1:8765/board/repos.json"
+ALLOWED_ORIGINS = "http://127.0.0.1:8765"
+BOARD_ENABLED = "1"
+# local only: the test clock (/dev/*) and the stand-in GitHub below; ignored unless the address is 127.0.0.1/localhost
+BOARD_DEV = "1"
+GITHUB_OAUTH_URL = "http://127.0.0.1:8790"
+GITHUB_API_URL = "http://127.0.0.1:8790"
+GITHUB_CLIENT_ID = "local-preview-client"
+GITHUB_CLIENT_SECRET = "local-preview-secret"
+ADMIN_TOKEN = "local-preview-admin-token-0123456789abcdef"
+# the stand-in Anthropic API (worker/dev/fake-services.mjs): no paid calls
+ANTHROPIC_BASE_URL = "http://127.0.0.1:8790"
+ANTHROPIC_API_KEY = "local-preview-fake-key"
+IP_SALT = "local-preview-salt"
+
+[[durable_objects.bindings]]
+name = "LIMITER"
+class_name = "Limiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Limiter"]
+
+[[d1_databases]]
+binding = "BOARD_DB"
+database_name = "repo-safari-board-preview"
+database_id = "00000000-0000-4000-8000-000000000000" # local only
+migrations_dir = "../migrations"
+
+[triggers]
+crons = ["0 * * * *"]

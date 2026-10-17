@@ -62,6 +62,8 @@ jobs:
       - name: Build the page
         env:
           IDEAS_URL: ${{ vars.IDEAS_URL }}
+          # BOARD_ENABLED=1 (a repository variable) adds the idea board; turn it on with the Worker's own setting. See docs/idea-board.md.
+          BOARD_ENABLED: ${{ vars.BOARD_ENABLED }}
         run: npm run build-safari -- "$SITE_URL" --site _site
 
       - name: Save refreshed data to the data branch

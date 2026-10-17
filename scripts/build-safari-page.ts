@@ -10,9 +10,11 @@
  *
  * Idea Shower: set IDEAS_URL to the Worker's address (e.g. https://repo-safari-ideas.<account>.workers.dev),
  * or to "mock" for canned ideas while developing. Unset, the page has no Idea Shower at all.
+ * Idea board: BOARD_ENABLED=1 (with a Worker URL in IDEAS_URL and --site) adds board.js/board.css. Unset or "0", the
+ * page has no board at all. Turn it on together with the Worker's own BOARD_ENABLED (docs/idea-board.md).
  */
 import Database from 'better-sqlite3';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { countOutsidePrs, githubGraphql } from './community.ts';
 import { choosePool, freshPool, githubLookup, type Pool } from './rising-pool.ts';
@@ -24,6 +26,8 @@ const siteDir = args.includes('--site') ? args[args.indexOf('--site') + 1] : nul
 const shareUrl = (args.find((a) => /^https?:\/\//.test(a)) ?? '').replace(/[^a-zA-Z0-9:/._-]/g, '');
 const ideasUrl = (process.env.IDEAS_URL ?? '').trim().replace(/\/+$/, '');
 if (ideasUrl && ideasUrl !== 'mock' && !/^https?:\/\/[a-zA-Z0-9.:-]+$/.test(ideasUrl)) throw new Error(`IDEAS_URL must be an origin like https://name.workers.dev, or "mock" (got ${ideasUrl})`);
+const board = (process.env.BOARD_ENABLED ?? '').trim() === '1';
+if (board && (!/^https?:\/\//.test(ideasUrl) || !siteDir)) throw new Error('BOARD_ENABLED=1 needs IDEAS_URL set to the Worker (not "mock") and --site: the board talks to the Worker and ships board.js beside the page');
 
 const rooms = JSON.parse(readFileSync('shared/data/rooms.json', 'utf8'));
 const RISING_JSON = 'shared/data/rising.json';
@@ -63,7 +67,8 @@ const page = readFileSync('prototypes/repo-safari.template.html', 'utf8')
   .replace('__ROOMS__', () => scriptJson(rooms))
   .replace('__RISING__', () => scriptJson(rising))
   .replace('__SHARE_URL__', () => shareUrl)
-  .replace('__IDEAS_URL__', () => ideasUrl);
+  .replace('__IDEAS_URL__', () => ideasUrl)
+  .replace('__BOARD__', () => (board ? '1' : ''));
 
 if (!siteDir) {
   writeFileSync('prototypes/repo-safari.html', page);
@@ -103,9 +108,17 @@ ${body}
   mkdirSync(siteDir, { recursive: true });
   writeFileSync(join(siteDir, 'index.html'), doc);
   if (existsSync('assets/og-safari.png')) copyFileSync('assets/og-safari.png', join(siteDir, 'og.png'));
+  for (const f of ['board.js', 'board.css']) {
+    if (board) copyFileSync(join('prototypes/board', f), join(siteDir, f));
+    else if (existsSync(join(siteDir, f))) rmSync(join(siteDir, f)); // board off: nothing of it is published
+  }
   // the Idea Shower Worker only accepts repos listed here, so it can't be used as a general AI proxy
-  const listed = new Map<string, { name: string; desc: string }>();
-  for (const r of [...rooms.rooms.flatMap((room: { repos: { name: string; desc?: string }[] }) => room.repos), ...(rising?.repos ?? [])]) listed.set(r.name, { name: r.name, desc: r.desc ?? '' });
+  // room and stars let the idea board keep a snapshot of each source repo that outlives this week's trail
+  type Listed = { name: string; desc: string; room: string; stars: number };
+  const listed = new Map<string, Listed>();
+  const add = (r: { name: string; desc?: string | null; stars: number }, room: string) => { if (!listed.has(r.name)) listed.set(r.name, { name: r.name, desc: r.desc ?? '', room, stars: r.stars }); };
+  for (const room of rooms.rooms as { title: string; repos: { name: string; desc?: string; stars: number }[] }[]) for (const r of room.repos) add(r, room.title);
+  for (const r of rising?.repos ?? []) add(r, 'Rising this week');
   writeFileSync(join(siteDir, 'repos.json'), JSON.stringify([...listed.values()]));
-  console.log(`Wrote ${join(siteDir, 'index.html')}: ${rooms.rooms.length} rooms, ${rising?.repos.length ?? 0} rising repos, ${(doc.length / 1024).toFixed(0)} KB${ideasUrl ? `, Idea Shower: ${ideasUrl}` : ''}`);
+  console.log(`Wrote ${join(siteDir, 'index.html')}: ${rooms.rooms.length} rooms, ${rising?.repos.length ?? 0} rising repos, ${(doc.length / 1024).toFixed(0)} KB${ideasUrl ? `, Idea Shower: ${ideasUrl}` : ''}${board ? ', idea board: on' : ''}`);
 }
