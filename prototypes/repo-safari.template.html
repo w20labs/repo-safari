@@ -30,7 +30,7 @@ a { color: var(--teal); }
 kbd { font-family: var(--mono); font-size: 11px; background: var(--sunken); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; color: var(--text); white-space: nowrap; }
 
 header.top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px 24px; align-items: end; }
-header.top.has-hero { grid-template-columns: minmax(0, 1fr) minmax(320px, 420px); align-items: stretch; }
+header.top.has-hero { grid-template-columns: minmax(0, 1fr) minmax(340px, 480px); align-items: stretch; }
 header.top.has-hero .intro { align-content: center; }
 .intro { display: grid; gap: 12px; align-content: end; min-width: 0; }
 .brand { font-family: var(--display); font-size: clamp(26px, 4.4vw, 38px); line-height: 1; margin: 0; }
@@ -79,7 +79,8 @@ canvas#cv { position: absolute; inset: 0; width: 100%; height: 100%; display: bl
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 
 /* ---------- a room: the sticker wall for one category ---------- */
-.room { position: absolute; inset: 0; z-index: 3; display: grid; grid-template-rows: auto minmax(360px, 1fr) auto; overflow-y: auto; background:
+/* head, sticker wall, details, then the action bar, which sticks to the bottom while the rest scrolls; scroll-padding keeps focused controls clear of it */
+.room { --wall-min: 360px; position: absolute; inset: 0; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(max(var(--wall-min), var(--wall-fit, 0px)), 1fr) auto auto; overflow-y: auto; scroll-padding-bottom: 72px; background:
   radial-gradient(ellipse at 50% -20%, color-mix(in srgb, var(--c) 18%, transparent), transparent 60%),
   repeating-linear-gradient(90deg, transparent 0 79px, rgba(38,44,66,.35) 79px 80px), #0C0F1B; }
 .room[hidden] { display: none; }
@@ -118,12 +119,26 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .detail-top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: start; }
 .detail h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 18px; overflow-wrap: anywhere; }
 .detail .full { font-family: var(--mono); font-size: 12px; color: var(--muted); }
-.detail p { margin: 0; font-size: 14.5px; max-width: 72ch; }
+.detail p { margin: 0; font-size: 14.5px; max-width: 72ch; overflow-wrap: anywhere; } /* long URLs in descriptions wrap instead of widening the room */
+.detail { min-width: 0; }
+.detail .full { overflow-wrap: anywhere; }
 .stats { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .stat { background: var(--sunken); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; min-width: 0; }
 .stat .v { font-family: var(--mono); font-size: 13.5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .stat .l { font-size: 11px; color: var(--muted); }
 .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.room-bar { position: sticky; bottom: 0; z-index: 2; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 10px 14px; background: #0C0F1B; border-top: 1px solid var(--line); box-shadow: 0 -10px 18px rgba(12,15,27,.85); }
+.room-bar .btn { min-height: 44px; gap: .3em; } /* the gap is the space between "Open on" and "GitHub" */
+.rb-name { margin-right: auto; min-width: 0; font-family: var(--display); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.swipe { display: none; color: var(--muted); font-size: 13px; }
+@media (pointer: coarse) {
+  .room kbd { display: none; }
+  .room-sign span.n { display: none; }
+  .swipe { display: block; flex-basis: 100%; }
+}
+@media (max-width: 480px) { .rb-name { display: none; } .room-bar { padding-inline: 10px; } .room-bar .btn { flex: 1 1 0; min-width: 0; padding-inline: 8px; } }
+.room-bar .sm { display: none; }
+@media (max-width: 360px) { .room-bar .lg { display: none; } .room-bar .sm { display: inline; } } /* "GitHub ↗" and "☆ Save" on the narrowest phones; the buttons' names stay whole */
 
 .overlay { position: absolute; inset: 0; z-index: 4; display: flex; align-items: safe center; justify-content: center; padding: 16px; overflow: auto; background: rgba(6,8,14,.82); }
 .overlay[hidden] { display: none; }
@@ -137,14 +152,15 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .toast.actionable { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
 .toast .undo { background: none; border: 0; color: var(--lime); font: 700 14px var(--ui); cursor: pointer; padding: 2px 4px; text-decoration: underline; text-underline-offset: 3px; }
 
-.pad { display: none; justify-content: center; gap: 10px; flex-wrap: wrap; }
-.pad button { width: 60px; height: 60px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); color: var(--text); font: 700 15px var(--mono); touch-action: none; display: grid; place-items: center; }
+/* five controls on one row down to 320px: 5 × 48px + gaps fit in 288px, and they grow to 60px on wider phones */
+.pad { display: none; justify-content: center; gap: 8px; flex-wrap: nowrap; }
+.pad button { width: clamp(48px, 14vw, 60px); height: clamp(48px, 14vw, 60px); flex: none; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); color: var(--text); font: 700 15px var(--mono); touch-action: none; display: grid; place-items: center; }
 .pad button.on { border-color: var(--teal); color: var(--teal); background: var(--raised); }
-.pad .sp { flex: 1; max-width: 50px; }
+.pad .sp { flex: 1 1 0; min-width: 0; max-width: 50px; }
 @media (pointer: coarse), (max-width: 700px) { .pad { display: flex; } }
 
 /* ---------- album + W20 Labs card ---------- */
-.below { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
+.below { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; align-items: start; }
 .box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; min-width: 0; display: grid; gap: 12px; align-content: start; }
 .box h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 15px; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
 .box h2 small { font: 500 12.5px var(--mono); color: var(--muted); }
@@ -185,6 +201,8 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .w20-soc small { display: block; color: var(--muted); font: 12px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .w20-soc > span { min-width: 0; }
 .howto { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--muted); }
+/* touch screens have the pad instead; this must come after the .howto rule above to win */
+@media (pointer: coarse) { .howto { display: none; } }
 .fine { font-size: 12.5px; color: var(--muted); margin: 0; }
 @media (max-width: 760px) {
   .below { grid-template-columns: 1fr; }
@@ -192,56 +210,125 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
   .sticker { width: 128px; }
   .sticker .ds { -webkit-line-clamp: 3; line-clamp: 3; max-height: calc(1.3em * 3); }
   .detail p { font-size: 13.5px; }
+  .room { --wall-min: 280px; }
+}
+@media (max-width: 560px) {
+  .wrap { padding-block: 12px 32px; gap: 10px; }
+  .intro { gap: 8px; }
+  .pitch { margin-top: 2px; }
+  #dayTag { display: none; } /* the trail's start sign shows the date */
 }
 /* ---------- Idea Shower: 3 stickers in, 3 product ideas out ---------- */
-.hero[hidden], .mix[hidden], .mix-note[hidden] { display: none; }
+.hero[hidden], .mix[hidden], .mix-note[hidden], .ing-info[hidden] { display: none; }
+/* The card keeps one height while you choose, shuffle or open details (all of those float over the page), so the game below never moves. */
 .hero {
-  position: relative; display: grid; gap: 12px; min-width: 0; padding: 14px 16px 12px; border-radius: 16px;
+  position: relative; display: grid; gap: 10px; align-content: start; min-width: 0; padding: 12px 14px; border-radius: 16px;
   background: radial-gradient(120% 90% at 100% 0%, rgba(212,242,92,.14), transparent 60%), var(--panel);
   border: 1px solid rgba(212,242,92,.55); box-shadow: 0 0 0 4px rgba(212,242,92,.06), 0 18px 40px rgba(0,0,0,.35);
 }
+.hero-body { display: grid; gap: 10px; min-width: 0; }
+.hero-expand { display: none; }
+/* in a room the card folds to its title row, so the room's Save bar stays on the first screen; the toggle opens and folds it again */
+body.in-room:not(.hero-peek) :is(.pitch, .hero-body) { display: none; }
+body.in-room .hero-new { display: none; }
+body.in-room:not(.hero-peek) header.top.has-hero { align-items: center; }
+body.in-room:not(.hero-peek) .hero { padding: 8px 10px 8px 14px; }
+body.in-room .hero-expand { display: inline-flex; min-height: 36px; padding: 4px 12px; color: var(--lime); border-color: rgba(212,242,92,.5); letter-spacing: 0; text-transform: none; font: 600 13px var(--ui); }
 .hero-k { display: flex; justify-content: space-between; align-items: center; gap: 8px; font: 700 11.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--lime); }
 .hero-new { padding: 2px 8px; border-radius: 999px; background: var(--lime); color: #12160a; font-size: 10px; }
-.hero h2 { margin: -4px 0 0; font-family: var(--display); font-weight: 400; font-size: clamp(17px, 2vw, 20px); line-height: 1.15; }
-.hero-mix { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 6px; padding: 4px 2px; }
-.hero-plus { color: var(--lime); font: 700 16px var(--mono); }
+.hero h2 { margin: -2px 0 0; font-family: var(--display); font-weight: 400; font-size: clamp(17px, 2vw, 20px); line-height: 1.15; }
+/* ingredients: name, what it does, stars. Fixed line counts, so a shuffle never changes the card's height */
+.hero-mix { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 4px 2px 2px; }
 .hero-st {
-  position: relative; min-width: 0; display: grid; gap: 1px; padding: 7px 8px; border-radius: 10px; background: var(--paper); color: var(--ink);
-  box-shadow: 0 0 0 2px #F3F4F8; transform: rotate(var(--rot)); transition: transform .2s; text-align: left;
+  position: relative; min-width: 0; display: grid; align-content: start; gap: 3px; padding: 8px 9px; border: 0; border-radius: 10px;
+  background: var(--paper); color: var(--ink); box-shadow: 0 0 0 2px #F3F4F8; transform: rotate(var(--rot)); transition: transform .2s;
+  text-align: left; font: inherit; cursor: pointer;
 }
-.hero-st b { font-family: var(--display); font-weight: 400; font-size: 12px; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hero-st span { font: 600 10px var(--mono); opacity: .7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hero-st:hover, .hero-st[aria-expanded="true"] { transform: rotate(0deg); }
+.hero-st[aria-expanded="true"] { box-shadow: 0 0 0 2px #F3F4F8, 0 0 0 5px var(--lime); }
+.hs-name { padding-right: 14px; font-family: var(--display); font-weight: 400; font-size: 12.5px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hs-desc { font-size: 12px; line-height: 1.3; height: calc(1.3em * 2); overflow: hidden; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
+.hs-stars { font: 600 10.5px/1.3 var(--mono); opacity: .7; white-space: nowrap; }
+.hs-i { position: absolute; top: 6px; right: 7px; font: 700 12px/1 var(--ui); opacity: .6; }
 .hero-st.yours::after { content: '✓ yours'; position: absolute; left: 6px; top: -9px; background: var(--ink); color: var(--lime); font: 700 9px var(--mono); padding: 1px 6px; border-radius: 99px; }
-.hero:hover .hero-st { transform: rotate(0deg); }
 .hero-acts { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-.hero-acts .btn.go { min-height: 44px; font-size: 15px; }
 .hero-acts .btn { min-height: 44px; }
-.hero-own { justify-self: center; margin-top: -4px; padding: 4px 8px; border: 0; background: none; color: var(--teal); font: 600 13.5px var(--ui); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.hero-acts .btn.go { font-size: 15px; }
+.hero-foot { display: flex; align-items: center; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; margin-top: -4px; }
+.hero-own { min-height: 36px; margin-left: -8px; padding: 4px 8px; border: 0; background: none; color: var(--teal); font: 600 13.5px var(--ui); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 .hero-own:hover { color: var(--text); }
-.own[hidden] { display: none; }
-.own { display: grid; gap: 8px; padding: 10px; border-radius: 12px; background: var(--sunken); border: 1px solid var(--line); }
-.own-picked { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted); }
-.mix-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 1px 2px 1px 10px; border-radius: 999px; background: var(--raised); border: 1px solid rgba(212,242,92,.5); color: var(--text); font: 600 12px var(--mono); }
-.mix-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mix-chip button { border: 0; background: none; color: var(--muted); font: 700 15px/1 var(--ui); cursor: pointer; min-width: 28px; min-height: 28px; }
+.hero-fine { margin: 0; font-size: 12.5px; color: var(--muted); text-wrap: pretty; }
+.hero-privacy { font-size: 11.5px; opacity: .85; }
+.hero-foot .hero-privacy { flex: 1 1 140px; }
+/* full details for one ingredient: a small popover under it, opened by tap, click or keyboard */
+.ing-info { position: absolute; z-index: 13; left: 10px; right: 10px; display: grid; gap: 6px; padding: 12px 14px; border-radius: 12px; background: var(--panel); border: 1px solid rgba(212,242,92,.45); box-shadow: 0 18px 40px rgba(0,0,0,.55); }
+.ing-head { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+.ing-info h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 16px; line-height: 1.2; overflow-wrap: anywhere; }
+.ing-info h3:focus { outline: none; }
+.ing-info p { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+.ing-info .full { font: 12px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.ing-info .btn { justify-self: start; min-height: 40px; }
+.ing-close { width: 40px; padding: 0; font-size: 18px; flex: none; }
+/* the repo picker: a popover over the page on wide screens, a bottom sheet (modal) on phones */
+.own { position: absolute; z-index: 12; inset: calc(100% + 6px) 0 auto 0; width: auto; max-width: none; margin: 0; padding: 0; color: var(--text); border-radius: 12px; background: var(--panel); border: 1px solid rgba(212,242,92,.45); box-shadow: 0 18px 40px rgba(0,0,0,.55); }
+.own:not([open]) { display: none; }
+.own-in { display: grid; gap: 8px; padding: 12px; min-height: 0; }
+.own-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.own-head h3 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 17px; }
+.own-head h3:focus { outline: none; }
+.own-done { min-height: 40px; }
+.own-intro { margin: -2px 0 0; color: var(--muted); font-size: 13px; text-wrap: pretty; }
+.own-picked { display: grid; gap: 6px; min-width: 0; }
+.own-count { font: 600 12px var(--mono); color: var(--lime); }
+/* chosen repos wrap at their natural width, so each name stays readable; one row is kept free so the first pick doesn't shift the list */
+.own-chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; min-height: 32px; }
+.mix-chip { display: inline-flex; flex: 0 1 auto; min-width: 0; align-items: center; max-width: 100%; padding: 1px 2px 1px 10px; border-radius: 999px; background: var(--raised); border: 1px solid rgba(212,242,92,.5); color: var(--text); font: 600 12px var(--mono); }
+.mix-chip span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mix-chip button { flex: none; border: 0; background: none; color: var(--muted); font: 700 15px/1 var(--ui); cursor: pointer; min-width: 30px; min-height: 30px; }
 .mix-chip button:hover { color: var(--text); }
-.own-q { width: 100%; min-height: 38px; padding: 6px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: 14px var(--ui); }
+.own-q { width: 100%; min-height: 40px; padding: 6px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--sunken); color: var(--text); font: 16px var(--ui); }
 .own-q:focus-visible { border-color: var(--lime); outline: none; }
-.own-list { display: grid; gap: 4px; max-height: 220px; overflow-y: auto; }
-.own-list:empty { display: none; }
-.own-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 6px 9px; border-radius: 8px; border: 1px solid transparent; background: none; color: var(--text); text-align: left; cursor: pointer; font: inherit; }
+.own-list { display: grid; align-content: start; grid-auto-rows: max-content; gap: 4px; max-height: 240px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.own-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; min-height: 44px; padding: 6px 9px; border-radius: 8px; border: 1px solid transparent; background: none; color: var(--text); text-align: left; cursor: pointer; font: inherit; }
 .own-item:hover, .own-item:focus-visible { background: var(--raised); border-color: var(--line); outline: none; }
+.own-item[aria-pressed="true"] { border-color: rgba(212,242,92,.5); }
 .own-item b { font: 600 13px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .own-item span { font: 12px var(--mono); color: var(--muted); }
-.own-item small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.own-item small { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .own-item:disabled { opacity: .45; cursor: default; }
 .own-label { margin: 2px 0 0; font: 700 10.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.hero-fine { margin: 0; font-size: 12.5px; color: var(--muted); text-wrap: pretty; }
-.hero-privacy { margin-top: -6px; font-size: 11.5px; opacity: .85; }
+.own-foot { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+.own-foot .btn.go { min-height: 44px; font-size: 15px; }
+.own-foot .hero-privacy { margin: 0; }
+.own:modal { position: fixed; inset: auto 0 var(--kb, 0px) 0; width: 100%; max-width: 100%; max-height: none; border-radius: 18px 18px 0 0; border-bottom: 0; }
+.own:modal .own-in { display: flex; flex-direction: column; height: min(560px, calc(var(--vvh, 100dvh) - 12px)); overflow-y: auto; overscroll-behavior: contain; padding: 14px 16px calc(12px + env(safe-area-inset-bottom)); }
+.own:modal .own-in > * { flex: none; }
+/* short screens (landscape, or a small phone with the keyboard up): the sheet scrolls as a whole and the results keep room for 2–3 rows */
+@media (max-height: 480px) { .own:modal .own-intro { display: none; } }
+.own:modal .own-in > .own-list { flex: 1 1 0; min-height: 132px; max-height: none; }
+.own::backdrop { background: rgba(6,8,14,.7); }
 @media (max-width: 860px) { header.top.has-hero { grid-template-columns: minmax(0, 1fr); } }
+/* phones: the ingredients become three full-width rows so each description has room */
+@media (max-width: 560px) {
+  .hero-mix { grid-template-columns: minmax(0, 1fr); gap: 7px; padding: 4px 0 0; }
+  .hero-st { grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; row-gap: 1px; padding: 7px 34px 7px 11px; transform: rotate(calc(var(--rot) * .25)); }
+  .hs-name { padding-right: 0; font-size: 13px; }
+  .hs-stars { grid-column: 2; grid-row: 1; align-self: center; font-size: 11px; }
+  .hs-desc { grid-column: 1 / -1; font-size: 13px; }
+  .hs-i { top: 50%; right: 11px; transform: translateY(-50%); font-size: 15px; }
+  /* the intro already says what the card does; screen readers still get the heading */
+  .hero h2 { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .hero, .hero-body { gap: 8px; }
+  .hero { padding: 10px 12px 10px; }
+  .hero-foot { flex-wrap: nowrap; margin-top: -2px; }
+}
+/* short phones: one line of description per ingredient, so the game starts on the first screen */
+@media (max-width: 560px) and (max-height: 720px) {
+  .hs-desc { height: 1.3em; -webkit-line-clamp: 1; line-clamp: 1; }
+}
 @media (prefers-reduced-motion: no-preference) {
   .hero-st.fresh { animation: drop-in .35s cubic-bezier(.2,1.4,.4,1) both; }
-  .hero-st.fresh:nth-child(3) { animation-delay: .06s; } .hero-st.fresh:nth-child(5) { animation-delay: .12s; }
+  .hero-st.fresh:nth-child(2) { animation-delay: .06s; } .hero-st.fresh:nth-child(3) { animation-delay: .12s; }
 }
 @keyframes drop-in { from { transform: translateY(-10px) rotate(0deg); opacity: 0; } }
 .mix { position: fixed; inset: 0; z-index: 20; display: flex; justify-content: center; align-items: flex-start; padding: 16px; overflow-y: auto; background: rgba(6,8,14,.88); }
@@ -316,22 +403,28 @@ body.mix-open { overflow: hidden; }
   <header class="top" id="top">
     <div class="intro">
       <h1 class="brand">REPO <span>SAFARI</span></h1>
-      <p class="pitch">A new trail through open source every day. Each platform is a category. Drop into its room to compare its leading active repos, ranked by stars, with the new ones marked. Save the ones you like as stickers.</p>
+      <p class="pitch">Discover open-source repos. Save your favourites. Mix them into ideas.</p>
       <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag lime" id="streakTag" hidden></span><span class="tag" id="nextTag">New trail at 00:00 UTC</span><button type="button" class="btn sound" id="soundBtn" aria-pressed="true">♪ Sound on</button></div>
     </div>
     <aside class="hero" id="hero" hidden aria-labelledby="heroTitle">
-      <div class="hero-k"><span>🧪 Idea Shower</span><span class="hero-new">New</span></div>
-      <h2 id="heroTitle">Mix 3 repos into 3 product ideas</h2>
-      <div class="hero-mix" id="mixChips"></div>
-      <div class="hero-acts"><button type="button" class="btn go" id="mixGo">Mix these 3 →</button><button type="button" class="btn" id="mixSurprise" aria-label="Shuffle the 3 repos">🎲 Shuffle</button></div>
-      <p class="hero-fine hero-privacy">These repo names are sent to our server and Anthropic to generate ideas.</p>
-      <button type="button" class="hero-own" id="ownToggle" aria-expanded="false" aria-controls="ownPanel">✏️ or build your own</button>
-      <div class="own" id="ownPanel" hidden>
-        <div class="own-picked" id="ownPicked"></div>
-        <input type="search" class="own-q" id="ownQ" placeholder="Search this week’s repos" aria-label="Search this week’s repos" autocomplete="off" spellcheck="false">
-        <div class="own-list" id="ownList" aria-label="Matching repos"></div>
+      <div class="hero-k"><span>🧪 Idea Shower</span><span class="hero-new">New</span><button type="button" class="btn hero-expand" id="heroExpand" aria-expanded="false" aria-controls="heroBody">Mix 3 repos into ideas ↓</button></div>
+      <div class="hero-body" id="heroBody">
+        <h2 id="heroTitle">Mix 3 repos into 3 product ideas</h2>
+        <div class="hero-mix" id="mixChips" role="group" aria-label="Ingredients"></div>
+        <div class="hero-acts"><button type="button" class="btn go" id="mixGo">Mix these 3 →</button><button type="button" class="btn" id="mixSurprise" aria-label="Shuffle the 3 repos">🎲 Shuffle</button></div>
+        <div class="hero-foot"><p class="hero-fine hero-privacy">Repo names are sent to our server and Anthropic to generate ideas.</p><button type="button" class="hero-own" id="ownToggle" aria-expanded="false" aria-controls="ownPanel" aria-haspopup="dialog">Choose repos</button></div>
       </div>
-      <p class="hero-fine" id="mixHint"></p>
+      <div class="ing-info" id="ingInfo" role="dialog" aria-labelledby="ingInfoTitle" hidden></div>
+      <dialog class="own" id="ownPanel" aria-labelledby="ownTitle">
+        <div class="own-in">
+          <div class="own-head"><h3 id="ownTitle" tabindex="-1">Choose 3 repos</h3><button type="button" class="btn own-done" id="ownDone" aria-label="Done, close the repo picker">Done</button></div>
+          <p class="own-intro" id="ownIntro"></p>
+          <div class="own-picked"><span class="own-count" id="ownCount" role="status"></span><div class="own-chips" id="ownPicked"></div></div>
+          <input type="search" class="own-q" id="ownQ" placeholder="Search this week’s repos" aria-label="Search this week’s repos" autocomplete="off" spellcheck="false" enterkeyhint="search">
+          <div class="own-list" id="ownList"></div>
+          <div class="own-foot"><button type="button" class="btn go" id="ownGo" disabled>Mix these 3 →</button><p class="hero-fine hero-privacy">Repo names are sent to our server and Anthropic to generate ideas.</p></div>
+        </div>
+      </dialog>
     </aside>
   </header>
 
@@ -351,13 +444,13 @@ body.mix-open { overflow: hidden; }
     <div class="overlay" id="end" hidden></div>
   </section>
 
-  <div class="pad" id="pad" aria-label="Touch controls">
-    <button type="button" data-k="left" aria-label="Left">◀</button>
-    <button type="button" data-k="right" aria-label="Right">▶</button>
+  <div class="pad" id="pad" role="group" aria-label="Touch controls">
+    <button type="button" data-k="left" aria-label="Walk left">◀</button>
+    <button type="button" data-k="right" aria-label="Walk right">▶</button>
     <span class="sp"></span>
-    <button type="button" data-k="save" aria-label="Save sticker">★</button>
-    <button type="button" data-k="down" aria-label="Drop into room, or open on GitHub">▼</button>
-    <button type="button" data-k="jump" aria-label="Jump, or climb back out">▲</button>
+    <button type="button" data-k="save" aria-label="Save a sticker">★</button>
+    <button type="button" data-k="down" aria-label="Drop into a room">▼</button>
+    <button type="button" data-k="jump" aria-label="Jump">▲</button>
   </div>
 
   <div class="howto">
@@ -373,7 +466,7 @@ body.mix-open { overflow: hidden; }
     <div class="box">
       <h2>Your sticker album <small id="albumCount" tabindex="-1">0 stickers</small></h2>
       <div class="album" id="album"></div>
-      <p class="empty" id="albumEmpty">No stickers yet. In any room, press <kbd>E</kbd> on a repo to keep it. Rising repos are rare stickers: they're only on the trail for a week.</p>
+      <p class="empty" id="albumEmpty">No stickers yet. In any room, press ☆ Save sticker (or <kbd>E</kbd>) on a repo to keep it. Rising repos are rare stickers: they're only on the trail for a week.</p>
       <p class="fine">Your album is saved in this browser only. Use × on a sticker to remove it. We count visits anonymously with GoatCounter: no cookies, nothing personal.</p>
     </div>
     <aside class="box w20" aria-labelledby="w20Title">
@@ -404,7 +497,7 @@ body.mix-open { overflow: hidden; }
     </div>
   </div>
   <p class="fine">Rooms are built automatically from GitHub topics and only include active projects (a commit in the last 6 months). Numbers come from the GitHub API as of <span id="asOf"></span>. Repo Safari is an independent fan project and isn't affiliated with GitHub.</p>
-  <p class="fine contact">Made by <a href="https://x.com/w20labs" target="_blank" rel="noopener">@w20labs</a> on X · <a href="https://github.com/w20labs/repo-safari/issues/new/choose" target="_blank" rel="noopener">Ideas and bugs on GitHub</a> · <a href="https://github.com/w20labs/repo-safari" target="_blank" rel="noopener">Source code</a></p>
+  <p class="fine contact"><a href="https://github.com/w20labs/repo-safari/issues/new/choose" target="_blank" rel="noopener">Ideas and bugs on GitHub</a> · <a href="https://github.com/w20labs/repo-safari" target="_blank" rel="noopener">Source code</a></p>
 </div>
 
 <script>
@@ -772,6 +865,7 @@ function updateCounts() {
     p.dot.classList.toggle('room', p.entered);
     p.dot.classList.toggle('here', p.i === current);
   }
+  padLabels();
   renderAlbum();
 }
 
@@ -842,6 +936,9 @@ function openRoom(p) {
   markPlayed();
   p.entered = true;
   state = 'room';
+  document.body.classList.add('in-room');
+  setPeek(false);
+  requestAnimationFrame(() => { const r = $('stage').getBoundingClientRect(); if (r.top < 0 || r.bottom > innerHeight) $('stage').scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' }); });
   sel = 0;
   roomEl.style.setProperty('--c', p.color);
   roomEl.style.setProperty('--paper', p.paper);
@@ -868,18 +965,27 @@ function openRoom(p) {
         h('span', { class: 'k' }, p.rising ? 'Room · new this week' : 'Room'),
         h('h2', null, p.room.title),
         h('span', { class: 'n' }, `${p.room.repos.length} active repos, most stars first${p.rising ? '' : (() => { const n = p.room.repos.filter(isNew).length; return n ? ` · ${n} new this year` : ''; })()}${p.room.repos.some((r) => r.outsidePrs) ? ' · 🤝 outside PRs merged in 90 days' : ''}`)),
-      h('button', { type: 'button', class: 'btn', onclick: exitRoom }, '▲ Back to the trail ', h('kbd', null, 'Esc'))),
+      h('button', { type: 'button', class: 'btn', onclick: exitRoom }, '▲ Back to the trail ', h('kbd', null, 'Esc')),
+      h('span', { class: 'swipe' }, 'Swipe to compare repos. Tap one for its details.')),
     h('div', { class: 'wall-wrap' }, h('div', { class: 'wall' }, h('div', { class: 'floor' }), stickers, walker)),
     h('div', { class: 'detail', 'aria-live': 'polite' }),
+    h('div', { class: 'room-bar' }), // Save and Open stay on screen while the wall and details scroll
   );
   roomEl.hidden = false;
   const g = walker.getContext('2d');
   g.setTransform(2, 0, 0, 2, 18, 46);
   drawWalker(g, 0, 0, 1, 0, false, 1, 0);
+  fitWall();
   select(0, true);
   renderStickerSaved();
   stickers[0].focus({ preventScroll: true });
   updateCounts();
+}
+
+/** The wall is at least as tall as its tallest sticker plus headroom (40px) and floor (46px), so a selected sticker is never cut off; the room scrolls instead. */
+function fitWall() {
+  const tallest = Math.max(...[...roomEl.querySelectorAll('.sticker')].map((s) => s.offsetHeight));
+  roomEl.style.setProperty('--wall-fit', `${Math.ceil(tallest + 40 + 46)}px`);
 }
 
 function select(i, instant) {
@@ -900,12 +1006,16 @@ function renderDetail() {
   const isSaved = album.has(r.name);
   const lic = r.license ? LICENSES[r.license] || r.license : null;
   const stat = (v, l) => h('div', { class: 'stat' }, h('div', { class: 'v' }, v), h('div', { class: 'l' }, l));
+  const bar = roomEl.querySelector('.room-bar'), refocus = bar.contains(document.activeElement) ? document.activeElement.id : null;
+  bar.replaceChildren(
+    h('span', { class: 'rb-name', 'aria-hidden': 'true' }, `#${sel + 1} ${short(r.name)}`),
+    h('a', { class: 'btn go', href: `https://github.com/${r.name}`, target: '_blank', rel: 'noopener', id: 'openGh', 'aria-label': `Open ${r.name} on GitHub` }, h('span', { class: 'lg' }, 'Open on'), 'GitHub ↗'), // the button's gap is the space
+    h('button', { type: 'button', class: `btn ${isSaved ? 'on' : ''}`, id: 'saveBtn', 'aria-pressed': String(isSaved), 'aria-label': isSaved ? `${short(r.name)} is in your album. Remove it` : `Save ${short(r.name)} as a sticker`, onclick: () => saveSelected() }, ...(isSaved ? [h('span', { class: 'lg' }, '★ In your album'), h('span', { class: 'sm' }, '★ Saved')] : ['☆ Save', h('span', { class: 'lg' }, 'sticker')]), ' ', h('kbd', null, 'E')));
+  if (refocus) $(refocus)?.focus({ preventScroll: true }); // saving re-renders the bar: keep focus on the same button
+  padLabels();
   roomEl.querySelector('.detail').replaceChildren(
     h('div', { class: 'detail-top' },
-      h('div', null, h('h3', null, `#${sel + 1} ${short(r.name)}`), h('div', { class: 'full' }, r.name)),
-      h('div', { class: 'acts' },
-        h('a', { class: 'btn go', href: `https://github.com/${r.name}`, target: '_blank', rel: 'noopener', id: 'openGh' }, 'Open on GitHub ↗'),
-        h('button', { type: 'button', class: `btn ${isSaved ? 'on' : ''}`, onclick: () => saveSelected() }, isSaved ? '★ In your album' : '☆ Save sticker', ' ', h('kbd', null, 'E')))),
+      h('div', null, h('h3', null, `#${sel + 1} ${short(r.name)}`), h('div', { class: 'full' }, r.name))),
     h('p', null, r.desc || 'No description on GitHub.'),
     h('div', { class: 'stats' },
       stat(`★ ${kfmt(r.stars)}`, 'Stars'),
@@ -940,11 +1050,30 @@ function renderStickerSaved() {
 
 function exitRoom() {
   roomEl.hidden = true;
+  setPeek(false);
+  document.body.classList.remove('in-room');
   sfx.out();
   state = 'walk';
   body.vy = -640; body.ground = -1;
   current = -1;
+  padLabels();
   document.activeElement?.blur?.();
+}
+
+/** The touch pad's names say what each button does right now: walking the trail, or browsing a room. */
+function padLabels() {
+  const label = (k, text) => document.querySelector(`#pad [data-k="${k}"]`)?.setAttribute('aria-label', text);
+  const saveText = (r) => (album.has(r.name) ? `Remove ${short(r.name)} from your album` : `Save ${short(r.name)} as a sticker`);
+  if (state === 'room' && roomPlat) {
+    const r = roomPlat.room.repos[sel];
+    label('left', 'Previous repo'); label('right', 'Next repo'); label('save', saveText(r));
+    label('down', `Open ${short(r.name)} on GitHub`); label('jump', 'Back to the trail');
+    return;
+  }
+  const p = current >= 0 ? plats[current] : null;
+  label('left', 'Walk left'); label('right', 'Walk right'); label('jump', 'Jump');
+  label('save', p ? saveText(p.flag) : 'Save a sticker (stand on a platform first)');
+  label('down', p ? `Drop into the ${p.room.title} room` : 'Drop into a room (stand on a platform first)');
 }
 
 // ---------- end of the trail ----------
@@ -1059,7 +1188,8 @@ function roomKey(k) {
 const typing = () => /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '');
 addEventListener('keydown', (e) => {
   const k = KEYMAP[e.code];
-  if (!k || typing() || !$('mix').hidden) return; // the Idea Shower is open: keys belong to it
+  if (!k || typing() || !$('mix').hidden || pickerOpen() || infoFor) return; // the Idea Shower is open: keys belong to it
+  if ((k === 'jump' || k === 'open') && e.target.closest?.('#hero')) return; // Space and Enter press the card's buttons, not the game's
   if (state === 'room') {
     // Enter on a focused control (Back, Save…) activates it; on a sticker it opens the repo.
     if (k === 'open' && e.target.closest?.('button, a') && !e.target.closest('.sticker')) return;
@@ -1077,6 +1207,7 @@ addEventListener('blur', () => keys.clear());
 for (const b of document.querySelectorAll('#pad button')) {
   const k = b.dataset.k;
   b.addEventListener('pointerdown', (e) => {
+    if ((SHOWER && pickerOpen()) || infoFor) return; // the card's popovers are open: the game waits
     e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add('on');
     if (state === 'room') { roomKey(k); return; }
     if (!keys.has(k)) pressed.add(k); keys.add(k);
@@ -1295,45 +1426,82 @@ function cleanIdeas(list, needConcept) {
 
 // ----- ingredients -----
 /** The 3 repos the top card offers: your own picks first, then album stickers or this week's trail. */
-let preview = null, previewFromAlbum = false;
+let preview = null, previewFromAlbum = false, chipsKey = '';
 function renderMixbar(fresh = false) {
   if (!SHOWER) return;
   $('hero').hidden = false;
   $('top').classList.add('has-hero');
   trackOnce('card/shown', 'Idea Shower: card shown');
-  const fromAlbum = mixable().length >= 3;
+  const stickers = mixable(), fromAlbum = stickers.length >= 3;
+  // with fewer than 3 stickers, every one of them is in the offer (a sticker saved just now joins it)
+  const missing = !fromAlbum && preview && stickers.some((n) => !preview.includes(n));
   if (ingredients.length === 3) preview = [...ingredients];
-  else if (!preview || fromAlbum !== previewFromAlbum || !ingredients.every((n) => preview.includes(n))) { preview = pickThree(ingredients); fresh = true; }
+  else if (!preview || missing || fromAlbum !== previewFromAlbum || !ingredients.every((n) => preview.includes(n))) { preview = pickThree(ingredients); fresh = true; }
   previewFromAlbum = fromAlbum;
-  const chips = [];
-  preview.forEach((n, k) => {
-    const r = REPOS.get(n);
-    const paper = album.get(n)?.paper ?? PALETTE[fnv(n) % PALETTE.length][1];
-    if (k) chips.push(h('span', { class: 'hero-plus', 'aria-hidden': 'true' }, '+'));
-    chips.push(h('div', { class: `hero-st${ingredients.length < 3 && ingredients.includes(n) ? ' yours' : ''}${fresh ? ' fresh' : ''}`, style: `--paper:${paper}; --rot:${ROTS[(k * 2 + 1) % ROTS.length]}deg`, title: r?.desc ? `${n}: ${r.desc}` : n },
-      h('b', null, short(n)), h('span', null, r ? `★ ${kfmt(r.stars)}` : n.split('/')[0])));
-  });
-  $('mixChips').replaceChildren(...chips);
-  renderOwn();
-  $('mixChips').setAttribute('aria-label', `Ingredients: ${preview.map(short).join(', ')}`);
+  if (infoFor && !preview.includes(infoFor)) closeInfo(false);
   const done = ingredients.length === 3 && result && sameMix(result.repos, ingredients);
   $('mixGo').textContent = done ? 'See the ideas →' : 'Mix these 3 →';
-  $('mixHint').textContent = done
-    ? 'Your ideas are ready. Shuffle for a fresh mix.'
-    : ingredients.length === 3
-      ? 'Your 3 picks are in. Press Mix to turn them into ideas.'
-      : ingredients.length
-    ? `${ingredients.length} of yours in the mix. Pick ${3 - ingredients.length} more, or Mix now and we’ll fill the rest.`
-    : fromAlbum
-      ? 'Picked from your album. Shuffle, or build your own to choose.'
-      : 'Random repos from this week’s trail. Save stickers as you walk to mix your own.';
+  renderOwn();
+  // this runs on every step along the trail: only rebuild the ingredients when something on them changed
+  const yours = (n) => ingredients.length < 3 && ingredients.includes(n);
+  const key = JSON.stringify(preview.map((n) => [n, yours(n), album.get(n)?.paper ?? '']));
+  if (key === chipsKey && !fresh) return;
+  chipsKey = key;
+  const focused = document.activeElement?.closest?.('.hero-st')?.dataset.repo;
+  $('mixChips').replaceChildren(...preview.map((n, k) => {
+    const r = REPOS.get(n), desc = tagline(r?.desc);
+    const paper = album.get(n)?.paper ?? PALETTE[fnv(n) % PALETTE.length][1];
+    return h('button', {
+      type: 'button', class: `hero-st${yours(n) ? ' yours' : ''}${fresh ? ' fresh' : ''}`, style: `--paper:${paper}; --rot:${ROTS[(k * 2 + 1) % ROTS.length]}deg`,
+      'data-repo': n, 'aria-expanded': String(infoFor === n), 'aria-controls': 'ingInfo',
+      'aria-label': `${n}${yours(n) ? ' (your pick)' : ''}: ${desc}${r ? ` ${kfmt(r.stars)} stars.` : ''} Show details`,
+      onclick: () => (infoFor === n ? closeInfo(true) : openInfo(n)),
+    }, h('b', { class: 'hs-name' }, short(n)), h('span', { class: 'hs-desc' }, desc), h('span', { class: 'hs-stars' }, r ? `★ ${kfmt(r.stars)}` : ''), h('span', { class: 'hs-i', 'aria-hidden': 'true' }, 'ⓘ'));
+  }));
+  if (focused) chipFor(focused)?.focus({ preventScroll: true });
+  // the drop-in plays once: a card folded mid-animation (in a room) mustn't replay it when it opens again
+  if (fresh) { const made = [...$('mixChips').children]; setTimeout(() => { for (const c of made) c.classList.remove('fresh'); }, 600); }
 }
-// one click from landing to ideas: open the machine and turn it on, unless these 3 already have ideas
-$('mixGo').addEventListener('click', () => {
-  if (ingredients.length === 3) { trackOnce('entry/top', 'Idea Shower: opened from top'); openMix('mix'); }
-  else quickMix([...preview], 'top');
+const chipFor = (name) => [...$('mixChips').children].find((b) => b.dataset.repo === name);
+/** One click from landing to ideas: open the machine and turn it on, unless these 3 already have ideas. `from` gets focus back on close. */
+function startMix(from) {
+  setOwn(false, false);
+  if (ingredients.length === 3) { trackOnce('entry/top', 'Idea Shower: opened from top'); openMix('mix', from); }
+  else quickMix([...preview], 'top', from);
   if (!(result && sameMix(result.repos, ingredients))) shower();
-});
+}
+$('mixGo').addEventListener('click', () => startMix($('mixGo')));
+
+// ----- one ingredient's full details: a popover under it -----
+let infoFor = null;
+function openInfo(name) {
+  const r = REPOS.get(name), chip = chipFor(name);
+  if (!r || !chip) return;
+  setOwn(false, false);
+  infoFor = name;
+  const box = $('ingInfo');
+  box.replaceChildren(
+    h('div', { class: 'ing-head' }, h('h3', { id: 'ingInfoTitle', tabindex: '-1' }, short(name)),
+      h('button', { type: 'button', class: 'btn ing-close', 'aria-label': 'Close details', onclick: () => closeInfo(true) }, '×')),
+    h('div', { class: 'full' }, `${name} · ${r.room}`),
+    h('p', null, tagline(r.desc)),
+    h('div', { class: 'full' }, [`★ ${kfmt(r.stars)}`, r.lang, `last commit ${ago(r.pushed)}`].filter(Boolean).join(' · ')),
+    h('a', { class: 'btn', href: `https://github.com/${name}`, target: '_blank', rel: 'noopener' }, 'Open on GitHub ↗'));
+  box.style.top = `${chip.offsetTop + chip.offsetHeight + 8}px`;
+  box.hidden = false;
+  for (const b of $('mixChips').children) b.setAttribute('aria-expanded', String(b.dataset.repo === name));
+  $('ingInfoTitle').focus({ preventScroll: true });
+}
+function closeInfo(restore) {
+  if (!infoFor) return;
+  const name = infoFor;
+  infoFor = null;
+  $('ingInfo').hidden = true;
+  for (const b of $('mixChips').children) b.setAttribute('aria-expanded', 'false');
+  if (restore) chipFor(name)?.focus({ preventScroll: true });
+}
+// leaving it by Tab closes it (a re-render, which leaves no relatedTarget, doesn't)
+$('ingInfo').addEventListener('focusout', (e) => { if (e.relatedTarget && !$('ingInfo').contains(e.relatedTarget) && !e.relatedTarget.closest('.hero-st')) closeInfo(false); });
 
 // ----- quick ways in: the top button, "Surprise me" and a one-time nudge at the 3rd sticker -----
 /** Album stickers that can go in a mix: only repos in this week's data. Oldest first (the album keeps save order). */
@@ -1356,22 +1524,28 @@ function pickThree(keep = [], avoid = []) {
   return pick;
 }
 /** Load 3 ingredients in one go and open the machine. `via` says which way in, for the stats. */
-function quickMix(names, via) {
+function quickMix(names, via, from) {
   if (names.length !== 3) return;
   ingredients.splice(0, ingredients.length, ...names);
   trackOnce('machine/open', 'Idea Shower: first ingredient');
   trackOnce('machine/three', 'Idea Shower: 3 ingredients');
   trackOnce(`entry/${via}`, `Idea Shower: opened from ${via}`);
   renderAlbum();
-  openMix('mix');
+  openMix('mix', from);
 }
-// ----- build your own: search this week's repos (the only ones the Worker accepts) and pick 3 -----
+// ----- Choose repos: your stickers and a search of this week's repos (the only ones the Worker accepts) -----
 function renderOwn() {
-  if ($('ownPanel').hidden) return;
-  $('ownPicked').replaceChildren(...(ingredients.length
-    ? ingredients.map((n) => h('span', { class: 'mix-chip', title: n }, h('span', null, short(n)),
-      h('button', { type: 'button', 'aria-label': `Take ${n} out of the mix`, onclick: () => { toggleOwn(n); $('ownQ').focus(); } }, '×')))
-    : [h('span', null, `Pick 3 of ${REPOS.size} repos on this week’s trail.`)]));
+  if (!$('ownPanel').open) return;
+  const n = ingredients.length, done = n === 3 && result && sameMix(result.repos, ingredients);
+  const stickers = [...album.values()].map((s) => s.name), mine = mixable();
+  $('ownIntro').textContent = mine.length
+    ? 'Your saved repos are the ingredients. We’ll combine what they do into three ideas.'
+    : `Pick any 3 of the ${REPOS.size} repos on this week’s trail. We’ll combine what they do into three ideas.`;
+  $('ownCount').textContent = n === 3 ? '3 of 3 chosen' : `${n} of 3 chosen · pick ${3 - n} more`;
+  $('ownPicked').replaceChildren(...ingredients.map((name) => h('span', { class: 'mix-chip', title: name }, h('span', null, short(name)),
+    h('button', { type: 'button', 'aria-label': `Take ${name} out of the mix`, onclick: () => { toggleOwn(name); (listItem(name) ?? $('ownQ')).focus({ preventScroll: true }); } }, '×'))));
+  $('ownGo').disabled = n !== 3;
+  $('ownGo').textContent = done ? 'See the ideas →' : 'Mix these 3 →';
   const q = $('ownQ').value.trim().toLowerCase();
   const hits = !q ? [] : [...REPOS.values()]
     .filter((r) => r.name.toLowerCase().includes(q) || (r.desc ?? '').toLowerCase().includes(q) || r.room.toLowerCase().includes(q))
@@ -1379,37 +1553,114 @@ function renderOwn() {
     .slice(0, 12);
   const item = (r) => {
     const on = ingredients.includes(r.name);
-    return h('button', { type: 'button', class: 'own-item', disabled: !on && ingredients.length >= 3, 'aria-pressed': String(on), 'data-repo': r.name, onclick: () => pickOwn(r.name) },
-      h('b', null, `${on ? '✓ ' : ''}${r.name}`), h('span', null, `★ ${kfmt(r.stars)}`), h('small', null, r.desc || r.room));
+    return h('button', { type: 'button', class: 'own-item', disabled: !on && n >= 3, 'aria-pressed': String(on), 'data-repo': r.name, onclick: () => pickOwn(r.name) },
+      h('b', null, `${on ? '✓ ' : ''}${r.name}`), h('span', null, `★ ${kfmt(r.stars)}`), h('small', null, tagline(r.desc)));
   };
+  const gone = stickers.length - mine.length;
+  const away = gone ? h('p', { class: 'hero-fine' }, `${gone} of your stickers ${gone === 1 ? 'isn’t' : 'aren’t'} on this week’s trail, so ${gone === 1 ? 'it' : 'they'} can’t go in a mix.`) : null;
   // nothing typed yet: your stickers, newest first, as one-tap picks
-  const mine = q ? [] : mixable().reverse().map((n) => REPOS.get(n));
   $('ownList').replaceChildren(...(q
     ? (hits.length ? hits.map(item) : [h('p', { class: 'hero-fine' }, 'Nothing on this week’s trail matches that.')])
-    : mine.length ? [h('p', { class: 'own-label' }, 'Your stickers'), ...mine.map(item)] : []));
+    : mine.length ? [h('p', { class: 'own-label' }, 'Your stickers, newest first'), ...[...mine].reverse().map((name) => item(REPOS.get(name))), away]
+    : [h('p', { class: 'hero-fine' }, 'No stickers yet. Search above, or save stickers on the trail.'), away]).filter(Boolean)); // replaceChildren would print null
 }
+const listItem = (name) => [...$('ownList').querySelectorAll('.own-item')].find((b) => b.dataset.repo === name && !b.disabled);
 /** A tap on a list item. The list is rebuilt, so keep keyboard focus on the same repo's new button (the 3rd pick moves it to Mix). */
 function pickOwn(name) {
   toggleOwn(name);
-  if (ingredients.length < 3) [...$('ownList').querySelectorAll('.own-item')].find((b) => b.dataset.repo === name)?.focus({ preventScroll: true });
+  if (ingredients.length < 3) listItem(name)?.focus({ preventScroll: true });
 }
-/** Pick or unpick one repo; the card's Mix button turns the 3 into ideas. */
+/** Pick or unpick one repo. With 3 picked, the picker's Mix button takes focus. */
 function toggleOwn(name) {
   const i = ingredients.indexOf(name);
   if (i >= 0) ingredients.splice(i, 1);
   else if (ingredients.length < 3 && REPOS.has(name)) { ingredients.push(name); trackOnce('machine/open', 'Idea Shower: first ingredient'); }
   if (ingredients.length === 3) { trackOnce('machine/three', 'Idea Shower: 3 ingredients'); $('ownQ').value = ''; }
   renderAlbum();
-  if (ingredients.length === 3) $('mixGo').focus({ preventScroll: true });
+  if (ingredients.length === 3 && $('ownPanel').open) $('ownGo').focus();
 }
-$('ownToggle').addEventListener('click', () => {
-  const open = $('ownPanel').hidden;
-  $('ownPanel').hidden = !open;
+// phones get a modal bottom sheet; wider screens a popover over the page
+const sheetQuery = matchMedia('(max-width: 640px)');
+const pickerOpen = () => $('ownPanel').open;
+function setOwn(open, restore = true) {
+  const d = $('ownPanel');
+  if (open === d.open) return;
+  if (open) {
+    closeInfo(false);
+    keys.clear(); pressed.clear(); // the game pauses while the picker is open
+    trackOnce('card/own', 'Idea Shower: Choose repos opened');
+    // picks you haven't mixed yet are kept; 3 that already have ideas make way for a fresh choice
+    if (ingredients.length === 3 && result && sameMix(result.repos, ingredients)) { ingredients.length = 0; renderAlbum(); }
+    if (sheetQuery.matches) { d.setAttribute('aria-modal', 'true'); fitSheet(); d.showModal(); }
+    else { d.removeAttribute('aria-modal'); d.show(); }
+    renderOwn();
+    // on a phone, don't pop the keyboard up before anyone asks: start on the title, with your stickers in view
+    (sheetQuery.matches ? $('ownTitle') : $('ownQ')).focus({ preventScroll: true });
+  } else {
+    d.close();
+    if (restore) $('ownToggle').focus({ preventScroll: true });
+  }
   $('ownToggle').setAttribute('aria-expanded', String(open));
-  $('ownToggle').textContent = open ? 'Done building' : '✏️ or build your own';
-  if (open) { trackOnce('card/own', 'Idea Shower: build your own opened'); if (ingredients.length === 3 && result && sameMix(result.repos, ingredients)) { ingredients.length = 0; renderAlbum(); } renderOwn(); $('ownQ').focus(); }
+}
+/** iOS keeps a fixed sheet behind the on-screen keyboard: size and lift it to the visible part of the screen. */
+function fitSheet() {
+  const v = window.visualViewport, d = $('ownPanel');
+  if (!v) return;
+  d.style.setProperty('--vvh', `${v.height}px`);
+  d.style.setProperty('--kb', `${Math.max(0, innerHeight - v.height - v.offsetTop)}px`);
+}
+window.visualViewport?.addEventListener('resize', () => { if (pickerOpen()) fitSheet(); });
+window.visualViewport?.addEventListener('scroll', () => { if (pickerOpen()) fitSheet(); });
+sheetQuery.addEventListener?.('change', () => setOwn(false, false)); // popover <-> sheet: close rather than switch mid-way
+$('ownToggle').addEventListener('click', () => setOwn(!pickerOpen()));
+$('ownDone').addEventListener('click', () => setOwn(false));
+$('ownGo').addEventListener('click', () => startMix($('ownToggle')));
+$('ownQ').addEventListener('input', () => {
+  renderOwn();
+  // on a sheet too short for everything, bring the search box to the top so the results show right under it
+  const box = $('ownPanel').querySelector('.own-in');
+  if (box.scrollHeight > box.clientHeight) box.scrollTop = $('ownQ').offsetTop - 8;
 });
-$('ownQ').addEventListener('input', renderOwn);
+$('ownPanel').addEventListener('cancel', (e) => { e.preventDefault(); setOwn(false); }); // Escape on the sheet
+$('ownPanel').addEventListener('close', () => $('ownToggle').setAttribute('aria-expanded', 'false'));
+// the sheet's backdrop is the <dialog> itself (its content sits in .own-in)
+$('ownPanel').addEventListener('click', (e) => { if (e.target === $('ownPanel')) setOwn(false); });
+// the popover floats over the page: a click outside the card closes it, and so do details opened elsewhere
+addEventListener('pointerdown', (e) => {
+  if (pickerOpen() && !$('ownPanel').matches(':modal') && !$('hero').contains(e.target)) setOwn(false, false);
+  if (infoFor && !$('ingInfo').contains(e.target) && !e.target.closest?.('.hero-st')) closeInfo(false);
+});
+// the sheet is modal: Tab wraps around inside it instead of leaving for the browser's controls
+$('ownPanel').addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab' || !$('ownPanel').matches(':modal')) return;
+  const all = [...$('ownPanel').querySelectorAll('button:not([disabled]), input, a[href]')].filter((el) => el.offsetParent !== null);
+  const first = all[0], last = all.at(-1);
+  if (e.shiftKey && (document.activeElement === first || document.activeElement === $('ownTitle'))) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+});
+$('ownPanel').addEventListener('focusout', (e) => {
+  if (!$('ownPanel').matches(':modal') && e.relatedTarget && !$('ownPanel').contains(e.relatedTarget) && e.relatedTarget !== $('ownToggle')) setOwn(false, false);
+});
+/**
+ * Escape closes the top layer only, before the game sees it: ingredient details, then the picker. (The machine has its own
+ * handler.) Capture on window runs first wherever focus is, so one press never also leaves a room.
+ */
+addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || !$('mix').hidden) return;
+  if (infoFor) closeInfo(true);
+  else if (pickerOpen()) setOwn(false);
+  else return;
+  e.preventDefault();
+  e.stopImmediatePropagation();
+}, true);
+// in a room the card is folded: this opens it, and folds it again ("Back to room")
+function setPeek(open) {
+  document.body.classList.toggle('hero-peek', open);
+  $('heroExpand').setAttribute('aria-expanded', String(open));
+  $('heroExpand').textContent = open ? 'Back to room ↑' : 'Mix 3 repos into ideas ↓';
+  if (!open) { setOwn(false, false); closeInfo(false); }
+}
+$('heroExpand').addEventListener('click', () => setPeek(!document.body.classList.contains('hero-peek')));
 $('mixSurprise').addEventListener('click', () => {
   trackOnce('card/shuffle', 'Idea Shower: card shuffled');
   if (ingredients.length === 3) ingredients.length = 0; // a finished mix: shuffle starts over
@@ -1433,9 +1684,10 @@ function maybeNudge(saved) {
 }
 
 // ----- the machine -----
-function openMix(mode) {
+function openMix(mode, from) {
   mixMode = mode;
-  if ($('mix').hidden) mixFrom = document.activeElement;
+  if ($('mix').hidden) mixFrom = from ?? document.activeElement;
+  setOwn(false, false); closeInfo(false);
   keys.clear(); pressed.clear();
   $('mix').hidden = false;
   document.body.classList.add('mix-open');
@@ -1665,7 +1917,7 @@ setCurrent(0);
 setInterval(() => {
   $('where').textContent = state === 'room' && roomPlat ? `Room · ${roomPlat.room.title}` : current >= 0 ? plats[current].room.title : 'Today’s trail';
 }, 200);
-addEventListener('resize', () => { if (state === 'room') select(sel, true); });
-document.fonts?.ready.then(() => placeCard());
+addEventListener('resize', () => { if (state === 'room') { fitWall(); select(sel, true); } });
+document.fonts?.ready.then(() => { placeCard(); if (state === 'room') fitWall(); });
 requestAnimationFrame(frame);
 </script>
