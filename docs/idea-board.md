@@ -2,9 +2,9 @@
 
 The idea board lets a visitor publish one of their Idea Shower ideas, share its permanent link, and collect stars from other GitHub accounts. During the launch phase, W20 Labs builds one community prototype a week: the eligible idea that earned the most new stars that week.
 
-> **Proposed public commitment (needs owner approval before launch):** Every week, we build and share an open-source prototype of the idea that earns the most new stars that week.
+> **Public commitment (approved by the owner):** Every week, we build and share an open-source prototype of the idea that earns the most new stars that week.
 >
-> Until it's approved, the page shows this sentence with a "Proposed wording, pending approval" tag. Approving it means setting `POLICY_APPROVED = true` in `prototypes/board/board.js`.
+> `POLICY_APPROVED = true` in `prototypes/board/board.js` shows it without the "Proposed wording, pending approval" tag. Changing the sentence later needs the owner's approval again.
 
 The board is **off by default** and nothing in this document has been deployed. Turning it on is an owner decision (see [Activation](#activation)).
 
@@ -207,7 +207,7 @@ Not done in this change. In order, when approved:
 4. **Site:** add the Actions variable `BOARD_ENABLED` = `1` (passed to the build next to `IDEAS_URL`) and run the Deploy workflow.
 5. Check: open `#ideas`, sign in, publish a test idea, star it from a second account, then hide it with `board-admin`.
 
-Before step 4, decide the weekly-build wording: set `POLICY_APPROVED = true` in `prototypes/board/board.js` once it's approved, or change the sentence.
+The weekly-build wording is approved (`POLICY_APPROVED = true` in `prototypes/board/board.js`).
 
 **Rollback:** set the Actions variable `BOARD_ENABLED` to `0` and redeploy the site (the board disappears); set the Worker's `BOARD_ENABLED = "0"` and deploy (its routes and cron stop). Data stays in D1 for a later re-enable. To remove everything: `npx wrangler d1 delete repo-safari-board`.
 
