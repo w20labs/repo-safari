@@ -1,6 +1,6 @@
 # Idea Shower: running, launching and reading the results
 
-The Idea Shower is a small experiment inside Repo Safari. A card at the top of the page always offers 3 repos (the visitor's stickers when they have 3, otherwise random repos from this week's trail). **Mix these 3** opens the pipe machine and starts it in one click; **🎲 Shuffle** swaps the 3, and **✏️ or build your own** searches this week's repos. Stickers can also be picked with "+ mix" in the album or from the one-time nudge at the 3rd sticker. The pipe machine sends them to one Cloudflare Worker, and the Worker asks Claude for 3 ideas: useful, unexpected and ridiculous. Each idea can be copied, or copied as a build prompt for a coding agent, and a whole mix can be shared as a link.
+The Idea Shower is a small experiment inside Repo Safari. A card at the top of the page always offers 3 repos (the visitor's stickers when they have 3, otherwise random repos from this week's trail). **Mix these 3** opens the pipe machine and starts it in one click; **🎲 Shuffle** swaps the 3, and **✏️ or build your own** searches this week's repos. Build your own lists the visitor's stickers first as one-tap picks; the one-time nudge at the 3rd sticker offers the 3 newest. The pipe machine sends them to one Cloudflare Worker, and the Worker asks Claude for 3 ideas: useful, unexpected and ridiculous. Each idea can be copied, or copied as a build prompt for a coding agent, and a whole mix can be shared as a link.
 
 It answers two questions:
 
@@ -91,7 +91,7 @@ Open https://repo-safari.goatcounter.com and set the date range to the launch pe
 | `card/shown` | The Idea Shower card was on the page | Once per page load |
 | `card/shuffle` | Pressed 🎲 Shuffle on the card | Once per page load |
 | `card/own` | Opened ✏️ or build your own | Once per page load |
-| `machine/open` | Started a mix: a first pick ("+ mix" or build your own), Mix these 3, the nudge, or Mix these yourself | Once per page load |
+| `machine/open` | Started a mix: a first pick in build your own, Mix these 3, the nudge, or Mix these yourself | Once per page load |
 | `machine/three` | Reached 3 ingredients | Once per page load |
 | `ideas/try` | Asked the Worker for ideas (a real request was sent) | Once per page load |
 | `ideas/generated` | Got a first set of ideas | Once per page load |
@@ -120,6 +120,6 @@ Two health checks, not pass or fail:
 
 - **Reliability:** `ideas/generated` ÷ `ideas/try`: of the visits that asked for ideas, how many got them. Well under 90% means errors or the daily cap; check the Worker logs.
 - **Picking:** `machine/three` ÷ `machine/open`: of the visits that started choosing repos, how many got to 3. Low means choosing is the hard part, not the ideas.
-- **Which way in:** compare `entry/top`, `entry/nudge` and `machine/open` (the rest started by hand with "+ mix" or build your own). `card/shuffle` and `card/own` show whether people want to choose their repos rather than take the offered 3.
+- **Which way in:** compare `entry/top`, `entry/nudge` and `machine/open` (the rest started by picking in build your own). `card/shuffle` and `card/own` show whether people want to choose their repos rather than take the offered 3.
 
 Costs to watch in the Anthropic console: at most 300 generations a day, one Sonnet call each.
