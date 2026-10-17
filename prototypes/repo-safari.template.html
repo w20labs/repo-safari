@@ -29,7 +29,10 @@ a { color: var(--teal); }
 :focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; border-radius: 6px; }
 kbd { font-family: var(--mono); font-size: 11px; background: var(--sunken); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; color: var(--text); white-space: nowrap; }
 
-header.top { display: flex; align-items: end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+header.top { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px 24px; align-items: end; }
+header.top.has-hero { grid-template-columns: minmax(0, 1fr) minmax(320px, 420px); align-items: stretch; }
+header.top.has-hero .intro { align-content: center; }
+.intro { display: grid; gap: 12px; align-content: end; min-width: 0; }
 .brand { font-family: var(--display); font-size: clamp(26px, 4.4vw, 38px); line-height: 1; margin: 0; }
 .brand span { color: var(--lime); }
 .pitch { color: var(--muted); margin: 6px 0 0; max-width: 64ch; text-wrap: pretty; }
@@ -173,6 +176,14 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .w20-item b { display: block; font-family: var(--display); font-weight: 400; font-size: 15px; }
 .w20-item small { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; line-height: 1.35; }
 .w20-go { color: var(--lime); font-weight: 700; }
+.w20-social { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.w20-soc { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--raised); border: 1px solid var(--line); color: var(--text); text-decoration: none; transition: border-color .15s, transform .15s; }
+.w20-soc:hover, .w20-soc:focus-visible { border-color: var(--lime); transform: translateY(-1px); }
+.w20-soc svg { width: 20px; height: 20px; flex: none; }
+.w20-soc:hover svg, .w20-soc:focus-visible svg { color: var(--lime); }
+.w20-soc b { display: block; font-size: 14px; }
+.w20-soc small { display: block; color: var(--muted); font: 12px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.w20-soc > span { min-width: 0; }
 .howto { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--muted); }
 .fine { font-size: 12.5px; color: var(--muted); margin: 0; }
 @media (max-width: 760px) {
@@ -183,19 +194,54 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
   .detail p { font-size: 13.5px; }
 }
 /* ---------- Idea Shower: 3 stickers in, 3 product ideas out ---------- */
-.mixbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border: 1px dashed rgba(212,242,92,.5); border-radius: 12px; background: var(--sunken); }
-.mixbar[hidden], .mix[hidden], .mix-note[hidden], #mixHint[hidden], #mixPrivacy[hidden] { display: none; }
-.mixbar-t { font-family: var(--display); font-size: 13px; color: var(--lime); }
-.mixbar-n { font: 600 12px var(--mono); color: var(--muted); }
-.mix-chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 160px; min-width: 0; }
-.mix-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 1px 2px 1px 10px; border-radius: 999px; background: var(--raised); border: 1px solid var(--line); font: 600 12px var(--mono); }
+.hero[hidden], .mix[hidden], .mix-note[hidden] { display: none; }
+.hero {
+  position: relative; display: grid; gap: 12px; min-width: 0; padding: 14px 16px 12px; border-radius: 16px;
+  background: radial-gradient(120% 90% at 100% 0%, rgba(212,242,92,.14), transparent 60%), var(--panel);
+  border: 1px solid rgba(212,242,92,.55); box-shadow: 0 0 0 4px rgba(212,242,92,.06), 0 18px 40px rgba(0,0,0,.35);
+}
+.hero-k { display: flex; justify-content: space-between; align-items: center; gap: 8px; font: 700 11.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--lime); }
+.hero-new { padding: 2px 8px; border-radius: 999px; background: var(--lime); color: #12160a; font-size: 10px; }
+.hero h2 { margin: -4px 0 0; font-family: var(--display); font-weight: 400; font-size: clamp(17px, 2vw, 20px); line-height: 1.15; }
+.hero-mix { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 6px; padding: 4px 2px; }
+.hero-plus { color: var(--lime); font: 700 16px var(--mono); }
+.hero-st {
+  position: relative; min-width: 0; display: grid; gap: 1px; padding: 7px 8px; border-radius: 10px; background: var(--paper); color: var(--ink);
+  box-shadow: 0 0 0 2px #F3F4F8; transform: rotate(var(--rot)); transition: transform .2s; text-align: left;
+}
+.hero-st b { font-family: var(--display); font-weight: 400; font-size: 12px; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hero-st span { font: 600 10px var(--mono); opacity: .7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hero-st.yours::after { content: '✓ yours'; position: absolute; left: 6px; top: -9px; background: var(--ink); color: var(--lime); font: 700 9px var(--mono); padding: 1px 6px; border-radius: 99px; }
+.hero:hover .hero-st { transform: rotate(0deg); }
+.hero-acts { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.hero-acts .btn.go { min-height: 44px; font-size: 15px; }
+.hero-acts .btn { min-height: 44px; }
+.hero-own { justify-self: center; margin-top: -4px; padding: 4px 8px; border: 0; background: none; color: var(--teal); font: 600 13.5px var(--ui); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.hero-own:hover { color: var(--text); }
+.own[hidden] { display: none; }
+.own { display: grid; gap: 8px; padding: 10px; border-radius: 12px; background: var(--sunken); border: 1px solid var(--line); }
+.own-picked { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.mix-chip { display: inline-flex; align-items: center; max-width: 100%; padding: 1px 2px 1px 10px; border-radius: 999px; background: var(--raised); border: 1px solid rgba(212,242,92,.5); color: var(--text); font: 600 12px var(--mono); }
 .mix-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mix-chip button { border: 0; background: none; color: var(--muted); font: 700 15px/1 var(--ui); cursor: pointer; min-width: 28px; min-height: 28px; }
 .mix-chip button:hover { color: var(--text); }
-.btn.shower-top[hidden] { display: none; }
-.btn.shower-top { border-color: rgba(212,242,92,.6); color: var(--lime); }
-.shower-top b { padding: 1px 7px; border-radius: 999px; background: var(--sunken); color: var(--muted); font: 700 11px var(--mono); }
-.shower-top.ready b { background: var(--lime); color: #12160a; }
+.own-q { width: 100%; min-height: 38px; padding: 6px 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: 14px var(--ui); }
+.own-q:focus-visible { border-color: var(--lime); outline: none; }
+.own-list { display: grid; gap: 4px; max-height: 220px; overflow-y: auto; }
+.own-list:empty { display: none; }
+.own-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 6px 9px; border-radius: 8px; border: 1px solid transparent; background: none; color: var(--text); text-align: left; cursor: pointer; font: inherit; }
+.own-item:hover, .own-item:focus-visible { background: var(--raised); border-color: var(--line); outline: none; }
+.own-item b { font: 600 13px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.own-item span { font: 12px var(--mono); color: var(--muted); }
+.own-item small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.own-item:disabled { opacity: .45; cursor: default; }
+.hero-fine { margin: 0; font-size: 12.5px; color: var(--muted); text-wrap: pretty; }
+@media (max-width: 860px) { header.top.has-hero { grid-template-columns: minmax(0, 1fr); } }
+@media (prefers-reduced-motion: no-preference) {
+  .hero-st.fresh { animation: drop-in .35s cubic-bezier(.2,1.4,.4,1) both; }
+  .hero-st.fresh:nth-child(3) { animation-delay: .06s; } .hero-st.fresh:nth-child(5) { animation-delay: .12s; }
+}
+@keyframes drop-in { from { transform: translateY(-10px) rotate(0deg); opacity: 0; } }
 .album.mixing { row-gap: 24px; }
 .mini-mix { position: absolute; left: 6px; bottom: -11px; z-index: 1; min-height: 24px; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: 700 10.5px var(--mono); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.4); }
 .mini-mix.on { background: var(--lime); border-color: var(--lime); color: #12160a; }
@@ -269,12 +315,25 @@ body.mix-open { overflow: hidden; }
 </style>
 
 <div class="wrap">
-  <header class="top">
-    <div>
+  <header class="top" id="top">
+    <div class="intro">
       <h1 class="brand">REPO <span>SAFARI</span></h1>
       <p class="pitch">A new trail through open source every day. Each platform is a category. Drop into its room to compare its leading active repos, ranked by stars, with the new ones marked. Save the ones you like as stickers.</p>
+      <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag lime" id="streakTag" hidden></span><span class="tag" id="nextTag">New trail at 00:00 UTC</span><button type="button" class="btn sound" id="soundBtn" aria-pressed="true">♪ Sound on</button></div>
     </div>
-    <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag lime" id="streakTag" hidden></span><span class="tag" id="nextTag">New trail at 00:00 UTC</span><button type="button" class="btn shower-top" id="showerTop" hidden aria-label="Idea Shower: mix 3 stickers into product ideas">🧪 Idea Shower <b id="showerBadge"></b></button><button type="button" class="btn sound" id="soundBtn" aria-pressed="true">♪ Sound on</button></div>
+    <aside class="hero" id="hero" hidden aria-labelledby="heroTitle">
+      <div class="hero-k"><span>🧪 Idea Shower</span><span class="hero-new">New</span></div>
+      <h2 id="heroTitle">Mix 3 repos into 3 product ideas</h2>
+      <div class="hero-mix" id="mixChips"></div>
+      <div class="hero-acts"><button type="button" class="btn go" id="mixGo">Mix these 3 →</button><button type="button" class="btn" id="mixSurprise" aria-label="Shuffle the 3 repos">🎲 Shuffle</button></div>
+      <button type="button" class="hero-own" id="ownToggle" aria-expanded="false" aria-controls="ownPanel">✏️ or build your own</button>
+      <div class="own" id="ownPanel" hidden>
+        <div class="own-picked" id="ownPicked"></div>
+        <input type="search" class="own-q" id="ownQ" placeholder="Search this week’s repos" aria-label="Search this week’s repos" autocomplete="off" spellcheck="false">
+        <div class="own-list" id="ownList" role="list"></div>
+      </div>
+      <p class="hero-fine" id="mixHint"></p>
+    </aside>
   </header>
 
   <section class="stage" id="stage" aria-label="Today's trail">
@@ -314,18 +373,9 @@ body.mix-open { overflow: hidden; }
   <section class="below">
     <div class="box">
       <h2>Your sticker album <small id="albumCount" tabindex="-1">0 stickers</small></h2>
-      <div class="mixbar" id="mixbar" hidden>
-        <span class="mixbar-t">🧪 Idea Shower</span>
-        <span class="mixbar-n" id="mixCount">Ingredients 0/3</span>
-        <span class="mix-chips" id="mixChips"></span>
-        <button type="button" class="btn" id="mixSurprise">🎲 Surprise me</button>
-        <button type="button" class="btn go" id="mixGo" disabled>Mix 3 stickers</button>
-      </div>
-      <p class="fine" id="mixHint" hidden></p>
       <div class="album" id="album"></div>
       <p class="empty" id="albumEmpty">No stickers yet. In any room, press <kbd>E</kbd> on a repo to keep it. Rising repos are rare stickers: they're only on the trail for a week.</p>
       <p class="fine">Your album is saved in this browser only. Use × on a sticker to remove it. We count visits anonymously with GoatCounter: no cookies, nothing personal.</p>
-      <p class="fine" id="mixPrivacy" hidden>Idea Shower: the 3 repo names you pick are sent to our server and to Anthropic to generate ideas. Shared links contain the mix itself in the URL and aren't stored by us. We collect no email or other personal data.</p>
     </div>
     <aside class="box w20" aria-labelledby="w20Title">
       <h2 id="w20Title">Made by W20 Labs</h2>
@@ -334,7 +384,7 @@ body.mix-open { overflow: hidden; }
         <a class="w20-item" href="https://w20labs.github.io/benchmark-brawl/" target="_blank" rel="noopener" data-w20="benchmark-brawl"><span class="w20-ic" aria-hidden="true">🥊</span><span><b>Benchmark Brawl</b><small>Real AI models fight with real benchmark scores. Bigger gap, bigger weapon.</small></span><span class="w20-go" aria-hidden="true">→</span></a>
         <a class="w20-item" href="https://reed.w20.ai" target="_blank" rel="noopener" data-w20="reed"><span class="w20-ic" aria-hidden="true">🎙️</span><span><b>Reed Dictation</b><small>Free, private dictation for Mac. Hold a shortcut, speak, release: clean text lands in the app you're using.</small></span><span class="w20-go" aria-hidden="true">→</span></a>
       </div>
-      <div class="acts"><a class="btn go" href="https://w20.ai" target="_blank" rel="noopener" data-w20="site">Visit w20.ai</a><a class="btn" href="https://github.com/w20labs" target="_blank" rel="noopener" data-w20="github">W20 Labs on GitHub</a></div>
+      <div class="w20-social"><a class="w20-soc" href="https://github.com/w20labs" target="_blank" rel="noopener" data-w20="github"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg><span><b>GitHub</b><small>github.com/w20labs</small></span></a><a class="w20-soc" href="https://x.com/w20labs" target="_blank" rel="noopener" data-w20="x"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span><b>X</b><small>@w20labs</small></span></a></div>
     </aside>
   </section>
   <div class="mix" id="mix" hidden>
@@ -1254,25 +1304,45 @@ function toggleIngredient(name) {
   document.querySelector(`.mini-mix[data-mix="${CSS.escape(name)}"]`)?.focus({ preventScroll: true });
   if (ingredients.length === 3) { trackOnce('machine/three', 'Idea Shower: 3 ingredients'); openMix('mix'); }
 }
-function renderMixbar() {
+/** The 3 repos the top card offers: your "+ mix" picks first, then album stickers or this week's trail. */
+let preview = null, previewFromAlbum = false;
+function renderMixbar(fresh = false) {
   if (!SHOWER) return;
-  $('mixbar').hidden = false;
-  $('mixHint').hidden = false;
-  $('mixPrivacy').hidden = false;
-  $('mixCount').textContent = `Ingredients ${ingredients.length}/3`;
-  $('mixChips').replaceChildren(...ingredients.map((n) => h('span', { class: 'mix-chip', title: n }, h('span', null, short(n)),
-    h('button', { type: 'button', 'aria-label': `Take ${n} out of the mix`, onclick: () => toggleIngredient(n) }, '×'))));
-  const ready = mixable().length;
-  $('showerTop').hidden = false;
-  $('showerTop').classList.toggle('ready', ready >= 3);
-  $('showerBadge').textContent = ready >= 3 ? 'ready' : `${ready}/3`;
-  $('mixGo').disabled = ingredients.length !== 3;
-  $('mixGo').textContent = ingredients.length === 3 ? 'Open the machine' : 'Mix 3 stickers';
-  $('mixHint').textContent = album.size >= 3 || ingredients.length
-    ? 'Press “+ mix” on 3 stickers to turn them into product ideas.'
-    : 'Save 3 stickers on the trail and mix them into product ideas, or press “🎲 Surprise me” to mix repos from this week’s trail.';
+  $('hero').hidden = false;
+  $('top').classList.add('has-hero');
+  const fromAlbum = mixable().length >= 3;
+  if (ingredients.length === 3) preview = [...ingredients];
+  else if (!preview || fromAlbum !== previewFromAlbum || !ingredients.every((n) => preview.includes(n))) { preview = pickThree(ingredients); fresh = true; }
+  previewFromAlbum = fromAlbum;
+  const chips = [];
+  preview.forEach((n, k) => {
+    const r = REPOS.get(n);
+    const paper = album.get(n)?.paper ?? PALETTE[fnv(n) % PALETTE.length][1];
+    if (k) chips.push(h('span', { class: 'hero-plus', 'aria-hidden': 'true' }, '+'));
+    chips.push(h('div', { class: `hero-st${ingredients.length < 3 && ingredients.includes(n) ? ' yours' : ''}${fresh ? ' fresh' : ''}`, style: `--paper:${paper}; --rot:${ROTS[(k * 2 + 1) % ROTS.length]}deg`, title: r?.desc ? `${n}: ${r.desc}` : n },
+      h('b', null, short(n)), h('span', null, r ? `★ ${kfmt(r.stars)}` : n.split('/')[0])));
+  });
+  $('mixChips').replaceChildren(...chips);
+  renderOwn();
+  $('mixChips').setAttribute('aria-label', `Ingredients: ${preview.map(short).join(', ')}`);
+  const done = ingredients.length === 3 && result && sameMix(result.repos, ingredients);
+  $('mixGo').textContent = done ? 'See the ideas →' : 'Mix these 3 →';
+  $('mixHint').textContent = done
+    ? 'Your ideas are ready. Shuffle for a fresh mix.'
+    : ingredients.length === 3
+      ? 'Your 3 picks are in. Press Mix to turn them into ideas.'
+      : ingredients.length
+    ? `${ingredients.length} of yours in the mix. Pick ${3 - ingredients.length} more, or Mix now and we’ll fill the rest.`
+    : fromAlbum
+      ? 'Picked from your album. Shuffle, or press “+ mix” on stickers to choose.'
+      : 'Random repos from today’s trail. Save stickers as you walk to mix your own.';
 }
-$('mixGo').addEventListener('click', () => openMix('mix'));
+// one click from landing to ideas: open the machine and turn it on, unless these 3 already have ideas
+$('mixGo').addEventListener('click', () => {
+  if (ingredients.length === 3) { trackOnce('entry/top', 'Idea Shower: opened from top'); openMix('mix'); }
+  else quickMix([...preview], 'top');
+  if (!(result && sameMix(result.repos, ingredients))) shower();
+});
 
 // ----- quick ways in: the top button, "Surprise me" and a one-time nudge at the 3rd sticker -----
 /** Album stickers that can go in a mix: only repos in this week's data. Oldest first (the album keeps save order). */
@@ -1304,12 +1374,46 @@ function quickMix(names, via) {
   renderAlbum();
   openMix('mix');
 }
-$('mixSurprise').addEventListener('click', () => quickMix(pickThree([], ingredients), 'surprise'));
-$('showerTop').addEventListener('click', () => {
-  const missing = 3 - mixable().length;
-  if (missing > 0) { toast(`Save ${missing} more sticker${missing === 1 ? '' : 's'} to mix them into product ideas. In a room, press E on a repo.`); return; }
-  if (ingredients.length === 3) { trackOnce('entry/top', 'Idea Shower: opened from top'); openMix('mix'); }
-  else quickMix(pickThree(ingredients), 'top');
+// ----- build your own: search this week's repos (the only ones the Worker accepts) and pick 3 -----
+function renderOwn() {
+  if ($('ownPanel').hidden) return;
+  $('ownPicked').replaceChildren(...(ingredients.length
+    ? ingredients.map((n) => h('span', { class: 'mix-chip', title: n }, h('span', null, short(n)),
+      h('button', { type: 'button', 'aria-label': `Take ${n} out of the mix`, onclick: () => { toggleOwn(n); $('ownQ').focus(); } }, '×')))
+    : [h('span', null, `Pick 3 of ${REPOS.size} repos on this week’s trail.`)]));
+  const q = $('ownQ').value.trim().toLowerCase();
+  const hits = !q ? [] : [...REPOS.values()]
+    .filter((r) => r.name.toLowerCase().includes(q) || (r.desc ?? '').toLowerCase().includes(q) || r.room.toLowerCase().includes(q))
+    .sort((a, b) => (short(b.name).toLowerCase().startsWith(q) - short(a.name).toLowerCase().startsWith(q)) || b.stars - a.stars)
+    .slice(0, 12);
+  $('ownList').replaceChildren(...(q && !hits.length ? [h('p', { class: 'hero-fine' }, 'Nothing on this week’s trail matches that.')] : hits.map((r) => {
+    const on = ingredients.includes(r.name);
+    return h('button', { type: 'button', class: 'own-item', role: 'listitem', disabled: !on && ingredients.length >= 3, 'aria-pressed': String(on), onclick: () => toggleOwn(r.name) },
+      h('b', null, `${on ? '✓ ' : ''}${r.name}`), h('span', null, `★ ${kfmt(r.stars)}`), h('small', null, r.desc || r.room));
+  })));
+}
+/** Like "+ mix" in the album, but stays in the card: the user presses Mix when ready. */
+function toggleOwn(name) {
+  const i = ingredients.indexOf(name);
+  if (i >= 0) ingredients.splice(i, 1);
+  else if (ingredients.length < 3 && REPOS.has(name)) { ingredients.push(name); trackOnce('machine/open', 'Idea Shower: first ingredient'); }
+  if (ingredients.length === 3) { trackOnce('machine/three', 'Idea Shower: 3 ingredients'); $('ownQ').value = ''; }
+  renderAlbum();
+  if (ingredients.length === 3) $('mixGo').focus({ preventScroll: true });
+}
+$('ownToggle').addEventListener('click', () => {
+  const open = $('ownPanel').hidden;
+  $('ownPanel').hidden = !open;
+  $('ownToggle').setAttribute('aria-expanded', String(open));
+  $('ownToggle').textContent = open ? 'Done building' : '✏️ or build your own';
+  if (open) { if (ingredients.length === 3 && result && sameMix(result.repos, ingredients)) { ingredients.length = 0; renderAlbum(); } renderOwn(); $('ownQ').focus(); }
+});
+$('ownQ').addEventListener('input', renderOwn);
+$('mixSurprise').addEventListener('click', () => {
+  if (ingredients.length === 3) ingredients.length = 0; // a finished mix: shuffle starts over
+  preview = pickThree(ingredients, preview);
+  renderAlbum();
+  renderMixbar(true);
 });
 const NUDGE_KEY = 'repo-safari-mix-nudged-v1';
 let nudged = false;
@@ -1339,6 +1443,7 @@ function openMix(mode) {
 function closeMix() {
   $('mix').hidden = true;
   document.body.classList.remove('mix-open');
+  renderMixbar();
   mixFrom?.focus?.({ preventScroll: true });
 }
 $('mixClose').addEventListener('click', closeMix);
