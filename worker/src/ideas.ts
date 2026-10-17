@@ -4,19 +4,22 @@
  *   POST /ideas  {repos: [3 repo names]}  ->  200 {ideas: [...]} | 400 | 429 {error: 'limit'} | 502/503
  *
  * Only repos the live site lists in repos.json are accepted, so this can't be used as a general AI proxy.
- * KV holds nothing but rate-limit counters: per visitor (a salted hash of the IP, never the IP) and per day.
+ * Rate limits live in one Durable Object (limiter.ts): per visitor (a salted hash of the IP, never the IP) and per day.
  */
 import Anthropic from '@anthropic-ai/sdk';
+import { PER_DAY, PER_VISITOR } from './limiter';
 
-/** The slice of Cloudflare's KV binding this Worker uses. */
-type Kv = {
-  get(key: string): Promise<string | null>;
-  put(key: string, value: string, options?: { expirationTtl?: number }): Promise<void>;
+export { PER_DAY, PER_VISITOR };
+
+/** The slice of the Durable Object namespace binding this Worker uses. */
+type Namespace = {
+  idFromName(name: string): unknown;
+  get(id: unknown): { fetch(url: string, init?: RequestInit): Promise<Response> };
 };
 export type Env = {
   ANTHROPIC_API_KEY: string;
   IP_SALT: string;
-  LIMITS: Kv;
+  LIMITER: Namespace;
   REPOS_URL: string;
   /** Comma-separated origins allowed to call the Worker. */
   ALLOWED_ORIGINS: string;
@@ -25,31 +28,42 @@ export type Env = {
 };
 
 export const MODEL = 'claude-sonnet-5-5';
-export const PER_VISITOR = 5;
-export const PER_DAY = 300;
 export const KINDS = ['useful', 'unexpected', 'ridiculous'] as const;
 export const MAX_FIELD = 400;
 const REPOS_TTL_MS = 3600_000;
+/** An unknown repo may mean the site just published a new list: refetch, but at most this often. */
+const REFRESH_MIN_MS = 60_000;
 
 export type Idea = { kind: (typeof KINDS)[number]; name: string; pitch: string; concept: string; inspiration: string };
 type Repo = { name: string; desc: string };
 
 let repoCache: { at: number; map: Map<string, Repo> } | null = null;
-/** The site's repo list, fetched at most once an hour. A stale copy beats none if the site is briefly down. */
-async function knownRepos(env: Env): Promise<Map<string, Repo>> {
-  if (repoCache && Date.now() - repoCache.at < REPOS_TTL_MS) return repoCache.map;
-  try {
-    const res = await fetch(env.REPOS_URL, { headers: { Accept: 'application/json' } });
-    if (!res.ok) throw new Error(`repos.json: ${res.status}`);
-    const list = (await res.json()) as Repo[];
-    repoCache = { at: Date.now(), map: new Map(list.map((r) => [r.name, { name: r.name, desc: String(r.desc ?? '').slice(0, 300) }])) };
-  } catch (e) {
-    if (!repoCache) throw e;
+let lastFetch = 0;
+let inflight: Promise<void> | null = null;
+/**
+ * The site's repo list, refetched once an hour, or sooner (at most once a minute) when `fresh` is asked for.
+ * Concurrent callers share one fetch. A stale copy beats none if the site is briefly down.
+ */
+async function knownRepos(env: Env, fresh = false): Promise<Map<string, Repo>> {
+  const now = Date.now();
+  const stale = !repoCache || now - repoCache.at >= REPOS_TTL_MS;
+  if ((stale || fresh) && (!repoCache || now - lastFetch >= REFRESH_MIN_MS)) {
+    inflight ??= (async () => {
+      lastFetch = Date.now();
+      // a fresh query string gets past GitHub Pages' 10-minute CDN cache
+      const res = await fetch(`${env.REPOS_URL}?t=${Date.now()}`, { headers: { Accept: 'application/json' } });
+      if (!res.ok) throw new Error(`repos.json: ${res.status}`);
+      const list = (await res.json()) as Repo[];
+      repoCache = { at: Date.now(), map: new Map(list.map((r) => [r.name, { name: r.name, desc: String(r.desc ?? '').slice(0, 300) }])) };
+    })().finally(() => { inflight = null; });
   }
-  return repoCache.map;
+  if (inflight) {
+    try { await inflight; } catch (e) { if (!repoCache) throw e; }
+  }
+  return repoCache!.map;
 }
 /** For tests: forget the cached repo list. */
-export function resetRepoCache() { repoCache = null; }
+export function resetRepoCache() { repoCache = null; lastFetch = 0; inflight = null; }
 
 /** Exactly 3 distinct repo names, or null. */
 export function parseRepos(body: unknown): string[] | null {
@@ -121,17 +135,13 @@ async function sha(text: string): Promise<string> {
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
 }
 
-/**
- * Count one generation against the visitor's and the day's limit. False if either is used up.
- * KV is eventually consistent, so the caps are approximate; that's fine for cost control.
- */
+/** Count one generation against the visitor's and the day's limit, atomically. False if either is used up. */
 async function takeSlot(env: Env, ip: string, day: string): Promise<boolean> {
-  const dayKey = `day:${day}`, visitorKey = `v:${day}:${await sha(`${env.IP_SALT}:${ip}`)}`;
-  const [total, mine] = await Promise.all([env.LIMITS.get(dayKey), env.LIMITS.get(visitorKey)]);
-  if (Number(total) >= PER_DAY || Number(mine) >= PER_VISITOR) return false;
-  const ttl = { expirationTtl: 2 * 86400 };
-  await Promise.all([env.LIMITS.put(dayKey, String(Number(total) + 1), ttl), env.LIMITS.put(visitorKey, String(Number(mine) + 1), ttl)]);
-  return true;
+  const visitor = await sha(`${env.IP_SALT}:${ip}`);
+  const stub = env.LIMITER.get(env.LIMITER.idFromName('global'));
+  const res = await stub.fetch('https://limiter/reserve', { method: 'POST', body: JSON.stringify({ visitor, day }) });
+  if (!res.ok) throw new Error(`limiter: ${res.status}`);
+  return ((await res.json()) as { ok: boolean }).ok === true;
 }
 
 async function generate(env: Env, repos: Repo[]): Promise<Idea[] | null> {
@@ -149,36 +159,52 @@ async function generate(env: Env, repos: Repo[]): Promise<Idea[] | null> {
   try { return text ? validIdeas(JSON.parse(text)) : null; } catch { return null; }
 }
 
-/** The Worker's request handler (src/index.ts exports it; a Worker entry module may export nothing else). */
+/** The Worker's request handler (src/index.ts exports it). Every answer, errors included, carries the CORS headers. */
 export async function handle(req: Request, env: Env): Promise<Response> {
-    const origin = req.headers.get('Origin') ?? '';
-    const allowed = env.ALLOWED_ORIGINS.split(',').map((s) => s.trim()).includes(origin);
-    const cors: Record<string, string> = allowed ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
-    const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...cors } });
+  const origin = req.headers.get('Origin') ?? '';
+  const allowed = env.ALLOWED_ORIGINS.split(',').map((s) => s.trim()).includes(origin);
+  const cors: Record<string, string> = allowed ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
+  const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...cors } });
+  try {
+    return await route(req, env, allowed, cors, json);
+  } catch (e) {
+    console.error('unexpected error:', e instanceof Error ? e.message : e);
+    return json(500, { error: 'internal' });
+  }
+}
 
-    const { pathname } = new URL(req.url);
-    if (pathname !== '/ideas') return json(404, { error: 'not_found' });
-    if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...cors, 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400' } });
-    if (req.method !== 'POST') return json(405, { error: 'method' });
-    if (!allowed) return json(403, { error: 'origin' });
+async function route(req: Request, env: Env, allowed: boolean, cors: Record<string, string>, json: (status: number, body: unknown) => Response): Promise<Response> {
+  const { pathname } = new URL(req.url);
+  if (pathname !== '/ideas') return json(404, { error: 'not_found' });
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...cors, 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400' } });
+  if (req.method !== 'POST') return json(405, { error: 'method' });
+  if (!allowed) return json(403, { error: 'origin' });
 
-    let names: string[] | null = null;
-    try { names = parseRepos(await req.json()); } catch { /* not JSON */ }
-    if (!names) return json(400, { error: 'repos' });
+  let names: string[] | null = null;
+  try { names = parseRepos(await req.json()); } catch { /* not JSON */ }
+  if (!names) return json(400, { error: 'repos' });
 
-    let known: Map<string, Repo>;
-    try { known = await knownRepos(env); } catch { return json(503, { error: 'unavailable' }); }
-    const repos = names.map((n) => known.get(n));
+  let known: Map<string, Repo>;
+  try { known = await knownRepos(env); } catch { return json(503, { error: 'unavailable' }); }
+  let repos = names.map((n) => known.get(n));
+  if (repos.some((r) => !r)) {
+    // maybe the site just published a new list: check once more before saying no
+    try { known = await knownRepos(env, true); } catch { /* keep the old list */ }
+    repos = names.map((n) => known.get(n));
     if (repos.some((r) => !r)) return json(400, { error: 'unknown_repo' });
+  }
 
-    const day = new Date().toISOString().slice(0, 10);
-    if (!(await takeSlot(env, req.headers.get('CF-Connecting-IP') ?? 'unknown', day))) return json(429, { error: 'limit' });
+  const day = new Date().toISOString().slice(0, 10);
+  let slot: boolean;
+  try { slot = await takeSlot(env, req.headers.get('CF-Connecting-IP') ?? 'unknown', day); }
+  catch (e) { console.error('limit check failed:', e instanceof Error ? e.message : e); return json(503, { error: 'busy' }); }
+  if (!slot) return json(429, { error: 'limit' });
 
-    try {
-      const ideas = await generate(env, repos as Repo[]);
-      return ideas ? json(200, { ideas }) : json(502, { error: 'bad_answer' });
-    } catch (e) {
-      console.error('anthropic call failed:', e instanceof Error ? e.message : e);
-      return json(502, { error: 'upstream' });
-    }
+  try {
+    const ideas = await generate(env, repos as Repo[]);
+    return ideas ? json(200, { ideas }) : json(502, { error: 'bad_answer' });
+  } catch (e) {
+    console.error('anthropic call failed:', e instanceof Error ? e.message : e);
+    return json(502, { error: 'upstream' });
+  }
 }

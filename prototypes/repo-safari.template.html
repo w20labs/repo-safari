@@ -630,7 +630,18 @@ function renderStreak() {
 renderStreak();
 
 /** Anonymous event count (GoatCounter, published site only); a no-op until or unless the counter loads. */
-function track(path, title) { try { window.goatcounter?.count?.({ path, title: title || path, event: true }); } catch { /* counting is optional */ } }
+/** Events wait here until GoatCounter's async script has loaded, so early ones (like card/shown) aren't lost. */
+const pendingCounts = [];
+function track(path, title) {
+  if (pendingCounts.length < 100) pendingCounts.push({ path, title: title || path, event: true });
+  flushCounts();
+}
+function flushCounts() {
+  const count = window.goatcounter?.count;
+  if (typeof count !== 'function') return;
+  for (const c of pendingCounts.splice(0)) { try { count(c); } catch { /* counting is optional */ } }
+}
+document.querySelector('script[data-goatcounter]')?.addEventListener('load', flushCounts);
 
 /** Restart a one-shot CSS animation class on an element. */
 function replay(el, cls) { if (!el || reduced) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); el.addEventListener('animationend', () => el.classList.remove(cls), { once: true }); }
@@ -1551,6 +1562,7 @@ function status(text, bad = false) { $('mixStatus').textContent = text; $('mixSt
 async function shower() {
   if (busy || limited || ingredients.length !== 3) return;
   const mix = [...ingredients];
+  trackOnce('ideas/try', 'Idea Shower: asked for ideas');
   busy = true;
   status('Mixing your three repos…');
   renderMix();

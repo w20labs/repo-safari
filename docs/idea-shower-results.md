@@ -14,7 +14,7 @@ It answers two questions:
 | Page | `prototypes/repo-safari.template.html` | Built by `scripts/build-safari-page.ts`. `IDEAS_URL` decides the mode: unset = no Idea Shower at all, `mock` = canned ideas, a URL = the Worker |
 | Repo list | `_site/repos.json` | Written by the build: every repo in the rooms and the Rising room. The Worker only accepts these |
 | Worker | `worker/src/ideas.ts` (entry `worker/src/index.ts`) | `POST /ideas` with `{repos: [3 names]}`. One `claude-sonnet-5-5` call, at most 1,200 output tokens, JSON-schema output, validated before it's returned |
-| Limits | Worker KV `LIMITS` | 5 generations per visitor per day (salted hash of the IP, never the IP), 300 per day in total. KV is eventually consistent, so both are approximate |
+| Limits | Durable Object `Limiter` (`worker/src/limiter.ts`) | 5 generations per visitor per day (salted hash of the IP, never the IP), 300 per day in total. One object handles every check-and-count in turn, so the caps are exact even when requests arrive together |
 | Analytics | GoatCounter, https://repo-safari.goatcounter.com | 11 events, each counted at most once per page load |
 
 ## Run it locally
@@ -71,7 +71,6 @@ Shared links are untrusted: the page checks `v === 1`, exactly 3 distinct repos 
    ```sh
    cd worker && npm ci
    npx wrangler login
-   npx wrangler kv namespace create LIMITS     # paste the id into wrangler.toml
    npx wrangler secret put ANTHROPIC_API_KEY
    npx wrangler secret put IP_SALT             # any long random string
    npx wrangler deploy                         # prints https://repo-safari-ideas.<account>.workers.dev
@@ -94,6 +93,7 @@ Open https://repo-safari.goatcounter.com and set the date range to the launch pe
 | `card/own` | Opened ✏️ or build your own | Once per page load |
 | `machine/open` | Started a mix: a first pick ("+ mix" or build your own), Mix these 3, the nudge, or Mix these yourself | Once per page load |
 | `machine/three` | Reached 3 ingredients | Once per page load |
+| `ideas/try` | Asked the Worker for ideas (a real request was sent) | Once per page load |
 | `ideas/generated` | Got a first set of ideas | Once per page load |
 | `ideas/again` | Generated a second time | Once per page load |
 | `idea/copy` | Copied an idea | Once per page load |
@@ -104,7 +104,7 @@ Open https://repo-safari.goatcounter.com and set the date range to the launch pe
 | `entry/surprise` | Pressed 🎲 Shuffle inside the machine | Once per page load |
 | `entry/nudge` | Pressed Mix them on the one-time toast at the 3rd sticker | Once per page load |
 
-GoatCounter can't follow a person, so these are ratios of events, not of people. A page load is the closest thing to a visit.
+Events that happen before GoatCounter's script has loaded wait in the page and are sent once it loads, so early ones like `card/shown` aren't lost. GoatCounter can't follow a person, so these are ratios of events, not of people. A page load is the closest thing to a visit.
 
 | Question | Formula | Yes if |
 |---|---|---|
@@ -118,7 +118,8 @@ Fun is a yes only if both parts pass.
 
 Two health checks, not pass or fail:
 
-- **Reliability:** `ideas/generated` ÷ `machine/three`. Mix these 3 sends the request as soon as the machine opens, so this is close to the share of requests that came back with ideas. Well under 90% means errors or the daily cap; check the Worker logs.
+- **Reliability:** `ideas/generated` ÷ `ideas/try`: of the visits that asked for ideas, how many got them. Well under 90% means errors or the daily cap; check the Worker logs.
+- **Picking:** `machine/three` ÷ `machine/open`: of the visits that started choosing repos, how many got to 3. Low means choosing is the hard part, not the ideas.
 - **Which way in:** compare `entry/top`, `entry/nudge` and `machine/open` (the rest started by hand with "+ mix" or build your own). `card/shuffle` and `card/own` show whether people want to choose their repos rather than take the offered 3.
 
 Costs to watch in the Anthropic console: at most 300 generations a day, one Sonnet call each.

@@ -1,4 +1,4 @@
-# Idea Shower: one Worker, one route (POST /ideas), KV only for rate limits.
+# Idea Shower: one Worker, one route (POST /ideas), one Durable Object for rate limits.
 # Secrets (never in this file): `npx wrangler secret put ANTHROPIC_API_KEY` and `npx wrangler secret put IP_SALT`.
 name = "repo-safari-ideas"
 main = "src/index.ts"
@@ -10,7 +10,11 @@ preview_urls = false # only the one public address can spend the key
 REPOS_URL = "https://w20labs.github.io/repo-safari/repos.json"
 ALLOWED_ORIGINS = "https://w20labs.github.io"
 
-# Created with `npx wrangler kv namespace create LIMITS`.
-[[kv_namespaces]]
-binding = "LIMITS"
-id = "8316eaa8a4bd448c8b45611a9b1b048a"
+# Rate limits: one Durable Object (src/limiter.ts), so every check-and-count is atomic.
+[[durable_objects.bindings]]
+name = "LIMITER"
+class_name = "Limiter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Limiter"]
