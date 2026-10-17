@@ -1379,7 +1379,7 @@ function renderOwn() {
     .slice(0, 12);
   const item = (r) => {
     const on = ingredients.includes(r.name);
-    return h('button', { type: 'button', class: 'own-item', disabled: !on && ingredients.length >= 3, 'aria-pressed': String(on), onclick: () => toggleOwn(r.name) },
+    return h('button', { type: 'button', class: 'own-item', disabled: !on && ingredients.length >= 3, 'aria-pressed': String(on), 'data-repo': r.name, onclick: () => pickOwn(r.name) },
       h('b', null, `${on ? '✓ ' : ''}${r.name}`), h('span', null, `★ ${kfmt(r.stars)}`), h('small', null, r.desc || r.room));
   };
   // nothing typed yet: your stickers, newest first, as one-tap picks
@@ -1387,6 +1387,11 @@ function renderOwn() {
   $('ownList').replaceChildren(...(q
     ? (hits.length ? hits.map(item) : [h('p', { class: 'hero-fine' }, 'Nothing on this week’s trail matches that.')])
     : mine.length ? [h('p', { class: 'own-label' }, 'Your stickers'), ...mine.map(item)] : []));
+}
+/** A tap on a list item. The list is rebuilt, so keep keyboard focus on the same repo's new button (the 3rd pick moves it to Mix). */
+function pickOwn(name) {
+  toggleOwn(name);
+  if (ingredients.length < 3) [...$('ownList').querySelectorAll('.own-item')].find((b) => b.dataset.repo === name)?.focus({ preventScroll: true });
 }
 /** Pick or unpick one repo; the card's Mix button turns the 3 into ideas. */
 function toggleOwn(name) {
