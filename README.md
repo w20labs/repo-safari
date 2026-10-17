@@ -37,7 +37,7 @@ Keep the ones you like. No sign-up, no quiz, nothing to lose. A walk takes about
 2. **Drop in.** The room shows up to eight selected active repos from that category as stickers, most stars first, with forks, open issues, language and last commit. A 🤝 badge shows how many pull requests from outside contributors were merged in the last 90 days: a project other people actually contribute to, not just one that's still being pushed to.
 3. **Collect.** Save the ones you want to remember. They go into your sticker album.
 4. **Reach the end.** This week's rising repos sit on a high platform at the end of the trail. Getting there takes a double jump, and their stickers are rare.
-5. **Mix (experiment).** The Idea Shower card at the top offers 3 repos: your stickers, or random repos from this week's trail. Press **Mix these 3**, shuffle them, or build your own (your stickers are one tap away, or search this week's repos), and turn them into three product ideas: useful, unexpected and ridiculous. Copy an idea, copy a ready-made prompt for your coding agent, or share the mix as a link.
+5. **Mix (experiment).** The Idea Shower card at the top offers 3 repos, each with what it does: your stickers, or random repos from this week's trail. Press **Mix these 3**, shuffle them, or **Choose repos** (your stickers are one tap away, or search this week's repos), and turn them into three product ideas: useful, unexpected and ridiculous. Copy an idea, copy a ready-made prompt for your coding agent, or share the mix as a link.
 
 <table>
   <tr>
@@ -83,7 +83,7 @@ There's no account. Your sticker album is saved in your own browser (`localStora
 
 **Idea Shower:** the 3 repo names you pick are sent to our server and to Anthropic to generate ideas. Shared links contain the mix itself in the URL and aren't stored by us. We collect no email or other personal data.
 
-To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts six anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, Share pressed, the length of your streak on the first walk of each day, and which W20 Labs link was clicked. The Idea Shower adds fifteen more, each at most once per visit: card shown, card shuffled, build your own opened, machine opened, 3 ingredients picked, which way it was opened (the card, Shuffle in the machine or the 3-sticker nudge), ideas asked for, ideas generated, generated again, idea copied, build prompt copied, mix shared, and a shared mix opened. The mix itself is never counted.
+To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts six anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, Share pressed, the length of your streak on the first walk of each day, and which W20 Labs link was clicked. The Idea Shower adds fifteen more, each at most once per visit: card shown, card shuffled, Choose repos opened, machine opened, 3 ingredients picked, which way it was opened (the card, Shuffle in the machine or the 3-sticker nudge), ideas asked for, ideas generated, generated again, idea copied, build prompt copied, mix shared, and a shared mix opened. The mix itself is never counted.
 
 ## Run it locally
 
