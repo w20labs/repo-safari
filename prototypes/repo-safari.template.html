@@ -1914,6 +1914,12 @@ if (BOARD) {
     h, $, toast, track, trackOnce, tagline, kfmt, short, IDEAS_URL, SITE, isReduced: () => reduced, closeMix,
     /** Let go of anything held in the game (a key still down, a pad button pressed), as the repo picker does. */
     pauseGame() { keys.clear(); pressed.clear(); body.vx = 0; for (const b of document.querySelectorAll('#pad button.on')) b.classList.remove('on'); },
+    /** "Create an idea": bring the Idea Shower card into view (unfolding it in a room) and focus its Mix button. */
+    focusShower() {
+      if (document.body.classList.contains('in-room')) setPeek(true);
+      $('hero').scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' });
+      $('mixGo').focus({ preventScroll: true });
+    },
     /** After a sign-in round trip: put the generated mix back, so "See the ideas" still works. */
     restoreResult(r) {
       if (!r || !Array.isArray(r.repos) || r.repos.length !== 3 || !r.repos.every((n) => REPOS.has(n))) return;

@@ -12,6 +12,10 @@
   const VIEWS = [['top', 'Top this week'], ['new', 'New'], ['building', 'Building'], ['built', 'Built']];
   const KIND = { useful: 'Useful', unexpected: 'Unexpected', ridiculous: 'Ridiculous' };
   const POLICY = 'Every week, we build and share an open-source prototype of the idea that earns the most new stars that week.';
+  /** The weekly-build promise is the owner's call. Until it's approved, the page marks it as proposed wording. */
+  const POLICY_APPROVED = false;
+  const policyLine = (cls) => h('p', { class: cls }, POLICY_APPROVED ? null : h('span', { class: 'board-tag' }, 'Proposed wording, pending approval'), POLICY_APPROVED ? null : ' ', POLICY);
+  const STATUS = { selected: 'Queued', building: 'Building', built: 'Built', held: 'On hold', declined: 'Declined' };
 
   // ---------- small helpers ----------
   const store = {
@@ -101,7 +105,7 @@
           h('h2', { id: 'boardTitle' }, '💡 Idea board'),
           h('div', { class: 'board-account', id: 'boardAccount' }),
           h('button', { type: 'button', class: 'btn board-close', 'aria-label': 'Close the idea board', onclick: close }, '×')),
-        h('p', { class: 'board-policy' }, POLICY),
+        policyLine('board-policy'),
         h('section', { class: 'board-contest', id: 'boardContest', 'aria-label': 'This week’s contest' }),
         rules(),
         h('div', { class: 'board-tabs', role: 'tablist', 'aria-label': 'Board views', id: 'boardTabs' },
@@ -185,6 +189,7 @@
     state.contest = r.ok ? { ...r.data, fetchedAt: Date.now() } : null;
     state.contestError = !r.ok;
     renderContest();
+    homeWeek(); // only the countdown line: a full redraw would drop focus from the star just pressed
   }
   function renderContest() {
     const box = root?.querySelector('#boardContest');
@@ -382,7 +387,7 @@
     }
     const before = findIdea(id)?.totalStars ?? 0;
     if (r.data.starred) state.starred.add(id); else state.starred.delete(id);
-    for (const it of [...state.items, state.detail?.idea].filter((x) => x?.id === id)) { it.totalStars = r.data.total; it.weekStars = r.data.week; }
+    for (const it of [...state.items, state.detail?.idea, ...home.items].filter((x) => x?.id === id)) { it.totalStars = r.data.total; it.weekStars = r.data.week; }
     if (r.data.starred) trackOnce('board/star', 'Idea board: starred an idea');
     const name = findIdea(id)?.name ?? 'the idea';
     announce(r.data.starred ? `Starred ${name}. ${r.data.total} total.` : `Removed your star from ${name}.`);
@@ -390,7 +395,8 @@
     for (const m of [10, 100]) if (before < m && r.data.total >= m) celebrate(id, m);
     // the vote may change the leader, ranks and ties: refresh them from the server, in place
     loadContest();
-    refreshRanks(id);
+    if (root && !root.hidden) refreshRanks(id);
+    refreshHome(id);
   }
   /**
    * Re-reads the ranking after a vote and updates each card's numbers and tie note where it is: cards don't jump
@@ -417,9 +423,10 @@
     panel.querySelector('.board-resort')?.remove();
     if (!sorted) panel.prepend(h('p', { class: 'board-muted board-resort' }, 'The ranking changed. ', h('button', { type: 'button', class: 'btn board-link', onclick: () => show('top', true) }, 'Show the new order')));
   }
-  const findIdea = (id) => (state.detail?.idea?.id === id ? state.detail.idea : state.items.find((x) => x.id === id));
+  const findIdea = (id) => (state.detail?.idea?.id === id ? state.detail.idea : state.items.find((x) => x.id === id) ?? home.items.find((x) => x.id === id));
   /** Updates one card in place: no reordering, and focus stays on the same button. */
   function refreshIdea(id) {
+    homeRow(id);
     const i = findIdea(id);
     const el = root?.querySelector(`.board-card[data-id="${id}"]`);
     if (!i || !el) return;
@@ -433,7 +440,7 @@
     if (!el || el.querySelector('.board-party')) return;
     el.append(h('p', { class: `board-party${S.isReduced() ? '' : ' pop'}` }, `🎉 ${m} stars! A milestone for fun: the weekly pick still goes to new stars.`));
   }
-  const announce = (text) => { const live = root?.querySelector('#boardLive'); if (live) live.textContent = text; };
+  const announce = (text) => { for (const live of document.querySelectorAll('#boardLive, #homeLive')) live.textContent = text; };
 
   // ---------- sharing ----------
   async function share(i, btn) {
@@ -517,6 +524,131 @@
     if (state.detail) show(state.view, true); else close();
   }, true);
 
+  // ---------- on the landing page: this week's top ideas and the build queue, below the game ----------
+  const home = { el: null, items: [], loading: true, error: false, feature: null, featureKind: null };
+  function buildHome() {
+    home.el = h('section', { class: 'lb', id: 'ideaBoardSection', 'aria-labelledby': 'lbTitle' });
+    const after = document.querySelector('.howto') ?? document.getElementById('pad');
+    after?.after(home.el);
+    loadHome();
+  }
+  async function loadHome() {
+    home.loading = true; home.error = false; renderHome();
+    const [top, contest] = await Promise.all([api('/board/ideas?view=top&limit=5'), api('/board/contest')]);
+    if (contest.ok) { state.contest = { ...contest.data, fetchedAt: Date.now() }; state.contestError = false; }
+    home.loading = false;
+    if (!top.ok || !contest.ok) { home.error = true; renderHome(); return; }
+    home.items = top.data.items;
+    await loadMine(home.items.map((i) => i.id));
+    // the build card: last week's pick if there was one; otherwise a project from the build queue
+    const prev = state.contest.previous;
+    home.feature = null; home.featureKind = null;
+    if (prev?.winner) { home.feature = prev.winner; home.featureKind = 'last'; }
+    else {
+      for (const view of ['building', 'built']) {
+        const q = await api(`/board/ideas?view=${view}&limit=1`);
+        if (q.ok && q.data.items[0]) { home.feature = q.data.items[0]; home.featureKind = 'queue'; break; }
+      }
+    }
+    renderHome();
+  }
+  const homeLoop = () => h('ol', { class: 'lb-loop', 'aria-label': 'How it works' }, ...['Mix repos', 'Publish an idea', 'Collect stars', 'Weekly pick'].map((t, k) => h('li', null, h('b', { 'aria-hidden': 'true' }, `${k + 1}`), t)));
+  function homeStar(i) {
+    const on = state.starred.has(i.id), busy = state.pending.has(i.id);
+    return h('button', { type: 'button', class: `btn lb-star${on ? ' on' : ''}`, 'data-star': i.id, 'aria-pressed': String(on), 'aria-label': `Star ${i.name}`,
+      'aria-busy': busy ? 'true' : null, 'aria-disabled': busy ? 'true' : null, onclick: () => setStar(i.id, !on) }, on ? '★ Starred' : '☆ Star');
+  }
+  function homeRowEl(i) {
+    return h('li', { class: 'lb-row', 'data-id': i.id },
+      h('span', { class: 'lb-rank', 'aria-hidden': 'true' }, i.rank ? `${i.rank}` : '·'),
+      h('div', { class: 'lb-text' },
+        h('button', { type: 'button', class: 'lb-name', onclick: () => openIdea(i.id) }, i.name),
+        h('span', { class: 'lb-pitch' }, i.pitch)),
+      h('div', { class: 'lb-vote' }, h('span', { class: 'lb-week' }, `⭐ ${i.weekStars}`, h('small', null, ' this week')), homeStar(i)));
+  }
+  /** One row in place (after a vote): same position, focus kept on its star. */
+  function homeRow(id) {
+    const i = home.items.find((x) => x.id === id), el = home.el?.querySelector(`.lb-row[data-id="${id}"]`);
+    if (!i || !el) return;
+    const hadFocus = el.contains(document.activeElement);
+    el.replaceWith(homeRowEl(i));
+    if (hadFocus) home.el.querySelector(`.lb-row[data-id="${id}"] .lb-star`)?.focus({ preventScroll: true });
+  }
+  async function refreshHome(id) {
+    const r = await api('/board/ideas?view=top&limit=5');
+    if (!r.ok || !home.el) return;
+    const fresh = new Map(r.data.items.map((x) => [x.id, x]));
+    if (home.items.length === 0 && r.data.items.length) { home.items = r.data.items; renderHome(); return; }
+    for (const it of home.items) { const f = fresh.get(it.id); Object.assign(it, f ? { rank: f.rank, weekStars: f.weekStars, totalStars: f.totalStars } : { rank: null }); if (it.id !== id) homeRow(it.id); }
+    homeRow(id);
+    const sorted = home.items.every((it, k, all) => k === 0 || (all[k - 1].rank ?? Infinity) <= (it.rank ?? Infinity));
+    home.el.querySelector('.lb-resort')?.remove();
+    if (!sorted) home.el.querySelector('.lb-list')?.before(h('p', { class: 'lb-muted lb-resort' }, 'The ranking changed. ', h('button', { type: 'button', class: 'btn lb-link', onclick: () => { home.items = r.data.items; renderHome(); } }, 'Show the new order')));
+  }
+  function homeFeature() {
+    const f = home.feature;
+    const prev = state.contest?.previous;
+    const lines = [];
+    // "Last week’s pick" only for the contest that just ended; before the hourly close catches up, it's the latest one
+    const lastWeek = prev && state.contest?.week && prev.end === state.contest.week.start;
+    if (home.featureKind === 'last') lines.push(h('p', { class: 'lb-k' }, `${lastWeek ? 'Last week’s pick' : 'Latest pick'} · ${span(prev.start, prev.end)}`));
+    else {
+      if (prev) lines.push(h('p', { class: 'lb-muted' }, `${prev.end === state.contest?.week?.start ? 'Last week' : 'Latest week'} (${span(prev.start, prev.end)}): no pick.`));
+      if (f) lines.push(h('p', { class: 'lb-k' }, 'From the build queue'));
+    }
+    if (!f) return h('div', { class: 'lb-pick' }, ...lines, h('p', { class: 'lb-muted' }, prev ? 'Nothing in the build queue yet.' : 'The first weekly pick happens when this week closes.'));
+    const status = f.build?.status ?? f.status;
+    const demo = f.build?.demoUrl && httpsUrl(f.build.demoUrl), source = f.build?.sourceUrl && httpsUrl(f.build.sourceUrl)?.startsWith('https://github.com/') ? f.build.sourceUrl : null;
+    return h('div', { class: 'lb-pick' }, ...lines,
+      h('button', { type: 'button', class: 'lb-name lb-pick-name', onclick: () => openIdea(f.id) }, f.name),
+      h('p', null, h('span', { class: `lb-badge b-${status}` }, STATUS[status] ?? status), f.build?.queuePosition && status !== 'built' ? h('span', { class: 'lb-muted' }, ` · #${f.build.queuePosition} in the build queue`) : null),
+      f.build ? h('p', { class: 'lb-muted' }, `Picked for ${span(f.build.weekStart, f.build.weekEnd)} with ⭐ ${f.build.weeklyStars} new stars.`) : null,
+      status === 'built' && (demo || source) ? h('p', { class: 'lb-links' },
+        demo ? h('a', { href: demo, target: '_blank', rel: 'noopener noreferrer' }, 'Try the demo ↗') : null,
+        source ? h('a', { href: source, target: '_blank', rel: 'noopener noreferrer' }, 'Source ↗') : null) : null,
+      h('button', { type: 'button', class: 'btn lb-link', onclick: () => open('building', document.activeElement) }, 'See the build queue →'));
+  }
+  function renderHome() {
+    const el = home.el;
+    if (!el) return;
+    const head = h('div', { class: 'lb-head' },
+      h('div', null, h('h2', { id: 'lbTitle' }, '💡 Idea board'), h('p', { class: 'lb-pay' }, 'Star the idea you want us to build next.')),
+      homeLoop());
+    const live = h('p', { class: 'board-live', id: 'homeLive', role: 'status' });
+    if (home.error) {
+      // compact: one line and a retry, never an empty block
+      el.replaceChildren(head, h('p', { class: 'lb-msg' }, 'The idea board can’t load right now. ', h('button', { type: 'button', class: 'btn lb-link', onclick: loadHome }, 'Try again')), live);
+      return;
+    }
+    const weekLine = homeWeekLine();
+    const list = home.loading
+      ? h('ol', { class: 'lb-list', 'aria-busy': 'true', 'aria-label': 'Loading this week’s ideas' }, ...[0, 1, 2].map(() => h('li', { class: 'lb-row lb-skel' }, h('span'), h('span'), h('span'))))
+      : home.items.length
+        ? h('ol', { class: 'lb-list' }, ...home.items.map(homeRowEl))
+        : h('p', { class: 'lb-msg' }, 'No stars yet this week: one star could win it. Browse the ideas, or create one.');
+    el.replaceChildren(head,
+      h('div', { class: 'lb-body' },
+        h('div', { class: 'lb-main' }, weekLine, list,
+          !session && !home.loading && home.items.length ? h('p', { class: 'lb-muted' }, 'Sign in with GitHub to star: one star per account per idea, as many ideas as you like.') : null,
+          live,
+          h('div', { class: 'lb-acts' },
+            h('button', { type: 'button', class: 'btn go', onclick: (e) => open('top', e.currentTarget) }, 'Browse and star ideas →'),
+            h('button', { type: 'button', class: 'btn', onclick: () => S.focusShower?.() }, 'Create an idea ↑'))),
+        home.loading ? h('div', { class: 'lb-pick' }, h('p', { class: 'lb-k' }, 'Build queue'), h('p', { class: 'lb-muted' }, 'Loading…')) : homeFeature()),
+      policyLine('lb-promise'));
+  }
+  function homeWeekLine() {
+    const c = state.contest, now = c ? c.now + (Date.now() - c.fetchedAt) : Date.now();
+    return h('p', { class: 'lb-week-line' }, h('b', null, 'Top ideas this week'), c?.week ? ` · voting closes in ${until(c.week.end, now)} (${utc(c.week.end)})` : '');
+  }
+  const homeWeek = () => home.el?.querySelector('.lb-week-line')?.replaceWith(homeWeekLine());
+  // the countdown, and a fresh week (and ranking) once Monday 00:00 UTC passes
+  setInterval(() => {
+    const c = state.contest;
+    if (!home.el || home.loading || home.error || !c?.week) return;
+    if (c.now + (Date.now() - c.fetchedAt) >= c.week.end) loadHome(); else homeWeek();
+  }, 30_000);
+
   // ---------- links: #idea=<id>, #ideas, and the sign-in return ----------
   async function route() {
     if (await finishSignIn()) return;
@@ -526,5 +658,6 @@
   }
   addEventListener('hashchange', route);
   S.board = { open, openIdea, publish };
+  buildHome();
   route();
 })();

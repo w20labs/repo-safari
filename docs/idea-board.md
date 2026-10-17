@@ -3,6 +3,8 @@
 The idea board lets a visitor publish one of their Idea Shower ideas, share its permanent link, and collect stars from other GitHub accounts. During the launch phase, W20 Labs builds one community prototype a week: the eligible idea that earned the most new stars that week.
 
 > **Proposed public commitment (needs owner approval before launch):** Every week, we build and share an open-source prototype of the idea that earns the most new stars that week.
+>
+> Until it's approved, the page shows this sentence with a "Proposed wording, pending approval" tag. Approving it means setting `POLICY_APPROVED = true` in `prototypes/board/board.js`.
 
 The board is **off by default** and nothing in this document has been deployed. Turning it on is an owner decision (see [Activation](#activation)).
 
@@ -17,13 +19,25 @@ The board is **off by default** and nothing in this document has been deployed. 
 | Piece | Where | Notes |
 |---|---|---|
 | Page hooks | `prototypes/repo-safari.template.html` | `BOARD` switch, Publish buttons, Ideas entry, privacy text. Loads the module below only when the board is on |
-| Board UI | `prototypes/board/board.js`, `board.css` | Copied next to the page by the build. Talks only to the Worker |
+| Board UI | `prototypes/board/board.js`, `board.css` | Copied next to the page by the build. Talks only to the Worker. Adds the landing section below the game and the full board (a dialog) |
 | API | `worker/src/board/routes.ts` | Routed from `worker/src/ideas.ts`; 404 when off |
 | Sign-in | `worker/src/board/auth.ts` | GitHub OAuth, public profile only, bearer sessions (no cookies) |
 | Storage | `worker/src/board/store.ts`, `worker/migrations/0001_idea_board.sql` | Cloudflare D1 |
 | Contest rules | `worker/src/board/contest.ts` | Pure functions: weeks, scoring as of the cutoff, eligibility, tie-break |
 | Owner tool | `scripts/board-admin.ts` | `npm run board-admin -- <action>` |
 | Local preview | `worker/dev/` | Fake GitHub and Anthropic, fixtures, test clock |
+
+### On the landing page
+
+With the board on, a full-width **Idea board** section sits directly below the game (after the touch controls on phones), so the game stays near the top:
+
+- The heading's payoff line, "Star the idea you want us to build next.", and the loop, "Mix repos → Publish an idea → Collect stars → Weekly pick".
+- This week's top 5 ideas with their pitch, weekly stars and a Star button, plus the time until voting closes. On phones, names wrap, pitches get two lines, and the count and Star sit underneath.
+- **Browse and star ideas →** opens the full board; **Create an idea ↑** brings the Idea Shower card into view. Publishing still happens from generated ideas, with sign-in and an explicit confirmation.
+- The build card: **Last week's pick** with its status (Queued, Building, Built; built ones link to demo and source). It says **Latest pick** if the hourly close hasn't caught up yet. If last week had no pick, it says so and features a project **From the build queue** instead.
+- Loading shows three placeholder rows; an error shows one compact line with Try again; an empty week says one star could win it; signed-out visitors see how starring works.
+
+With the board off, none of this is on the page.
 
 ### Publishing
 
@@ -192,6 +206,8 @@ Not done in this change. In order, when approved:
 3. **Worker:** set `BOARD_ENABLED = "1"` and `npx wrangler deploy`. The first board request records the launch time; the first week ends at the next Monday 00:00 UTC.
 4. **Site:** add the Actions variable `BOARD_ENABLED` = `1` (passed to the build next to `IDEAS_URL`) and run the Deploy workflow.
 5. Check: open `#ideas`, sign in, publish a test idea, star it from a second account, then hide it with `board-admin`.
+
+Before step 4, decide the weekly-build wording: set `POLICY_APPROVED = true` in `prototypes/board/board.js` once it's approved, or change the sentence.
 
 **Rollback:** set the Actions variable `BOARD_ENABLED` to `0` and redeploy the site (the board disappears); set the Worker's `BOARD_ENABLED = "0"` and deploy (its routes and cron stop). Data stays in D1 for a later re-enable. To remove everything: `npx wrangler d1 delete repo-safari-board`.
 

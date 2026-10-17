@@ -77,6 +77,70 @@ const signInApi = async (login) => {
   check('board off: no Ideas entry, no board files, nothing published beside the page', await p.locator('#ideasBtn').isHidden() && assets.length === 0 && !existsSync(`${ROOT}_site/board-off/board.js`) && !(await p.evaluate(() => 'RepoSafari' in window)));
   await ctx.close(); }
 
+// ---------- 1b. the landing-page section, below the game ----------
+{ const ctx = await context(); const p = await page(ctx, OFF);
+  check('board off: no board section on the landing page', (await p.locator('#ideaBoardSection').count()) === 0);
+  await ctx.close(); }
+for (const [w, h] of [[1280, 800], [390, 844], [320, 568]]) {
+  const ctx = await context('chromium', { w, h }); const p = await page(ctx);
+  await p.locator('.lb-row:not(.lb-skel)').first().waitFor();
+  const m = await p.evaluate(() => {
+    const sec = document.getElementById('ideaBoardSection'), stage = document.getElementById('stage').getBoundingClientRect();
+    const rows = [...sec.querySelectorAll('.lb-row')];
+    return {
+      below: sec.getBoundingClientRect().top >= stage.bottom, after: sec.previousElementSibling?.className,
+      over: document.documentElement.scrollWidth - innerWidth,
+      names: rows.every((r) => { const n = r.querySelector('.lb-name'); return n.scrollWidth <= n.clientWidth + 1; }),
+      pitches: rows.every((r) => { const t = r.querySelector('.lb-pitch'); return t.scrollHeight <= t.clientHeight + 1; }),
+      stars: rows.every((r) => { const b = r.querySelector('.lb-star').getBoundingClientRect(); return b.height >= 44 && b.right <= r.getBoundingClientRect().right; }),
+      pay: sec.querySelector('.lb-pay')?.textContent, acts: [...sec.querySelectorAll('.lb-acts .btn')].map((b) => b.textContent),
+      card: sec.querySelector('.lb-pick')?.textContent, rows: rows.length,
+    };
+  });
+  await shot(p, `home-${w}`); if (SHOTS) await p.locator('#ideaBoardSection').screenshot({ path: `${SHOTS}/home-section-${w}.png` });
+  check(`landing ${w}px: the board section sits below the game; names and pitches are whole; stars ≥ 44px; payoff and actions`,
+    m.below && m.over <= 0 && m.names && m.pitches && m.stars && m.rows === 4 && m.pay === 'Star the idea you want us to build next.'
+    && JSON.stringify(m.acts) === JSON.stringify(['Browse and star ideas →', 'Create an idea ↑']), JSON.stringify({ ...m, card: undefined }));
+  if (w === 1280) check('landing: the build card names last week’s pick with its real dates and status', /^Last week’s pick · 12 Oct – 19 Oct\s*Pancake Launcher\s*Queued/.test(m.card), m.card);
+  await ctx.close();
+}
+{ const ctx = await context(); const p = await ctx.newPage();
+  await p.route(`${W}/board/ideas?view=top*`, async (r) => { await new Promise((ok) => setTimeout(ok, 1500)); await r.continue(); });
+  await p.goto(PAGE); await p.locator('#ideaBoardSection').waitFor();
+  const loading = await p.evaluate(() => ({ skel: document.querySelectorAll('#ideaBoardSection .lb-skel').length, busy: document.querySelector('#ideaBoardSection .lb-list')?.getAttribute('aria-busy') }));
+  await p.locator('.lb-row:not(.lb-skel)').first().waitFor();
+  check('landing loading: three placeholder rows, then the ideas', loading.skel === 3 && loading.busy === 'true');
+  await ctx.close(); }
+{ const ctx = await context('chromium', { w: 390, h: 844 }); const p = await ctx.newPage();
+  await p.route(`${W}/board/**`, (r) => r.abort());
+  await p.goto(PAGE); await p.locator('#ideaBoardSection .lb-msg').waitFor();
+  const hgt = await p.locator('#ideaBoardSection').evaluate((e) => e.getBoundingClientRect().height);
+  check('landing error: one compact message with Try again, no empty block', (await p.locator('#ideaBoardSection .lb-msg').textContent()).includes('can’t load') && hgt < 320, `${Math.round(hgt)}px`);
+  await p.unroute(`${W}/board/**`);
+  await p.click('#ideaBoardSection .lb-msg button'); await p.locator('.lb-row:not(.lb-skel)').first().waitFor();
+  check('…and Try again loads the ideas', (await p.locator('#ideaBoardSection .lb-row').count()) === 4);
+  await ctx.close(); }
+{ const ctx = await context(); const p = await page(ctx);
+  await p.locator('.lb-row:not(.lb-skel)').first().waitFor();
+  check('landing signed out: a note says how starring works', (await p.locator('#ideaBoardSection').textContent()).includes('Sign in with GitHub to star'));
+  const bonsai = () => p.locator('#ideaBoardSection .lb-row', { hasText: 'Dependency Bonsai' });
+  await bonsai().locator('.lb-star').click();
+  await github(p, 'alice');
+  await p.locator('.board-detail .board-star[aria-pressed="true"]').waitFor();
+  await p.keyboard.press('Escape'); await p.keyboard.press('Escape');
+  await bonsai().locator('.lb-star[aria-pressed="true"]').waitFor();
+  check('landing star while signed out: sign in, the star is applied, and the section shows it', (await bonsai().locator('.lb-week').textContent()).startsWith('⭐ 3'));
+  await bonsai().locator('.lb-star').focus(); await p.keyboard.press('Enter');
+  await bonsai().locator('.lb-star[aria-pressed="false"]').waitFor();
+  check('landing vote while signed in: count updates in place, focus stays on the star', (await bonsai().locator('.lb-week').textContent()).startsWith('⭐ 2') && (await p.evaluate(() => document.activeElement.closest('.lb-row')?.textContent.includes('Dependency Bonsai'))));
+  await p.click('#ideaBoardSection .lb-acts .btn:has-text("Create an idea")');
+  await p.waitForTimeout(600);
+  check('Create an idea ↑ takes you to the Idea Shower’s Mix button', (await p.evaluate(() => document.activeElement.id)) === 'mixGo' && (await p.evaluate(() => $('hero').getBoundingClientRect().top >= -1)));
+  await p.click('#ideaBoardSection .lb-acts .btn:has-text("Browse and star ideas")');
+  await p.locator('#tab-top[aria-selected="true"]').waitFor();
+  check('Browse and star ideas → opens the board on Top this week', await p.locator('#board').isVisible());
+  await ctx.close(); }
+
 // ---------- 2. generate, sign in, confirm, publish, share ----------
 let ideaId = null;
 { const ctx = await context(); const p = await page(ctx);
@@ -151,9 +215,9 @@ let ideaId = null;
   const built = p.locator('.board-card').first();
   check('Built: demo and source links (https, opening safely)', (await built.locator('a:has-text("Try the demo")').getAttribute('href')) === 'https://w20labs.github.io/commit-weather/' && (await built.locator('a:has-text("Source code")').getAttribute('rel')) === 'noopener noreferrer');
   await shot(p, 'b-built-1280');
-  await p.goto(`${PAGE}#idea=hiddenspam`); await p.reload(); await p.locator('#boardDetailTitle').waitFor();
+  await p.goto('about:blank'); await p.goto(`${PAGE}#idea=hiddenspam`); await p.locator('#boardDetailTitle').waitFor();
   const gone = await p.locator('#boardDetailTitle').textContent();
-  await p.goto(`${PAGE}#idea=NOT-AN-ID`); await p.reload(); await p.locator('#boardDetailTitle').waitFor();
+  await p.goto('about:blank'); await p.goto(`${PAGE}#idea=NOT-AN-ID`); await p.locator('#boardDetailTitle').waitFor();
   check('hidden or malformed idea links: a clear “not on the board”, nothing leaked', gone.includes('isn’t on the board') && (await p.locator('#boardDetailTitle').textContent()).includes('isn’t on the board') && !(await p.content()).includes('Buy Followers'));
   await ctx.close(); }
 
@@ -199,7 +263,7 @@ let ideaId = null;
   // an expired session: the star isn't faked, sign-in is offered again
   await p.unroute(`${W}/board/**`);
   await p.evaluate(() => localStorage.setItem('repo-safari-board-session-v1', JSON.stringify({ token: 'x'.repeat(43), login: 'ghost', expiresAt: Date.now() + 1e9 })));
-  await p.goto(`${PAGE}#idea=kitephysic`); await p.reload();
+  await p.goto('about:blank'); await p.goto(`${PAGE}#idea=kitephysic`); // a full load, not a same-page hash change racing a reload
   await p.locator('.board-detail .board-star').waitFor();
   await p.click('.board-detail .board-star');
   await p.waitForURL(/127\.0\.0\.1:8790/);
@@ -303,7 +367,16 @@ for (const [w, h] of [[1280, 800], [390, 844], [375, 667], [320, 568]]) {
   await setClock(MON26 + 2000); // the server's clock passes the cutoff too
   await p.locator('#boardContest', { hasText: 'Mon 26 Oct, 00:00 UTC → Mon 2 Nov' }).waitFor({ timeout: 10_000 });
   check('an open board moves to the new week at the cutoff, not “in 0m”', !(await p.locator('#boardContest').textContent()).includes('in 0m'));
-  await ctx.close(); }
+  await ctx.close();
+  // two weeks on: 19–26 Oct is picked, 26 Oct–2 Nov has no stars, so the section features the build queue instead
+  const NOV2 = Date.parse('2026-11-02T00:00:00Z');
+  await setClock(NOV2 + 3600_000);
+  await fetch(`${W}/dev/close`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  const ctx2 = await context(); const q = await page(ctx2);
+  await q.locator('#ideaBoardSection .lb-pick .lb-name').waitFor();
+  const card = await q.locator('#ideaBoardSection .lb-pick').textContent();
+  check('no pick last week: the card says so and features a project “From the build queue”', /Last week \(26 Oct – 2 Nov\): no pick\.\s*From the build queue\s*Error Karaoke\s*Building/.test(card) && !card.includes('Last week’s pick'), card);
+  await ctx2.close(); }
 
 for (const b of Object.values(browsers)) await b.close();
 console.log(`\npage errors: ${JSON.stringify(errors)}`);
