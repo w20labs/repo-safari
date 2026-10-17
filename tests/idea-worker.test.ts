@@ -157,6 +157,27 @@ describe('limits', () => {
     expect(next.ok).toBe(true);
     expect(next.state).toEqual({ day: '2026-10-18', total: 1, visitors: { v1: 1 } });
   });
+
+  it('a late request from the day before can never rewind the counts', () => {
+    let s: LimitState | undefined;
+    for (let i = 0; i < PER_VISITOR; i++) s = reserve(s, 'v1', '2026-10-18').state;
+    const late = reserve(s, 'v1', '2026-10-17');
+    expect(late.ok).toBe(false);
+    expect(late.state).toEqual(s);
+    expect(reserve(late.state, 'v1', '2026-10-18').ok).toBe(false); // still capped
+  });
+
+  it('the Limiter takes the day from its own clock, so the caller cannot pick one', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(new Date('2026-10-18T00:00:05Z'));
+      const lim = memoryLimiter();
+      lim.store.set('state', { day: '2026-10-18', total: PER_VISITOR, visitors: { v1: PER_VISITOR } });
+      const res = await lim.get().fetch('https://limiter/reserve', { method: 'POST', body: JSON.stringify({ visitor: 'v1', day: '2026-10-17' }) });
+      expect(await res.json()).toEqual({ ok: false });
+      expect(lim.store.get('state')).toEqual({ day: '2026-10-18', total: PER_VISITOR, visitors: { v1: PER_VISITOR } });
+    } finally { vi.useRealTimers(); }
+  });
 });
 
 describe('validation', () => {

@@ -136,10 +136,10 @@ async function sha(text: string): Promise<string> {
 }
 
 /** Count one generation against the visitor's and the day's limit, atomically. False if either is used up. */
-async function takeSlot(env: Env, ip: string, day: string): Promise<boolean> {
+async function takeSlot(env: Env, ip: string): Promise<boolean> {
   const visitor = await sha(`${env.IP_SALT}:${ip}`);
   const stub = env.LIMITER.get(env.LIMITER.idFromName('global'));
-  const res = await stub.fetch('https://limiter/reserve', { method: 'POST', body: JSON.stringify({ visitor, day }) });
+  const res = await stub.fetch('https://limiter/reserve', { method: 'POST', body: JSON.stringify({ visitor }) }); // the limiter reads the day itself
   if (!res.ok) throw new Error(`limiter: ${res.status}`);
   return ((await res.json()) as { ok: boolean }).ok === true;
 }
@@ -194,9 +194,8 @@ async function route(req: Request, env: Env, allowed: boolean, cors: Record<stri
     if (repos.some((r) => !r)) return json(400, { error: 'unknown_repo' });
   }
 
-  const day = new Date().toISOString().slice(0, 10);
   let slot: boolean;
-  try { slot = await takeSlot(env, req.headers.get('CF-Connecting-IP') ?? 'unknown', day); }
+  try { slot = await takeSlot(env, req.headers.get('CF-Connecting-IP') ?? 'unknown'); }
   catch (e) { console.error('limit check failed:', e instanceof Error ? e.message : e); return json(503, { error: 'busy' }); }
   if (!slot) return json(429, { error: 'limit' });
 
