@@ -53,7 +53,13 @@
       return { ok: false, status: 0, data: null };
     } finally { clearTimeout(timer); }
   }
-  function signedOut() { session = null; store.del(SESSION_KEY); state.starred.clear(); renderAccount(); }
+  /** Signed out, or the session expired: every personal control goes back to its signed-out state; public counts stay. */
+  function signedOut() {
+    session = null; store.del(SESSION_KEY); state.starred.clear();
+    renderAccount();
+    if (root && !root.hidden) { if (state.detail) renderDetail(); else renderList(); }
+    renderHome();
+  }
 
   // ---------- sign-in: verifier kept here, one-time code back in the fragment, swapped for a session ----------
   async function signIn(intent) {
@@ -581,9 +587,14 @@
     if (home.items.length === 0 && r.data.items.length) { home.items = r.data.items; renderHome(); return; }
     for (const it of home.items) { const f = fresh.get(it.id); Object.assign(it, f ? { rank: f.rank, weekStars: f.weekStars, totalStars: f.totalStars } : { rank: null }); if (it.id !== id) homeRow(it.id); }
     homeRow(id);
-    const sorted = home.items.every((it, k, all) => k === 0 || (all[k - 1].rank ?? Infinity) <= (it.rank ?? Infinity));
+    // the shown list is out of date if the top ideas differ in any way: order, a newcomer, or one that dropped out
+    const same = home.items.map((x) => x.id).join() === r.data.items.map((x) => x.id).join();
     home.el.querySelector('.lb-resort')?.remove();
-    if (!sorted) home.el.querySelector('.lb-list')?.before(h('p', { class: 'lb-muted lb-resort' }, 'The ranking changed. ', h('button', { type: 'button', class: 'btn lb-link', onclick: () => { home.items = r.data.items; renderHome(); } }, 'Show the new order')));
+    if (!same) home.el.querySelector('.lb-list')?.before(h('p', { class: 'lb-muted lb-resort' }, 'The ranking changed. ', h('button', { type: 'button', class: 'btn lb-link', onclick: async () => {
+      home.items = r.data.items;
+      await loadMine(home.items.map((x) => x.id));
+      renderHome();
+    } }, 'Show the new order')));
   }
   function homeFeature() {
     const f = home.feature;

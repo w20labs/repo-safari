@@ -290,8 +290,11 @@ export async function closeWeek(db: D1Database, week: Week, now: number): Promis
     const idea = await db.prepare('SELECT kind, name, pitch, concept, inspiration, repos_json, publisher_login, published_at FROM ideas WHERE id = ?').bind(top.id).first<Record<string, unknown>>();
     const frozen = JSON.stringify({ ...idea, repos: json(idea!.repos_json), repos_json: undefined });
     statements.push(
-      db.prepare(`INSERT INTO build_queue (idea_id, week_start, week_end, frozen_json, weekly_stars, lifetime_stars, policy_version, selected_at, status, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'selected', ?)`).bind(top.id, week.start, week.end, frozen, top.score, lifetime, POLICY_VERSION, now, now),
+      // the frozen win stands, but a hold or decline made after the cutoff carries over to the queue entry with its note
+      db.prepare(`INSERT INTO build_queue (idea_id, week_start, week_end, frozen_json, weekly_stars, lifetime_stars, policy_version, selected_at, status, status_note, updated_at)
+        SELECT id, ?, ?, ?, ?, ?, ?, ?, CASE WHEN status IN ('held', 'declined') THEN status ELSE 'selected' END,
+          CASE WHEN status IN ('held', 'declined') THEN status_note END, ? FROM ideas WHERE id = ?`)
+        .bind(week.start, week.end, frozen, top.score, lifetime, POLICY_VERSION, now, now, top.id),
       db.prepare("UPDATE ideas SET status = 'selected' WHERE id = ? AND status = 'collecting'").bind(top.id),
     );
   }

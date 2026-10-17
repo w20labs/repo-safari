@@ -139,6 +139,34 @@ for (const [w, h] of [[1280, 800], [390, 844], [320, 568]]) {
   await p.click('#ideaBoardSection .lb-acts .btn:has-text("Browse and star ideas")');
   await p.locator('#tab-top[aria-selected="true"]').waitFor();
   check('Browse and star ideas → opens the board on Top this week', await p.locator('#board').isVisible());
+  // a star in the full board that lifts an idea from outside the landing list to #1
+  const helpers = await Promise.all(Array.from({ length: 5 }, (_, k) => signInApi(`voter${20 + k}`)));
+  for (const t of helpers) await api('/board/ideas/changelogp/star', { method: 'PUT', headers: { Authorization: `Bearer ${t}` } });
+  await p.click('#tab-new'); await p.locator('.board-card[data-id="changelogp"]').waitFor();
+  await p.click('.board-card[data-id="changelogp"] .board-star');
+  await p.locator('.board-card[data-id="changelogp"] .board-star[aria-pressed="true"]').waitFor();
+  await p.keyboard.press('Escape');
+  await p.locator('#ideaBoardSection .lb-resort button').waitFor({ timeout: 5000 }).catch(() => {});
+  check('landing: a new #1 from outside the list offers “Show the new order”', (await p.locator('#ideaBoardSection .lb-resort button').count()) === 1);
+  await p.click('#ideaBoardSection .lb-resort button');
+  await p.locator('#ideaBoardSection .lb-row[data-id="changelogp"]').waitFor();
+  check('…and the new order starts with it, starred', (await p.locator('#ideaBoardSection .lb-row').first().getAttribute('data-id')) === 'changelogp'
+    && (await p.locator('#ideaBoardSection .lb-row[data-id="changelogp"] .lb-star').getAttribute('aria-pressed')) === 'true');
+  // signing out from the board clears every personal star state, in both views; the counts stay
+  const kiteWeek = await p.locator('#ideaBoardSection .lb-row[data-id="kitephysic"] .lb-week').textContent();
+  const starredBefore = await p.locator('#ideaBoardSection .lb-star[aria-pressed="true"]').count();
+  await p.click('#ideaBoardSection .lb-acts .btn:has-text("Browse and star ideas")');
+  await p.locator('#boardPanel .board-card').first().waitFor();
+  await p.click('#boardAccount button:has-text("Sign out")');
+  await p.locator('#boardAccount button:has-text("Sign in with GitHub")').waitFor();
+  const boardStarred = await p.locator('#boardPanel .board-star[aria-pressed="true"]').count();
+  await p.keyboard.press('Escape');
+  check('signing out clears starred states on the board and the landing section, keeps counts, and shows the sign-in note',
+    starredBefore >= 2 && boardStarred === 0 && (await p.locator('#ideaBoardSection .lb-star[aria-pressed="true"]').count()) === 0
+    && (await p.locator('#ideaBoardSection .lb-row[data-id="kitephysic"] .lb-week').textContent()) === kiteWeek
+    && (await p.locator('#ideaBoardSection').textContent()).includes('Sign in with GitHub to star'), `${starredBefore} ${boardStarred}`);
+  // put the fixtures back for the later checks
+  for (const t of [...helpers, await signInApi('alice')]) await api('/board/ideas/changelogp/star', { method: 'DELETE', headers: { Authorization: `Bearer ${t}` } });
   await ctx.close(); }
 
 // ---------- 2. generate, sign in, confirm, publish, share ----------

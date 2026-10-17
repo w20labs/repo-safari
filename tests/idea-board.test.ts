@@ -256,6 +256,18 @@ describe('board storage', () => {
     expect(db.raw.prepare('SELECT winner_id, winner_score FROM contests').all()).toEqual([{ winner_id: a, winner_score: 3 }]);
   });
 
+  it('a hold or decline after the cutoff keeps the win but carries over to the queue entry', async () => {
+    const a = await publishAt('A', LAUNCH), b = await publishAt('B', LAUNCH);
+    await stars(a, 100, 2, LAUNCH + 10); await stars(b, 200, 1, LAUNCH + 10);
+    await moderate(db, a, 'hold', 'licence check', 'On hold: checking a dependency licence.', MON12 + 10);
+    await moderate(db, b, 'decline', 'unsafe', null, MON12 + 10);
+    expect((await closeDueWeeks(db, MON12 + 3_600_000))[0]).toMatchObject({ winner: a, score: 2 });
+    expect(db.raw.prepare('SELECT status, status_note FROM build_queue WHERE idea_id = ?').get(a)).toEqual({ status: 'held', status_note: 'On hold: checking a dependency licence.' });
+    expect((await getIdea(db, a, null))?.build?.status).toBe('held');
+    await moderate(db, a, 'release', 'licence fine', null, MON12 + 7_200_000);
+    expect(db.raw.prepare('SELECT status, status_note FROM build_queue WHERE idea_id = ?').get(a)).toEqual({ status: 'selected', status_note: null });
+  });
+
   it('closing twice, or at the same time, gives one result and one queue entry', async () => {
     const a = await publishAt('A', LAUNCH);
     await stars(a, 100, 2, LAUNCH + 10);
