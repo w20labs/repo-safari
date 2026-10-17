@@ -16,7 +16,7 @@ It answers two questions:
 | Worker | `worker/src/ideas.ts` (entry `worker/src/index.ts`) | `POST /ideas` with `{repos: [3 names]}`. One `claude-sonnet-5-5` call, at most 1,200 output tokens, JSON-schema output, validated before it's returned |
 | Limits | Durable Object `Limiter` (`worker/src/limiter.ts`) | 5 generations per visitor per day (salted hash of the IP, never the IP), 300 per day in total. One object handles every check-and-count in turn, so the caps are exact even when requests arrive together |
 | Analytics | GoatCounter, https://repo-safari.goatcounter.com | 15 events, each counted at most once per page load (except `share/open`) |
-| Idea board | `worker/src/board/`, `prototypes/board/` | Off by default. When on, `/ideas` also saves the output for 24 hours so one idea can be published; its own events and rules are in [idea-board.md](idea-board.md) |
+| Idea board | `worker/src/board/`, `prototypes/board/` | Live since 17 Oct 2026; off by default in local builds. When on, `/ideas` also saves the output for 24 hours so one idea can be published; its own events and rules are in [idea-board.md](idea-board.md) |
 
 ## Run it locally
 

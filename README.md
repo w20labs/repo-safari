@@ -17,6 +17,7 @@
 Every day there's a new trail of about a dozen categories (OCR, vector databases, game engines, note-taking apps…).
 Walk the trail, drop into a category, and its leading active repos are waiting on the wall as stickers, ranked by stars.
 Keep the ones you like. No sign-up, no quiz, nothing to lose. A walk takes about three minutes.
+Then mix three repos into product ideas, publish the best one and star the ideas you want built: every week, the idea with the most new stars becomes an open-source prototype.
 
 <p align="center">
   <img src="assets/readme/demo.gif" alt="Walking the trail, dropping into the Multi agent room, browsing the sticker wall and saving a sticker" width="720">
@@ -38,7 +39,7 @@ Keep the ones you like. No sign-up, no quiz, nothing to lose. A walk takes about
 3. **Collect.** Save the ones you want to remember. They go into your sticker album.
 4. **Reach the end.** This week's rising repos sit on a high platform at the end of the trail. Getting there takes a double jump, and their stickers are rare.
 5. **Mix (experiment).** The Idea Shower card at the top offers 3 repos, each with what it does: your stickers, or random repos from this week's trail. Press **Mix these 3**, shuffle them, or **Choose repos** (your stickers are one tap away, or search this week's repos), and turn them into three product ideas: useful, unexpected and ridiculous. Copy an idea, copy a ready-made prompt for your coding agent, or share the mix as a link.
-6. **Publish and star (built, not switched on yet).** The idea board lets you publish one of your generated ideas, share its permanent link and star other people's ideas with your GitHub account. Each week, the idea with the most new stars is picked for a community prototype. See [docs/idea-board.md](docs/idea-board.md).
+6. **Publish and star.** The Idea Board sits below the game. Publish one of your generated ideas, share its permanent link, and star the ideas you want built with your GitHub account (one star per account per idea). Every Monday at 00:00 UTC, the idea with the most new stars that week is picked, and we build and share an open-source prototype of it. Browsing is open to everyone; publishing and starring need GitHub sign-in. See [docs/idea-board.md](docs/idea-board.md) for the exact rules.
 
 <table>
   <tr>
@@ -84,9 +85,9 @@ You don't need an account to play. Your sticker album is saved in your own brows
 
 **Idea Shower:** the 3 repo names you pick are sent to our server and to Anthropic to generate ideas. Shared links contain the mix itself in the URL and aren't stored by us. We collect no email or other personal data.
 
-**Idea board (when it's switched on):** browsing and generating stay anonymous. Publishing or starring needs GitHub sign-in (public profile only): we store your GitHub account number and handle, a session, and which ideas you starred. Generated ideas are kept for 24 hours so you can publish one, then deleted. Publishing makes that idea, its source repos and your GitHub handle public. Board stars aren't GitHub stars.
+**Idea board:** browsing and generating stay anonymous. Publishing or starring needs GitHub sign-in (public profile only): we store your GitHub account number and handle, a session, and which ideas you starred. Generated ideas are kept for 24 hours so you can publish one, then deleted. Publishing makes that idea, its source repos and your GitHub handle public. Board stars aren't GitHub stars.
 
-To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts six anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, Share pressed, the length of your streak on the first walk of each day, and which W20 Labs link was clicked. The Idea Shower adds fifteen more, each at most once per visit: card shown, card shuffled, Choose repos opened, machine opened, 3 ingredients picked, which way it was opened (the card, Shuffle in the machine or the 3-sticker nudge), ideas asked for, ideas generated, generated again, idea copied, build prompt copied, mix shared, and a shared mix opened. The mix itself is never counted. The idea board, when it's switched on, adds a few more (board opened, a view looked at, sign-in started and finished, an idea published, starred or shared): never who you are or what an idea says. Board stars themselves are stored with your GitHub account, as [docs/idea-board.md](docs/idea-board.md#privacy-and-retention) explains.
+To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts six anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, Share pressed, the length of your streak on the first walk of each day, and which W20 Labs link was clicked. The Idea Shower adds fifteen more, each at most once per visit: card shown, card shuffled, Choose repos opened, machine opened, 3 ingredients picked, which way it was opened (the card, Shuffle in the machine or the 3-sticker nudge), ideas asked for, ideas generated, generated again, idea copied, build prompt copied, mix shared, and a shared mix opened. The mix itself is never counted. The idea board adds a few more (board opened, a view looked at, sign-in started and finished, an idea published, starred or shared): never who you are or what an idea says. Board stars themselves are stored with your GitHub account, as [docs/idea-board.md](docs/idea-board.md#privacy-and-retention) explains.
 
 ## Run it locally
 
