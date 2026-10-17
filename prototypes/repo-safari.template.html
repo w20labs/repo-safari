@@ -1782,7 +1782,7 @@ function renderMix() {
   } else {
     const label = busy ? 'Mixing…' : ideas ? 'Turn It On Again' : 'Turn On the Idea Shower';
     $('mixActs').replaceChildren(h('button', { type: 'button', class: 'btn go', id: 'showerBtn', disabled: busy || limited || repos.length !== 3, onclick: shower }, label),
-      mixable().length !== 3 ? h('button', { type: 'button', class: 'btn', id: 'shuffleBtn', disabled: busy, onclick: shuffleMix }, '🎲 Shuffle') : null);
+      ...(mixable().length !== 3 ? [h('button', { type: 'button', class: 'btn', id: 'shuffleBtn', disabled: busy, onclick: shuffleMix }, '🎲 Shuffle')] : []));
   }
   $('ideas').replaceChildren(...(ideas ?? []).map((i, k) => ideaCard(i, repos, isShared, k)));
   $('mixAfter').replaceChildren(...(!isShared && ideas ? [copyButtonPlain('Share this mix', () => shareLink(repos, ideas), 'share/copy')] : []),

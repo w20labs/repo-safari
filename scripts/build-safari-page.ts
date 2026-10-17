@@ -80,7 +80,6 @@ if (!siteDir) {
   const body = page.slice(split);
   const desc = 'A new trail through open source every day. Drop into a category, compare its active repos as stickers, and collect the ones you like.';
   const ogImage = shareUrl ? new URL('og.png', shareUrl).href : '';
-  const favicon = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#0A0C14"/><rect x="5" y="19" width="22" height="7" rx="2" fill="#121626" stroke="#D4F25C" stroke-width="1.5"/><rect x="9" y="8" width="14" height="9" rx="2" fill="#BFE9F5"/></svg>')}`;
   const doc = `<!doctype html>
 <html lang="en">
 <head>
@@ -95,7 +94,8 @@ if (!siteDir) {
 ${shareUrl ? `<meta property="og:url" content="${shareUrl}">` : ''}
 ${ogImage ? `<meta property="og:image" content="${ogImage}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">` : ''}
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="${favicon}">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <script data-goatcounter="${GOATCOUNTER}" async src="https://gc.zgo.at/count.js"></script>
 ${head}
 <style>html,body{margin:0}</style>
@@ -107,6 +107,7 @@ ${body}
 `;
   mkdirSync(siteDir, { recursive: true });
   writeFileSync(join(siteDir, 'index.html'), doc);
+  for (const f of ['favicon-32.png', 'apple-touch-icon.png']) copyFileSync(join('assets/branding', f), join(siteDir, f));
   if (existsSync('assets/og-safari.png')) copyFileSync('assets/og-safari.png', join(siteDir, 'og.png'));
   for (const f of ['board.js', 'board.css']) {
     if (board) copyFileSync(join('prototypes/board', f), join(siteDir, f));

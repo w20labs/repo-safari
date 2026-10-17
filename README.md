@@ -1,9 +1,13 @@
 <p align="center">
-  <a href="https://w20labs.github.io/repo-safari/"><img src="assets/readme/hero.png" alt="Repo Safari: a new trail through open source every day" width="100%"></a>
+  <a href="https://w20labs.github.io/repo-safari/?utm_source=github&amp;utm_medium=readme&amp;utm_campaign=github-readme"><img src="assets/branding/repo-safari-ideas-icon-small.png" alt="Repo Safari: three repo stickers combining into a lightbulb" width="96" height="96"></a>
 </p>
 
 <p align="center">
-  <a href="https://w20labs.github.io/repo-safari/"><img src="https://img.shields.io/badge/%E2%96%B6%20Play%20now-w20labs.github.io%2Frepo--safari-D4F25C?style=for-the-badge&labelColor=0A0C14" alt="Play now"></a>
+  <a href="https://w20labs.github.io/repo-safari/?utm_source=github&amp;utm_medium=readme&amp;utm_campaign=github-readme"><img src="assets/readme/hero.png" alt="Repo Safari: a new trail through open source every day" width="100%"></a>
+</p>
+
+<p align="center">
+  <a href="https://w20labs.github.io/repo-safari/?utm_source=github&amp;utm_medium=readme&amp;utm_campaign=github-readme"><img src="https://img.shields.io/badge/%E2%96%B6%20Play%20now-w20labs.github.io%2Frepo--safari-D4F25C?style=for-the-badge&labelColor=0A0C14" alt="Play now"></a>
 </p>
 
 <p align="center">
@@ -40,6 +44,11 @@ Then mix three repos into product ideas, publish the best one and star the ideas
 4. **Reach the end.** This week's rising repos sit on a high platform at the end of the trail. Getting there takes a double jump, and their stickers are rare.
 5. **Mix (experiment).** The Idea Shower card at the top offers 3 repos, each with what it does: your stickers, or random repos from this week's trail. Press **Mix these 3**, shuffle them, or **Choose repos** (your stickers are one tap away, or search this week's repos), and turn them into three product ideas: useful, unexpected and ridiculous. Copy an idea, copy a ready-made prompt for your coding agent, or share the mix as a link.
 6. **Publish and star.** The Idea Board sits below the game. Publish one of your generated ideas, share its permanent link, and star the ideas you want built with your GitHub account (one star per account per idea). Every Monday at 00:00 UTC, the idea with the most new stars that week is picked, and we build and share an open-source prototype of it. Browsing is open to everyone; publishing and starring need GitHub sign-in. See [docs/idea-board.md](docs/idea-board.md) for the exact rules.
+
+<p align="center">
+  <a href="https://w20labs.github.io/repo-safari/?utm_source=github&amp;utm_medium=readme&amp;utm_campaign=github-readme"><img src="assets/readme/idea-board.gif" alt="Mixing three repos into product ideas, confirming publication, starring the published idea and seeing it on the Idea Board below the game" width="720"></a>
+  <br><sub>Mix, publish and star an idea. Recorded locally with sample ideas and accounts. <a href="assets/readme/idea-board.mp4">Watch as MP4</a>.</sub>
+</p>
 
 <table>
   <tr>
