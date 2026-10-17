@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://w20labs.github.io/repo-safari/?utm_source=github&amp;utm_medium=readme&amp;utm_campaign=github-readme"><img src="assets/branding/repo-safari-ideas-icon-small.png" alt="Repo Safari: three repo stickers combining into a lightbulb" width="96" height="96"></a>
+  <a href="https://w20labs.github.io/repo-safari/?utm_source=github&amp;utm_medium=readme&amp;utm_campaign=github-readme"><img src="assets/branding/readme-icon.png" alt="Repo Safari: three repo stickers combining into a lightbulb" width="96" height="96"></a>
 </p>
 
 <p align="center">

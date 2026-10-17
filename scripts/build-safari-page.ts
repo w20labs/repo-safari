@@ -94,6 +94,7 @@ if (!siteDir) {
 ${shareUrl ? `<meta property="og:url" content="${shareUrl}">` : ''}
 ${ogImage ? `<meta property="og:image" content="${ogImage}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">` : ''}
 <meta name="twitter:card" content="summary_large_image">
+${shareUrl ? `<link rel="canonical" href="${shareUrl}">` : ''}
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <script data-goatcounter="${GOATCOUNTER}" async src="https://gc.zgo.at/count.js"></script>

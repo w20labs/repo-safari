@@ -90,6 +90,8 @@ Open https://repo-safari.goatcounter.com and set the date range to the launch pe
 README links to the game carry `utm_source=github&utm_medium=readme&utm_campaign=github-readme`.
 To distinguish those visits from other GitHub referrals, open the **Campaigns** widget and select **github-readme** (source **github**).
 [GoatCounter reads campaign tags automatically](https://www.goatcounter.com/help/campaigns); there is no extra tracking script or campaign setup.
+The page's canonical URL keeps tagged visits on the same page total; GoatCounter still receives the campaign query.
+GitHub sign-in removes `utm_*` from its return address so that return pageview isn't attributed to the README again.
 This identifies visits through the tagged links, including any copies shared elsewhere; it cannot recover the source of older, untagged visits.
 
 Event counts are in the list of paths:

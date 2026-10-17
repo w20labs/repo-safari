@@ -67,8 +67,11 @@
     const challenge = b64url(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))));
     store.set(LOGIN_KEY, { verifier, intent, at: Date.now() });
     trackOnce('board/signin-start', 'Idea board: sign-in started');
-    const back = location.href.split('#')[0];
-    location.assign(`${API}/auth/github/start?return=${encodeURIComponent(back)}&challenge=${challenge}`);
+    // Attribute the original arrival, not the pageview after returning from GitHub. Keep functional query options.
+    const back = new URL(location.href);
+    back.hash = '';
+    for (const key of [...back.searchParams.keys()]) if (/^utm_/i.test(key)) back.searchParams.delete(key);
+    location.assign(`${API}/auth/github/start?return=${encodeURIComponent(back.href)}&challenge=${challenge}`);
   }
   async function finishSignIn() {
     const m = /^#(login|login-error)=([\w-]+)$/.exec(location.hash);

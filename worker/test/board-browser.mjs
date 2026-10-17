@@ -77,6 +77,19 @@ const signInApi = async (login) => {
   check('board off: no Ideas entry, no board files, nothing published beside the page', await p.locator('#ideasBtn').isHidden() && assets.length === 0 && !existsSync(`${ROOT}_site/board-off/board.js`) && !(await p.evaluate(() => 'RepoSafari' in window)));
   await ctx.close(); }
 
+// Campaigns belong to the first arrival; signing in keeps functional options without crediting the return again.
+{ const ctx = await context(); const p = await page(ctx, `${PAGE}?utm_source=github&utm_medium=readme&utm_campaign=github-readme&UTM_CONTENT=icon&theme=night`);
+  check('canonical URL names the published page without campaign parameters',
+    (await p.locator('link[rel="canonical"]').getAttribute('href')) === 'https://w20labs.github.io/repo-safari/');
+  await p.click('#ideasBtn');
+  await p.getByRole('button', { name: 'Sign in with GitHub', exact: true }).click();
+  await github(p, 'alice');
+  await p.getByRole('button', { name: 'Sign out', exact: true }).waitFor();
+  const back = new URL(p.url());
+  check('GitHub sign-in drops all utm tags on return and preserves functional query parameters',
+    ![...back.searchParams.keys()].some((k) => /^utm_/i.test(k)) && back.searchParams.get('theme') === 'night');
+  await ctx.close(); }
+
 // ---------- 1b. the landing-page section, below the game ----------
 { const ctx = await context(); const p = await page(ctx, OFF);
   check('board off: no board section on the landing page', (await p.locator('#ideaBoardSection').count()) === 0);
