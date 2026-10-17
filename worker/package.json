@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "preview": "dev/preview.sh",
+    "test:integration": "node test/integration.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.133.0"

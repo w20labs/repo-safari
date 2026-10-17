@@ -15,7 +15,11 @@
     "build-catalog": "tsx scripts/build-catalog.ts",
     "build-rooms": "tsx scripts/build-rooms.ts",
     "build-safari": "tsx scripts/build-safari-page.ts",
-    "community": "tsx scripts/add-community.ts"
+    "community": "tsx scripts/add-community.ts",
+    "board-admin": "tsx scripts/board-admin.ts",
+    "test:board-integration": "node worker/test/integration.mjs",
+    "test:board-browser": "node worker/test/board-browser.mjs",
+    "board-preview": "worker/dev/preview.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

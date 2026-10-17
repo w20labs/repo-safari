@@ -38,6 +38,7 @@ Keep the ones you like. No sign-up, no quiz, nothing to lose. A walk takes about
 3. **Collect.** Save the ones you want to remember. They go into your sticker album.
 4. **Reach the end.** This week's rising repos sit on a high platform at the end of the trail. Getting there takes a double jump, and their stickers are rare.
 5. **Mix (experiment).** The Idea Shower card at the top offers 3 repos, each with what it does: your stickers, or random repos from this week's trail. Press **Mix these 3**, shuffle them, or **Choose repos** (your stickers are one tap away, or search this week's repos), and turn them into three product ideas: useful, unexpected and ridiculous. Copy an idea, copy a ready-made prompt for your coding agent, or share the mix as a link.
+6. **Publish and star (built, not switched on yet).** The idea board lets you publish one of your generated ideas, share its permanent link and star other people's ideas with your GitHub account. Each week, the idea with the most new stars is picked for a community prototype. See [docs/idea-board.md](docs/idea-board.md).
 
 <table>
   <tr>
@@ -79,11 +80,13 @@ The rules live in [`scripts/build-rooms.ts`](scripts/build-rooms.ts) and [`serve
 
 ## Your data
 
-There's no account. Your sticker album is saved in your own browser (`localStorage`) and never leaves it, and so do the days you played (for your streak). Clearing your browser data clears both.
+You don't need an account to play. Your sticker album is saved in your own browser (`localStorage`) and never leaves it, and so do the days you played (for your streak). Clearing your browser data clears both.
 
 **Idea Shower:** the 3 repo names you pick are sent to our server and to Anthropic to generate ideas. Shared links contain the mix itself in the URL and aren't stored by us. We collect no email or other personal data.
 
-To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts six anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, Share pressed, the length of your streak on the first walk of each day, and which W20 Labs link was clicked. The Idea Shower adds fifteen more, each at most once per visit: card shown, card shuffled, Choose repos opened, machine opened, 3 ingredients picked, which way it was opened (the card, Shuffle in the machine or the 3-sticker nudge), ideas asked for, ideas generated, generated again, idea copied, build prompt copied, mix shared, and a shared mix opened. The mix itself is never counted.
+**Idea board (when it's switched on):** browsing and generating stay anonymous. Publishing or starring needs GitHub sign-in (public profile only): we store your GitHub account number and handle, a session, and which ideas you starred. Generated ideas are kept for 24 hours so you can publish one, then deleted. Publishing makes that idea, its source repos and your GitHub handle public. Board stars aren't GitHub stars.
+
+To learn whether people actually play, the site counts visits with [GoatCounter](https://www.goatcounter.com): no cookies and nothing that identifies you. Besides page views it counts six anonymous events: a room opened, a sticker saved (which repo), the end of the trail reached, Share pressed, the length of your streak on the first walk of each day, and which W20 Labs link was clicked. The Idea Shower adds fifteen more, each at most once per visit: card shown, card shuffled, Choose repos opened, machine opened, 3 ingredients picked, which way it was opened (the card, Shuffle in the machine or the 3-sticker nudge), ideas asked for, ideas generated, generated again, idea copied, build prompt copied, mix shared, and a shared mix opened. The mix itself is never counted. The idea board, when it's switched on, adds a few more (board opened, a view looked at, sign-in started and finished, an idea published, starred or shared): never who you are or what an idea says. Board stars themselves are stored with your GitHub account, as [docs/idea-board.md](docs/idea-board.md#privacy-and-retention) explains.
 
 ## Run it locally
 
@@ -103,7 +106,7 @@ open _site/index.html
 | `npm run build-safari -- <url> --site _site` | Build the page into `_site/` (`IDEAS_URL=mock` adds the Idea Shower with canned ideas) |
 | `npm run typecheck` / `npm test` / `npm run test:e2e` | Type-check, unit tests, browser tests |
 
-The Idea Shower's server is one Cloudflare Worker in [`worker/`](worker); [docs/idea-shower-results.md](docs/idea-shower-results.md) covers running it, launching it and reading the results.
+The Idea Shower's server is one Cloudflare Worker in [`worker/`](worker); [docs/idea-shower-results.md](docs/idea-shower-results.md) covers running it, launching it and reading the results. The idea board runs in the same Worker with Cloudflare D1; `npm run board-preview` starts a local preview with synthetic data and no paid calls, and [docs/idea-board.md](docs/idea-board.md) covers setup, rules, owner operations and activation.
 
 Every push to `main` deploys through [`.github/workflows/pages.yml`](.github/workflows/pages.yml), and on Mondays it refreshes the rooms and rising repos first.
 

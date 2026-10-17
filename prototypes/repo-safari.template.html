@@ -236,6 +236,9 @@ body.in-room:not(.hero-peek) .hero { padding: 8px 10px 8px 14px; }
 body.in-room .hero-expand { display: inline-flex; min-height: 36px; padding: 4px 12px; color: var(--lime); border-color: rgba(212,242,92,.5); letter-spacing: 0; text-transform: none; font: 600 13px var(--ui); }
 .hero-k { display: flex; justify-content: space-between; align-items: center; gap: 8px; font: 700 11.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--lime); }
 .hero-new { padding: 2px 8px; border-radius: 999px; background: var(--lime); color: #12160a; font-size: 10px; }
+.hero-ideas { margin-left: auto; min-height: 30px; padding: 2px 10px; color: var(--lime); border-color: rgba(212,242,92,.5); letter-spacing: 0; text-transform: none; font: 600 13px var(--ui); }
+.hero-ideas[hidden], body.in-room:not(.hero-peek) .hero-ideas { display: none; }
+.idea .btn.publish { border-color: rgba(212,242,92,.5); color: var(--lime); }
 .hero h2 { margin: -2px 0 0; font-family: var(--display); font-weight: 400; font-size: clamp(17px, 2vw, 20px); line-height: 1.15; }
 /* ingredients: name, what it does, stars. Fixed line counts, so a shuffle never changes the card's height */
 .hero-mix { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 4px 2px 2px; }
@@ -407,7 +410,7 @@ body.mix-open { overflow: hidden; }
       <div class="today"><span class="tag lime" id="dayTag">Today's trail</span><span class="tag lime" id="streakTag" hidden></span><span class="tag" id="nextTag">New trail at 00:00 UTC</span><button type="button" class="btn sound" id="soundBtn" aria-pressed="true">♪ Sound on</button></div>
     </div>
     <aside class="hero" id="hero" hidden aria-labelledby="heroTitle">
-      <div class="hero-k"><span>🧪 Idea Shower</span><span class="hero-new">New</span><button type="button" class="btn hero-expand" id="heroExpand" aria-expanded="false" aria-controls="heroBody">Mix 3 repos into ideas ↓</button></div>
+      <div class="hero-k"><span>🧪 Idea Shower</span><button type="button" class="btn hero-ideas" id="ideasBtn" hidden>💡 Ideas</button><span class="hero-new">New</span><button type="button" class="btn hero-expand" id="heroExpand" aria-expanded="false" aria-controls="heroBody">Mix 3 repos into ideas ↓</button></div>
       <div class="hero-body" id="heroBody">
         <h2 id="heroTitle">Mix 3 repos into 3 product ideas</h2>
         <div class="hero-mix" id="mixChips" role="group" aria-label="Ingredients"></div>
@@ -493,7 +496,7 @@ body.mix-open { overflow: hidden; }
       <p class="mix-status" id="mixStatus" role="status"></p>
       <div class="ideas" id="ideas"></div>
       <div class="mix-acts" id="mixAfter"></div>
-      <p class="fine">The 3 repo names are sent to our server and to Anthropic to generate ideas. Shared links carry the mix in the URL; we don't store them.</p>
+      <p class="fine" id="mixPrivacy">The 3 repo names are sent to our server and to Anthropic to generate ideas. Shared links carry the mix in the URL; we don't store them.</p>
     </div>
   </div>
   <p class="fine">Rooms are built automatically from GitHub topics and only include active projects (a commit in the last 6 months). Numbers come from the GitHub API as of <span id="asOf"></span>. Repo Safari is an independent fan project and isn't affiliated with GitHub.</p>
@@ -1188,7 +1191,7 @@ function roomKey(k) {
 const typing = () => /^(INPUT|TEXTAREA)$/.test(document.activeElement?.tagName || '');
 addEventListener('keydown', (e) => {
   const k = KEYMAP[e.code];
-  if (!k || typing() || !$('mix').hidden || pickerOpen() || infoFor) return; // the Idea Shower is open: keys belong to it
+  if (!k || typing() || !$('mix').hidden || pickerOpen() || infoFor || document.body.classList.contains('board-open')) return; // the Idea Shower or the board is open: keys belong to it
   if ((k === 'jump' || k === 'open') && e.target.closest?.('#hero')) return; // Space and Enter press the card's buttons, not the game's
   if (state === 'room') {
     // Enter on a focused control (Back, Save…) activates it; on a sticker it opens the repo.
@@ -1207,7 +1210,7 @@ addEventListener('blur', () => keys.clear());
 for (const b of document.querySelectorAll('#pad button')) {
   const k = b.dataset.k;
   b.addEventListener('pointerdown', (e) => {
-    if ((SHOWER && pickerOpen()) || infoFor) return; // the card's popovers are open: the game waits
+    if ((SHOWER && pickerOpen()) || infoFor || document.body.classList.contains('board-open')) return; // the card's popovers or the board are open: the game waits
     e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add('on');
     if (state === 'room') { roomKey(k); return; }
     if (!keys.has(k)) pressed.add(k); keys.add(k);
@@ -1393,6 +1396,8 @@ function drawWalker(g, x, y, face, runT, air, alpha, time) {
 /** '' = off (nothing shows), 'mock' = canned ideas for local development, otherwise the Worker's origin. */
 const IDEAS_URL = '__IDEAS_URL__';
 const SHOWER = IDEAS_URL !== '';
+/** The idea board (board.js/board.css, loaded only when on): needs the real Worker, so never with mock ideas. */
+const BOARD = '__BOARD__' === '1' && /^https?:\/\//.test(IDEAS_URL);
 const SITE = SHARE_URL.startsWith('http') ? SHARE_URL : location.href.split('#')[0];
 const KINDS = ['useful', 'unexpected', 'ridiculous'];
 const MAX_FIELD = 400;
@@ -1713,7 +1718,7 @@ function repoCard(name, k) {
 }
 const KIND_LABEL = { useful: 'USEFUL', unexpected: 'UNEXPECTED', ridiculous: 'RIDICULOUS' };
 /** One idea. Shared ideas get no copy buttons: a crafted link must never land text in something pasted into a coding agent. */
-function ideaCard(idea, repos, readOnly) {
+function ideaCard(idea, repos, readOnly, index) {
   return h('article', { class: `idea k-${idea.kind}` },
     h('div', { class: 'idea-k' }, KIND_LABEL[idea.kind]),
     h('h3', null, idea.name),
@@ -1722,7 +1727,9 @@ function ideaCard(idea, repos, readOnly) {
     h('p', { class: 'idea-i' }, idea.inspiration),
     readOnly ? null : h('div', { class: 'acts' },
       copyButton('Copy Idea', () => `${idea.name}: ${idea.pitch}\n${SITE}`, 'idea/copy'),
-      copyButton('Copy Build Prompt', () => buildPrompt(idea, repos), 'prompt/copy')));
+      copyButton('Copy Build Prompt', () => buildPrompt(idea, repos), 'prompt/copy'),
+      // publishing is explicit, one idea at a time, and only for output the Worker saved (never a shared #mix= link)
+      BOARD && result?.draft ? h('button', { type: 'button', class: 'btn publish', onclick: (e) => window.RepoSafari.board?.publish(result, index, e.currentTarget) }, 'Publish to idea board') : null));
 }
 function buildPrompt(idea, repos) {
   return `Build a small local prototype of this idea.
@@ -1777,8 +1784,9 @@ function renderMix() {
     $('mixActs').replaceChildren(h('button', { type: 'button', class: 'btn go', id: 'showerBtn', disabled: busy || limited || repos.length !== 3, onclick: shower }, label),
       mixable().length !== 3 ? h('button', { type: 'button', class: 'btn', id: 'shuffleBtn', disabled: busy, onclick: shuffleMix }, '🎲 Shuffle') : null);
   }
-  $('ideas').replaceChildren(...(ideas ?? []).map((i) => ideaCard(i, repos, isShared)));
-  $('mixAfter').replaceChildren(...(!isShared && ideas ? [copyButtonPlain('Share this mix', () => shareLink(repos, ideas), 'share/copy')] : []));
+  $('ideas').replaceChildren(...(ideas ?? []).map((i, k) => ideaCard(i, repos, isShared, k)));
+  $('mixAfter').replaceChildren(...(!isShared && ideas ? [copyButtonPlain('Share this mix', () => shareLink(repos, ideas), 'share/copy')] : []),
+    ...(BOARD && !isShared && ideas && result?.draft === null ? [h('p', { class: 'mix-note' }, 'Publishing to the idea board isn’t available for this mix right now. Your ideas are still here to copy and share.')] : []));
 }
 /** Swap in 3 other random stickers, keeping the machine open. */
 function shuffleMix() {
@@ -1806,8 +1814,8 @@ async function shower() {
   status('Mixing your three repos…');
   renderMix();
   try {
-    const ideas = await fetchIdeas(mix);
-    result = { repos: mix, ideas };
+    const { ideas, draft } = await fetchIdeas(mix);
+    result = { repos: mix, ideas, draft };
     generations++;
     if (generations === 1) trackOnce('ideas/generated', 'Idea Shower: ideas generated');
     else trackOnce('ideas/again', 'Idea Shower: generated again');
@@ -1821,15 +1829,19 @@ async function shower() {
   }
 }
 async function fetchIdeas(repos) {
-  if (IDEAS_URL === 'mock') return mockIdeas(repos);
+  if (IDEAS_URL === 'mock') return { ideas: await mockIdeas(repos) };
   const ctrl = new AbortController(), timer = setTimeout(() => ctrl.abort(), 45000);
   try {
     const res = await fetch(`${IDEAS_URL}/ideas`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ repos }), signal: ctrl.signal });
     if (res.status === 429) throw new Error('limit');
     if (!res.ok) throw new Error(`status ${res.status}`);
-    const ideas = cleanIdeas((await res.json())?.ideas, true);
+    const body = await res.json();
+    const ideas = cleanIdeas(body?.ideas, true);
     if (!ideas) throw new Error('bad answer');
-    return ideas;
+    // with the board on, the Worker saved this exact output and sent a receipt to publish it; null means it couldn't
+    const d = body?.draft;
+    const draft = !BOARD ? undefined : d && /^[\w-]{22}$/.test(d.id) && /^[\w-]{43}$/.test(d.receipt) ? { id: d.id, receipt: d.receipt } : null;
+    return { ideas, draft };
   } finally { clearTimeout(timer); }
 }
 /** Local development: canned ideas after a short wait. ?mock=limit or ?mock=error shows those states. */
@@ -1893,6 +1905,27 @@ if (SHOWER) {
   const s = readShared();
   if (s?.expired) toast('This shared mix has expired.');
   else if (s) { shared = s; track('share/open', 'Idea Shower: shared mix opened'); openMix('shared'); }
+}
+
+// ---------- the idea board: its own module (board.js), loaded only when the board is on ----------
+if (BOARD) {
+  $('mixPrivacy').textContent = 'The 3 repo names are sent to our server and to Anthropic to generate ideas. We keep the generated ideas for 24 hours so you can publish one, then delete them. Publishing makes that idea, its source repos and your GitHub handle public. Shared mix links carry the mix in the URL.';
+  window.RepoSafari = {
+    h, $, toast, track, trackOnce, tagline, kfmt, short, IDEAS_URL, SITE, isReduced: () => reduced, closeMix,
+    /** After a sign-in round trip: put the generated mix back, so "See the ideas" still works. */
+    restoreResult(r) {
+      if (!r || !Array.isArray(r.repos) || r.repos.length !== 3 || !r.repos.every((n) => REPOS.has(n))) return;
+      const ideas = cleanIdeas(r.ideas, true);
+      if (!ideas) return;
+      ingredients.splice(0, ingredients.length, ...r.repos);
+      result = { repos: [...r.repos], ideas, draft: r.draft ?? null };
+      renderAlbum();
+    },
+  };
+  $('ideasBtn').hidden = false;
+  $('ideasBtn').addEventListener('click', () => window.RepoSafari.board?.open('top', $('ideasBtn')));
+  document.head.append(h('link', { rel: 'stylesheet', href: 'board.css' }));
+  document.body.append(h('script', { src: 'board.js' }));
 }
 
 // ---------- loop ----------

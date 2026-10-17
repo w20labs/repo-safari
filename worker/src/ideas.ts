@@ -7,6 +7,8 @@
  * Rate limits live in one Durable Object (limiter.ts): per visitor (a salted hash of the IP, never the IP) and per day.
  */
 import Anthropic from '@anthropic-ai/sdk';
+import { boardOn, boardRoute, clock, type BoardEnv } from './board/routes';
+import { saveDraft, type RepoSnapshot } from './board/store';
 import { PER_DAY, PER_VISITOR } from './limiter';
 
 export { PER_DAY, PER_VISITOR };
@@ -25,7 +27,7 @@ export type Env = {
   ALLOWED_ORIGINS: string;
   /** Local testing only: point the SDK at a stand-in server. */
   ANTHROPIC_BASE_URL?: string;
-};
+} & Partial<Omit<BoardEnv, 'ALLOWED_ORIGINS'>>; // the idea board (board/): off unless BOARD_ENABLED is "1" and BOARD_DB is bound
 
 export const MODEL = 'claude-sonnet-5-5';
 export const KINDS = ['useful', 'unexpected', 'ridiculous'] as const;
@@ -35,7 +37,8 @@ const REPOS_TTL_MS = 3600_000;
 const REFRESH_MIN_MS = 60_000;
 
 export type Idea = { kind: (typeof KINDS)[number]; name: string; pitch: string; concept: string; inspiration: string };
-type Repo = { name: string; desc: string };
+/** A repo as the site lists it in repos.json (room and stars are optional: older lists only have name and desc). */
+type Repo = { name: string; desc: string; room?: string; stars?: number };
 
 let repoCache: { at: number; map: Map<string, Repo> } | null = null;
 let lastFetch = 0;
@@ -54,7 +57,10 @@ async function knownRepos(env: Env, fresh = false): Promise<Map<string, Repo>> {
       const res = await fetch(`${env.REPOS_URL}?t=${Date.now()}`, { headers: { Accept: 'application/json' } });
       if (!res.ok) throw new Error(`repos.json: ${res.status}`);
       const list = (await res.json()) as Repo[];
-      repoCache = { at: Date.now(), map: new Map(list.map((r) => [r.name, { name: r.name, desc: String(r.desc ?? '').slice(0, 300) }])) };
+      repoCache = { at: Date.now(), map: new Map(list.map((r) => [r.name, {
+        name: r.name, desc: String(r.desc ?? '').slice(0, 300),
+        ...(typeof r.room === 'string' ? { room: r.room.slice(0, 80) } : {}), ...(Number.isSafeInteger(r.stars) ? { stars: r.stars } : {}),
+      }])) };
     })().finally(() => { inflight = null; });
   }
   if (inflight) {
@@ -175,7 +181,11 @@ export async function handle(req: Request, env: Env): Promise<Response> {
 
 async function route(req: Request, env: Env, allowed: boolean, cors: Record<string, string>, json: (status: number, body: unknown) => Response): Promise<Response> {
   const { pathname } = new URL(req.url);
-  if (pathname !== '/ideas') return json(404, { error: 'not_found' });
+  if (pathname !== '/ideas') {
+    // the idea board's paths exist only while it's enabled
+    const board = boardOn(env) ? await boardRoute(req, env as Env & BoardEnv, allowed ? (req.headers.get('Origin') ?? null) : null) : null;
+    return board ?? json(404, { error: 'not_found' });
+  }
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: { ...cors, 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Content-Type', 'Access-Control-Max-Age': '86400' } });
   if (req.method !== 'POST') return json(405, { error: 'method' });
   if (!allowed) return json(403, { error: 'origin' });
@@ -201,7 +211,19 @@ async function route(req: Request, env: Env, allowed: boolean, cors: Record<stri
 
   try {
     const ideas = await generate(env, repos as Repo[]);
-    return ideas ? json(200, { ideas }) : json(502, { error: 'bad_answer' });
+    if (!ideas) return json(502, { error: 'bad_answer' });
+    if (!boardOn(env)) return json(200, { ideas });
+    // the board is on: keep exactly this output for 24 hours so one idea can be published. If that fails, the ideas
+    // are still returned (they were paid for); the page says publishing is unavailable and never asks for them again.
+    let draft: Awaited<ReturnType<typeof saveDraft>> | null = null;
+    try {
+      const seenAt = new Date().toISOString().slice(0, 10);
+      const snapshot: RepoSnapshot[] = (repos as Repo[]).map((r) => ({ name: r.name, url: `https://github.com/${r.name}`, desc: r.desc, room: r.room, stars: r.stars, seenAt }));
+      draft = await saveDraft(env.BOARD_DB!, snapshot, ideas, MODEL, await clock(env as Env & BoardEnv));
+    } catch (e) {
+      console.error('draft not saved:', e instanceof Error ? e.message : e);
+    }
+    return json(200, { ideas, draft });
   } catch (e) {
     console.error('anthropic call failed:', e instanceof Error ? e.message : e);
     return json(502, { error: 'upstream' });
