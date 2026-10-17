@@ -1,6 +1,6 @@
 # Idea Shower: running, launching and reading the results
 
-The Idea Shower is a small experiment inside Repo Safari. A player picks 3 stickers from their album (with the **🧪 Idea Shower** button at the top, "🎲 Surprise me", the one-time nudge at their 3rd sticker, or "+ mix" by hand), the pipe machine sends them to one Cloudflare Worker, and the Worker asks Claude for 3 ideas: useful, unexpected and ridiculous. Each idea can be copied, or copied as a build prompt for a coding agent, and a whole mix can be shared as a link.
+The Idea Shower is a small experiment inside Repo Safari. A card at the top of the page always offers 3 repos (the visitor's stickers when they have 3, otherwise random repos from this week's trail). **Mix these 3** opens the pipe machine and starts it in one click; **🎲 Shuffle** swaps the 3, and **✏️ or build your own** searches this week's repos. Stickers can also be picked with "+ mix" in the album or from the one-time nudge at the 3rd sticker. The pipe machine sends them to one Cloudflare Worker, and the Worker asks Claude for 3 ideas: useful, unexpected and ridiculous. Each idea can be copied, or copied as a build prompt for a coding agent, and a whole mix can be shared as a link.
 
 It answers two questions:
 
@@ -89,7 +89,10 @@ Open https://repo-safari.goatcounter.com and set the date range to the launch pe
 
 | Event | Means | Counted |
 |---|---|---|
-| `machine/open` | Started a mix: a first "+ mix", any of the quick ways in below, or Mix these yourself | Once per page load |
+| `card/shown` | The Idea Shower card was on the page | Once per page load |
+| `card/shuffle` | Pressed 🎲 Shuffle on the card | Once per page load |
+| `card/own` | Opened ✏️ or build your own | Once per page load |
+| `machine/open` | Started a mix: a first pick ("+ mix" or build your own), Mix these 3, the nudge, or Mix these yourself | Once per page load |
 | `machine/three` | Reached 3 ingredients | Once per page load |
 | `ideas/generated` | Got a first set of ideas | Once per page load |
 | `ideas/again` | Generated a second time | Once per page load |
@@ -97,22 +100,25 @@ Open https://repo-safari.goatcounter.com and set the date range to the launch pe
 | `prompt/copy` | Copied a build prompt | Once per page load |
 | `share/copy` | Copied a share link | Once per page load |
 | `share/open` | Opened a valid shared link | Every time |
-| `entry/top` | Opened the machine from the 🧪 Idea Shower button at the top | Once per page load |
-| `entry/surprise` | Used 🎲 Surprise me (album bar) or 🎲 Shuffle (machine). Picks from the album; with fewer than 3 stickers it fills up with repos from this week's trail, so it also works for new visitors | Once per page load |
+| `entry/top` | Pressed Mix these 3 (or See the ideas) on the card | Once per page load |
+| `entry/surprise` | Pressed 🎲 Shuffle inside the machine | Once per page load |
 | `entry/nudge` | Pressed Mix them on the one-time toast at the 3rd sticker | Once per page load |
 
 GoatCounter can't follow a person, so these are ratios of events, not of people. A page load is the closest thing to a visit.
 
 | Question | Formula | Yes if |
 |---|---|---|
-| Enough data? | `machine/open` | at least 300; below that the result is "not enough data" |
-| Fun, part 1 | `ideas/generated` ÷ `machine/open` | ≥ 40% |
+| Enough data? | `card/shown` | at least 1,000; below that the result is "not enough data" |
+| Fun, part 1 (adoption) | `ideas/generated` ÷ `card/shown` | ≥ 10% (proposed: the card is shown to every visitor, so this is a share of all visits) |
 | Fun, part 2 | (`ideas/again` + `idea/copy` + `prompt/copy` + `share/copy`) ÷ `ideas/generated` | ≥ 20% |
 | Spread | `share/open` ÷ `share/copy` | ≥ 25% (approximate: it includes sharers opening their own links) |
 | Build interest (for information) | `prompt/copy` ÷ `ideas/generated` | no pass or fail: clicks show curiosity, not demand |
 
-Which way in works best: compare `entry/top`, `entry/surprise` and `entry/nudge` with `machine/open` (the rest started by hand with "+ mix"). The nudge shows once per browser, so it mostly reaches new players.
+Fun is a yes only if both parts pass.
 
-Fun is a yes only if both parts pass. Also note the funnel step `machine/three` ÷ `machine/open`: if it's low, people start a mix but don't finish choosing, which points at the album selection rather than the ideas.
+Two health checks, not pass or fail:
+
+- **Reliability:** `ideas/generated` ÷ `machine/three`. Mix these 3 sends the request as soon as the machine opens, so this is close to the share of requests that came back with ideas. Well under 90% means errors or the daily cap; check the Worker logs.
+- **Which way in:** compare `entry/top`, `entry/nudge` and `machine/open` (the rest started by hand with "+ mix" or build your own). `card/shuffle` and `card/own` show whether people want to choose their repos rather than take the offered 3.
 
 Costs to watch in the Anthropic console: at most 300 generations a day, one Sonnet call each.

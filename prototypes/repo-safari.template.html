@@ -176,7 +176,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .w20-item b { display: block; font-family: var(--display); font-weight: 400; font-size: 15px; }
 .w20-item small { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; line-height: 1.35; }
 .w20-go { color: var(--lime); font-weight: 700; }
-.w20-social { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.w20-social { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; }
 .w20-soc { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--raised); border: 1px solid var(--line); color: var(--text); text-decoration: none; transition: border-color .15s, transform .15s; }
 .w20-soc:hover, .w20-soc:focus-visible { border-color: var(--lime); transform: translateY(-1px); }
 .w20-soc svg { width: 20px; height: 20px; flex: none; }
@@ -236,6 +236,7 @@ canvas.walker { position: absolute; bottom: 30px; width: 36px; height: 48px; tra
 .own-item small { grid-column: 1 / -1; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .own-item:disabled { opacity: .45; cursor: default; }
 .hero-fine { margin: 0; font-size: 12.5px; color: var(--muted); text-wrap: pretty; }
+.hero-privacy { margin-top: -6px; font-size: 11.5px; opacity: .85; }
 @media (max-width: 860px) { header.top.has-hero { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: no-preference) {
   .hero-st.fresh { animation: drop-in .35s cubic-bezier(.2,1.4,.4,1) both; }
@@ -326,11 +327,12 @@ body.mix-open { overflow: hidden; }
       <h2 id="heroTitle">Mix 3 repos into 3 product ideas</h2>
       <div class="hero-mix" id="mixChips"></div>
       <div class="hero-acts"><button type="button" class="btn go" id="mixGo">Mix these 3 →</button><button type="button" class="btn" id="mixSurprise" aria-label="Shuffle the 3 repos">🎲 Shuffle</button></div>
+      <p class="hero-fine hero-privacy">These repo names are sent to our server and Anthropic to generate ideas.</p>
       <button type="button" class="hero-own" id="ownToggle" aria-expanded="false" aria-controls="ownPanel">✏️ or build your own</button>
       <div class="own" id="ownPanel" hidden>
         <div class="own-picked" id="ownPicked"></div>
         <input type="search" class="own-q" id="ownQ" placeholder="Search this week’s repos" aria-label="Search this week’s repos" autocomplete="off" spellcheck="false">
-        <div class="own-list" id="ownList" role="list"></div>
+        <div class="own-list" id="ownList" aria-label="Matching repos"></div>
       </div>
       <p class="hero-fine" id="mixHint"></p>
     </aside>
@@ -384,7 +386,7 @@ body.mix-open { overflow: hidden; }
         <a class="w20-item" href="https://w20labs.github.io/benchmark-brawl/" target="_blank" rel="noopener" data-w20="benchmark-brawl"><span class="w20-ic" aria-hidden="true">🥊</span><span><b>Benchmark Brawl</b><small>Real AI models fight with real benchmark scores. Bigger gap, bigger weapon.</small></span><span class="w20-go" aria-hidden="true">→</span></a>
         <a class="w20-item" href="https://reed.w20.ai" target="_blank" rel="noopener" data-w20="reed"><span class="w20-ic" aria-hidden="true">🎙️</span><span><b>Reed Dictation</b><small>Free, private dictation for Mac. Hold a shortcut, speak, release: clean text lands in the app you're using.</small></span><span class="w20-go" aria-hidden="true">→</span></a>
       </div>
-      <div class="w20-social"><a class="w20-soc" href="https://github.com/w20labs" target="_blank" rel="noopener" data-w20="github"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg><span><b>GitHub</b><small>github.com/w20labs</small></span></a><a class="w20-soc" href="https://x.com/w20labs" target="_blank" rel="noopener" data-w20="x"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span><b>X</b><small>@w20labs</small></span></a></div>
+      <div class="w20-social"><a class="w20-soc" href="https://w20.ai" target="_blank" rel="noopener" data-w20="site"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-10 10h20M12 2c2.8 3 4 6.4 4 10s-1.2 7-4 10c-2.8-3-4-6.4-4-10s1.2-7 4-10z"/></svg><span><b>Website</b><small>w20.ai</small></span></a><a class="w20-soc" href="https://github.com/w20labs" target="_blank" rel="noopener" data-w20="github"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg><span><b>GitHub</b><small>github.com/w20labs</small></span></a><a class="w20-soc" href="https://x.com/w20labs" target="_blank" rel="noopener" data-w20="x"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span><b>X</b><small>@w20labs</small></span></a></div>
     </aside>
   </section>
   <div class="mix" id="mix" hidden>
@@ -1310,6 +1312,7 @@ function renderMixbar(fresh = false) {
   if (!SHOWER) return;
   $('hero').hidden = false;
   $('top').classList.add('has-hero');
+  trackOnce('card/shown', 'Idea Shower: card shown');
   const fromAlbum = mixable().length >= 3;
   if (ingredients.length === 3) preview = [...ingredients];
   else if (!preview || fromAlbum !== previewFromAlbum || !ingredients.every((n) => preview.includes(n))) { preview = pickThree(ingredients); fresh = true; }
@@ -1335,7 +1338,7 @@ function renderMixbar(fresh = false) {
     ? `${ingredients.length} of yours in the mix. Pick ${3 - ingredients.length} more, or Mix now and we’ll fill the rest.`
     : fromAlbum
       ? 'Picked from your album. Shuffle, or press “+ mix” on stickers to choose.'
-      : 'Random repos from today’s trail. Save stickers as you walk to mix your own.';
+      : 'Random repos from this week’s trail. Save stickers as you walk to mix your own.';
 }
 // one click from landing to ideas: open the machine and turn it on, unless these 3 already have ideas
 $('mixGo').addEventListener('click', () => {
@@ -1388,7 +1391,7 @@ function renderOwn() {
     .slice(0, 12);
   $('ownList').replaceChildren(...(q && !hits.length ? [h('p', { class: 'hero-fine' }, 'Nothing on this week’s trail matches that.')] : hits.map((r) => {
     const on = ingredients.includes(r.name);
-    return h('button', { type: 'button', class: 'own-item', role: 'listitem', disabled: !on && ingredients.length >= 3, 'aria-pressed': String(on), onclick: () => toggleOwn(r.name) },
+    return h('button', { type: 'button', class: 'own-item', disabled: !on && ingredients.length >= 3, 'aria-pressed': String(on), onclick: () => toggleOwn(r.name) },
       h('b', null, `${on ? '✓ ' : ''}${r.name}`), h('span', null, `★ ${kfmt(r.stars)}`), h('small', null, r.desc || r.room));
   })));
 }
@@ -1406,10 +1409,11 @@ $('ownToggle').addEventListener('click', () => {
   $('ownPanel').hidden = !open;
   $('ownToggle').setAttribute('aria-expanded', String(open));
   $('ownToggle').textContent = open ? 'Done building' : '✏️ or build your own';
-  if (open) { if (ingredients.length === 3 && result && sameMix(result.repos, ingredients)) { ingredients.length = 0; renderAlbum(); } renderOwn(); $('ownQ').focus(); }
+  if (open) { trackOnce('card/own', 'Idea Shower: build your own opened'); if (ingredients.length === 3 && result && sameMix(result.repos, ingredients)) { ingredients.length = 0; renderAlbum(); } renderOwn(); $('ownQ').focus(); }
 });
 $('ownQ').addEventListener('input', renderOwn);
 $('mixSurprise').addEventListener('click', () => {
+  trackOnce('card/shuffle', 'Idea Shower: card shuffled');
   if (ingredients.length === 3) ingredients.length = 0; // a finished mix: shuffle starts over
   preview = pickThree(ingredients, preview);
   renderAlbum();
