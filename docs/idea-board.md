@@ -199,9 +199,9 @@ Useful ratios: publication rate `board/publish ÷ ideas/generated`; sign-in comp
 
 ## Activation
 
-Not done in this change. In order, when approved:
+Done on 17 Oct 2026: the board is live, with the `repo-safari-board` database and the w20labs OAuth app. The first contest week runs from the launch that morning to Monday 19 Oct, 00:00 UTC. The steps, for re-creating it (for example on another Cloudflare account):
 
-1. **D1:** `cd worker && npx wrangler d1 create repo-safari-board`; uncomment the `[[d1_databases]]` and `[triggers]` blocks in `worker/wrangler.toml` with the new id; `npx wrangler d1 migrations apply repo-safari-board --remote`.
+1. **D1:** `cd worker && npx wrangler d1 create repo-safari-board`; put the new id in the `[[d1_databases]]` block of `worker/wrangler.toml`; `npx wrangler d1 migrations apply repo-safari-board --remote`.
 2. **GitHub OAuth app** (w20labs organization → Settings → Developer settings → OAuth Apps): homepage `https://w20labs.github.io/repo-safari/`, callback `https://repo-safari-ideas.<account>.workers.dev/auth/github/callback`. Put the client id in `GITHUB_CLIENT_ID`; `npx wrangler secret put GITHUB_CLIENT_SECRET`; `npx wrangler secret put ADMIN_TOKEN` (e.g. `openssl rand -base64 36`).
 3. **Worker:** set `BOARD_ENABLED = "1"` and `npx wrangler deploy`. The first board request records the launch time; the first week ends at the next Monday 00:00 UTC.
 4. **Site:** add the Actions variable `BOARD_ENABLED` = `1` (passed to the build next to `IDEAS_URL`) and run the Deploy workflow.
