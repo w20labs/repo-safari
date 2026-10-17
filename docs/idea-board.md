@@ -6,7 +6,7 @@ The idea board lets a visitor publish one of their Idea Shower ideas, share its 
 >
 > `POLICY_APPROVED = true` in `prototypes/board/board.js` shows it without the "Proposed wording, pending approval" tag. Changing the sentence later needs the owner's approval again.
 
-The board is **off by default** and nothing in this document has been deployed. Turning it on is an owner decision (see [Activation](#activation)).
+The board went live on 17 Oct 2026. Local builds remain off by default; see [Activation](#activation) for setup and rollback instructions.
 
 ## How it works
 
