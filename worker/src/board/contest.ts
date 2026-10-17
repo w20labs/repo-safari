@@ -71,22 +71,34 @@ export function validContributions(week: Week, firstStars: Contribution[], event
   });
 }
 
-export type ModerationEvent = { ideaId: string; at: number; action: 'hide' | 'unhide' | 'hold' | 'release' | 'decline' | 'reinstate' };
+export type ModerationAction = 'hide' | 'unhide' | 'hold' | 'release' | 'decline' | 'reinstate';
+export type ModerationEvent = { ideaId: string; at: number; action: ModerationAction };
 export type Candidate = { id: string; publishedAt: number };
+
+/**
+ * An idea's moderation state, and the one set of rules that changes it. The owner's actions (store.ts) and the
+ * history replayed at a weekly close both use this, so what the board shows and what the close decides can't drift:
+ * hold and decline each replace any earlier block; release and reinstate both clear it; hiding is separate.
+ */
+export type Moderation = { hidden: boolean; block: 'none' | 'held' | 'declined' };
+export const NO_MODERATION: Moderation = { hidden: false, block: 'none' };
+export function applyModeration(m: Moderation, action: ModerationAction): Moderation {
+  switch (action) {
+    case 'hide': return { ...m, hidden: true };
+    case 'unhide': return { ...m, hidden: false };
+    case 'hold': return { ...m, block: 'held' };
+    case 'decline': return { ...m, block: 'declined' };
+    case 'release': case 'reinstate': return { ...m, block: 'none' };
+  }
+}
 
 /** Ideas eligible at the week's close: published before it, not hidden/held/declined then, and not selected before. */
 export function eligibleAt(week: Week, ideas: Candidate[], moderation: ModerationEvent[], selectedBefore: Set<string>): Candidate[] {
-  const flags = new Map<string, { hidden: boolean; held: boolean; declined: boolean }>();
-  for (const e of [...moderation].filter((m) => m.at < week.end).sort((a, b) => a.at - b.at)) {
-    const f = flags.get(e.ideaId) ?? { hidden: false, held: false, declined: false };
-    if (e.action === 'hide' || e.action === 'unhide') f.hidden = e.action === 'hide';
-    else if (e.action === 'hold' || e.action === 'release') f.held = e.action === 'hold';
-    else f.declined = e.action === 'decline';
-    flags.set(e.ideaId, f);
-  }
+  const state = new Map<string, Moderation>();
+  for (const e of [...moderation].filter((m) => m.at < week.end).sort((a, b) => a.at - b.at)) state.set(e.ideaId, applyModeration(state.get(e.ideaId) ?? NO_MODERATION, e.action));
   return ideas.filter((i) => {
-    const f = flags.get(i.id);
-    return i.publishedAt < week.end && !selectedBefore.has(i.id) && !(f && (f.hidden || f.held || f.declined));
+    const m = state.get(i.id) ?? NO_MODERATION;
+    return i.publishedAt < week.end && !selectedBefore.has(i.id) && !m.hidden && m.block === 'none';
   });
 }
 

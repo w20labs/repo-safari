@@ -1912,6 +1912,8 @@ if (BOARD) {
   $('mixPrivacy').textContent = 'The 3 repo names are sent to our server and to Anthropic to generate ideas. We keep the generated ideas for 24 hours so you can publish one, then delete them. Publishing makes that idea, its source repos and your GitHub handle public. Shared mix links carry the mix in the URL.';
   window.RepoSafari = {
     h, $, toast, track, trackOnce, tagline, kfmt, short, IDEAS_URL, SITE, isReduced: () => reduced, closeMix,
+    /** Let go of anything held in the game (a key still down, a pad button pressed), as the repo picker does. */
+    pauseGame() { keys.clear(); pressed.clear(); body.vx = 0; for (const b of document.querySelectorAll('#pad button.on')) b.classList.remove('on'); },
     /** After a sign-in round trip: put the generated mix back, so "See the ideas" still works. */
     restoreResult(r) {
       if (!r || !Array.isArray(r.repos) || r.repos.length !== 3 || !r.repos.every((n) => REPOS.has(n))) return;

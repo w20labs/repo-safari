@@ -4,7 +4,7 @@
  * materialized lifetime count are kept by triggers (migrations/0001_idea_board.sql).
  */
 import type { D1Database } from './d1';
-import { DAY, POLICY_VERSION, eligibleAt, rank, validContributions, weekAt, weeksToClose, type Contribution, type ModerationEvent, type StarEvent, type Week } from './contest';
+import { DAY, POLICY_VERSION, WEEK, applyModeration, eligibleAt, type Moderation, type ModerationAction, rank, validContributions, weekAt, weeksToClose, type Contribution, type ModerationEvent, type StarEvent, type Week } from './contest';
 import { cleanNote, newId, newSecret, safeHttpsUrl, sameSecret, sha256Hex } from './util';
 
 export const DRAFT_TTL = DAY; // unpublished generated output is deleted after 24 hours
@@ -19,6 +19,14 @@ export type RepoSnapshot = { name: string; url: string; desc: string; room?: str
 export type Account = { githubId: number; login: string };
 
 const json = <T>(s: unknown): T => JSON.parse(String(s)) as T;
+/**
+ * The end of the newest week that closing has sealed. Every vote, moderation and publication time is written as
+ * MAX(request time, this) inside its own statement, so a write that lands after a week was sealed (a slow request that
+ * read the clock on Sunday) is dated into the next week instead of slipping behind a frozen result. D1 runs writes one
+ * at a time, so each write sees the seal or doesn't, atomically.
+ */
+const SEALED = "COALESCE((SELECT CAST(value AS INTEGER) FROM board_settings WHERE key = 'sealed_through'), 0)";
+const at = (param = '?') => `MAX(${param}, ${SEALED})`;
 const ids = (list: string[]) => JSON.stringify(list); // bound as one parameter and read with json_each (D1 allows 100 parameters)
 
 // ---------- launch and clock ----------
@@ -52,18 +60,23 @@ export async function publishDraft(db: D1Database, who: Account, draftId: string
   const idea = json<DraftIdea[]>(d.ideas_json)[index];
   if (!Number.isInteger(index) || !idea) return { error: 'index' };
   const repos = json<RepoSnapshot[]>(d.repos_json);
-  const hash = await sha256Hex(JSON.stringify([idea.kind, idea.name, idea.pitch, idea.concept, idea.inspiration, repos.map((r) => r.name)]));
+  // identity ignores the order of the source repos (the snapshot keeps it for display)
+  const hash = await sha256Hex(JSON.stringify([idea.kind, idea.name, idea.pitch, idea.concept, idea.inspiration, repos.map((r) => r.name.toLowerCase()).sort()]));
   const existing = await db.prepare('SELECT id, hidden_at FROM ideas WHERE content_hash = ?').bind(hash).first<{ id: string; hidden_at: number | null }>();
   if (existing) return existing.hidden_at ? { error: 'removed' } : { id: existing.id, created: false };
-  const recent = await db.prepare('SELECT COUNT(*) AS n FROM ideas WHERE publisher_id = ? AND published_at > ?').bind(who.githubId, now - DAY).first<{ n: number }>();
-  if ((recent?.n ?? 0) >= PUBLISH_PER_DAY) return { error: 'limit' };
   const id = newId();
+  // the daily limit is checked in the same statement as the insert, so simultaneous publications can't all slip under it
   await db.prepare(`INSERT INTO ideas (id, content_hash, kind, name, pitch, concept, inspiration, repos_json, publisher_id, publisher_login, draft_id, model, published_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(content_hash) DO NOTHING`)
-    .bind(id, hash, idea.kind, idea.name, idea.pitch, idea.concept, idea.inspiration, d.repos_json, who.githubId, who.login, draftId, d.model, now).run();
-  // a simultaneous duplicate may have won the insert: either way, this is the one public record
-  const row = await db.prepare('SELECT id FROM ideas WHERE content_hash = ?').bind(hash).first<{ id: string }>();
-  return { id: row!.id, created: row!.id === id };
+    SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ${at()}
+    WHERE (SELECT COUNT(*) FROM ideas WHERE publisher_id = ? AND published_at > ?) < ?
+    ON CONFLICT(content_hash) DO NOTHING`)
+    .bind(id, hash, idea.kind, idea.name, idea.pitch, idea.concept, idea.inspiration, d.repos_json, who.githubId, who.login, draftId, d.model, now,
+      who.githubId, now - DAY, PUBLISH_PER_DAY).run();
+  // a simultaneous duplicate may have won the insert: either way, that is the one public record
+  const row = await db.prepare('SELECT id, hidden_at FROM ideas WHERE content_hash = ?').bind(hash).first<{ id: string; hidden_at: number | null }>();
+  if (!row) return { error: 'limit' };
+  if (row.hidden_at) return { error: 'removed' };
+  return { id: row.id, created: row.id === id };
 }
 
 // ---------- stars ----------
@@ -77,20 +90,33 @@ export type StarResult = { starred: boolean; total: number; week: number } | { e
 export async function setStar(db: D1Database, ideaId: string, githubId: number, on: boolean, now: number, week: Week | null): Promise<StarResult> {
   const idea = await db.prepare('SELECT hidden_at FROM ideas WHERE id = ?').bind(ideaId).first<{ hidden_at: number | null }>();
   if (!idea || idea.hidden_at) return { error: 'not_found' };
-  const busy = await db.prepare('SELECT COUNT(*) AS n FROM star_events WHERE github_id = ? AND at > ?').bind(githubId, now - 60_000).first<{ n: number }>();
-  if ((busy?.n ?? 0) >= STARS_PER_MINUTE) return { error: 'limit' };
+  // one statement each: the rate limit, the time (never behind a sealed week) and the change are decided together
+  const underLimit = 'SELECT COUNT(*) FROM star_events WHERE github_id = ? AND at > ?';
   if (on) {
-    await db.prepare(`INSERT INTO stars (idea_id, github_id, first_starred_at, active, updated_at) VALUES (?, ?, ?, 1, ?)
-      ON CONFLICT(idea_id, github_id) DO UPDATE SET active = 1, updated_at = excluded.updated_at WHERE stars.active = 0`).bind(ideaId, githubId, now, now).run();
+    await db.prepare(`INSERT INTO stars (idea_id, github_id, first_starred_at, active, updated_at)
+      SELECT ?, ?, ${at()}, 1, ${at()} WHERE (${underLimit}) < ?
+      ON CONFLICT(idea_id, github_id) DO UPDATE SET active = 1, updated_at = excluded.updated_at WHERE stars.active = 0`)
+      .bind(ideaId, githubId, now, now, githubId, now - 60_000, STARS_PER_MINUTE).run();
   } else {
-    await db.prepare('UPDATE stars SET active = 0, updated_at = ? WHERE idea_id = ? AND github_id = ? AND active = 1').bind(now, ideaId, githubId).run();
+    await db.prepare(`UPDATE stars SET active = 0, updated_at = ${at()} WHERE idea_id = ? AND github_id = ? AND active = 1 AND (${underLimit}) < ?`)
+      .bind(now, ideaId, githubId, githubId, now - 60_000, STARS_PER_MINUTE).run();
   }
+  const mineNow = await db.prepare('SELECT active FROM stars WHERE idea_id = ? AND github_id = ?').bind(ideaId, githubId).first<{ active: number }>();
+  if ((mineNow?.active === 1) !== on) return { error: 'limit' }; // the only way the change didn't stick
+  // a request that crossed a sealed Monday counts in the new week: report that week
+  const sealed = await sealedThrough(db);
+  if (week && sealed >= week.end) week = { start: sealed, end: sealed + WEEK, partial: false };
   const [mine, counts] = await Promise.all([
     db.prepare('SELECT active FROM stars WHERE idea_id = ? AND github_id = ?').bind(ideaId, githubId).first<{ active: number }>(),
     weekCounts(db, [ideaId], week),
   ]);
   const total = await db.prepare('SELECT stars_total FROM ideas WHERE id = ?').bind(ideaId).first<{ stars_total: number }>();
   return { starred: mine?.active === 1, total: total?.stars_total ?? 0, week: counts.get(ideaId) ?? 0 };
+}
+
+export async function sealedThrough(db: D1Database): Promise<number> {
+  const r = await db.prepare(`SELECT ${SEALED} AS s`).first<{ s: number }>();
+  return r?.s ?? 0;
 }
 
 /** Which of these ideas the account has starred. */
@@ -228,6 +254,10 @@ export async function closeDueWeeks(db: D1Database, now: number, limit = 8): Pro
 export async function closeWeek(db: D1Database, week: Week, now: number): Promise<Closed> {
   const done = await db.prepare('SELECT winner_id, winner_score FROM contests WHERE week_start = ?').bind(week.start).first<{ winner_id: string | null; winner_score: number | null }>();
   if (done) return { start: week.start, end: week.end, winner: done.winner_id, score: done.winner_score ?? 0, already: true };
+  // Seal first: from this commit on, every vote, moderation and publication is dated at or after the cutoff (see SEALED),
+  // so everything read below is final for this week. It only moves forward.
+  await db.prepare(`INSERT INTO board_settings (key, value) VALUES ('sealed_through', ?)
+    ON CONFLICT(key) DO UPDATE SET value = CAST(MAX(CAST(value AS INTEGER), CAST(excluded.value AS INTEGER)) AS TEXT)`).bind(String(week.end)).run();
 
   const { results: first } = await db.prepare('SELECT idea_id, github_id, first_starred_at FROM stars WHERE first_starred_at >= ? AND first_starred_at < ?')
     .bind(week.start, week.end).all<{ idea_id: string; github_id: number; first_starred_at: number }>();
@@ -292,7 +322,7 @@ async function lifetimeAt(db: D1Database, ideaId: string, at: number): Promise<n
 const audit = (db: D1Database, now: number, action: string, target: string, reason: string) =>
   db.prepare('INSERT INTO audit_log (at, action, target, reason) VALUES (?, ?, ?, ?)').bind(now, action, target, reason);
 
-export type ModAction = 'hide' | 'unhide' | 'hold' | 'release' | 'decline' | 'reinstate';
+export type ModAction = ModerationAction;
 const PUBLIC_NOTE: Partial<Record<ModAction, string>> = {
   hold: 'On hold while we check whether it can be built safely.',
   decline: 'Declined: it can’t be built as a safe, open-source prototype.',
@@ -300,24 +330,24 @@ const PUBLIC_NOTE: Partial<Record<ModAction, string>> = {
 
 /** Hide/unhide, hold/release or decline/reinstate an idea, with a private reason (audit log) and an optional public note. */
 export async function moderate(db: D1Database, ideaId: string, action: ModAction, reason: string, publicNote: string | null, now: number) {
-  const i = await db.prepare('SELECT status FROM ideas WHERE id = ?').bind(ideaId).first<{ status: string }>();
+  const i = await db.prepare('SELECT status, hidden_at FROM ideas WHERE id = ?').bind(ideaId).first<{ status: string; hidden_at: number | null }>();
   if (!i) return { error: 'not_found' as const };
   const q = await db.prepare('SELECT status FROM build_queue WHERE idea_id = ?').bind(ideaId).first<{ status: string }>();
   const note = publicNote ?? PUBLIC_NOTE[action] ?? null;
+  // the same transition the weekly close replays from history (contest.ts applyModeration)
+  const before: Moderation = { hidden: i.hidden_at !== null, block: i.status === 'held' ? 'held' : i.status === 'declined' ? 'declined' : 'none' };
+  const after = applyModeration(before, action);
   const s: ReturnType<D1Database['prepare']>[] = [
-    db.prepare('INSERT INTO moderation_events (idea_id, at, action, reason) VALUES (?, ?, ?, ?)').bind(ideaId, now, action, reason),
+    db.prepare(`INSERT INTO moderation_events (idea_id, at, action, reason) VALUES (?, ${at()}, ?, ?)`).bind(ideaId, now, action, reason),
     audit(db, now, action, ideaId, reason),
   ];
-  if (action === 'hide' || action === 'unhide') s.push(db.prepare('UPDATE ideas SET hidden_at = ? WHERE id = ?').bind(action === 'hide' ? now : null, ideaId));
-  else if (action === 'hold' || action === 'decline') {
-    const status = action === 'hold' ? 'held' : 'declined';
-    s.push(db.prepare('UPDATE ideas SET status = ?, status_note = ? WHERE id = ?').bind(status, note, ideaId));
-    if (q) s.push(db.prepare('UPDATE build_queue SET status = ?, status_note = ?, updated_at = ? WHERE idea_id = ?').bind(status, note, now, ideaId));
-  } else {
-    // release / reinstate: back to collecting, or back into the queue if it had been selected
-    const status = q ? 'selected' : 'collecting';
-    s.push(db.prepare('UPDATE ideas SET status = ?, status_note = NULL WHERE id = ?').bind(status, ideaId));
-    if (q) s.push(db.prepare("UPDATE build_queue SET status = 'selected', status_note = NULL, updated_at = ? WHERE idea_id = ?").bind(now, ideaId));
+  if (after.hidden !== before.hidden) s.push(db.prepare('UPDATE ideas SET hidden_at = ? WHERE id = ?').bind(after.hidden ? now : null, ideaId));
+  if (after.block !== before.block || (after.block !== 'none' && publicNote)) {
+    // blocked: held or declined, with a public note; unblocked: collecting again, or back in the queue if it was picked
+    const status = after.block === 'held' ? 'held' : after.block === 'declined' ? 'declined' : q ? 'selected' : 'collecting';
+    const shown = after.block === 'none' ? null : note;
+    s.push(db.prepare('UPDATE ideas SET status = ?, status_note = ? WHERE id = ?').bind(status, shown, ideaId));
+    if (q) s.push(db.prepare('UPDATE build_queue SET status = ?, status_note = ?, updated_at = ? WHERE idea_id = ?').bind(status, shown, now, ideaId));
   }
   await db.batch(s);
   return { ok: true as const };
@@ -328,7 +358,7 @@ export async function moderateStars(db: D1Database, githubId: number, ideaId: st
   const where = `github_id = ?${ideaId ? ' AND idea_id = ?' : ''} AND invalidated_at IS ${exclude ? 'NULL' : 'NOT NULL'}`;
   const args: unknown[] = ideaId ? [githubId, ideaId] : [githubId];
   const [res] = await db.batch([
-    db.prepare(`UPDATE stars SET invalidated_at = ?, updated_at = ? WHERE ${where}`).bind(exclude ? now : null, now, ...args),
+    db.prepare(`UPDATE stars SET invalidated_at = ?, updated_at = ${at()} WHERE ${where}`).bind(exclude ? now : null, now, ...args),
     audit(db, now, exclude ? 'exclude-stars' : 'restore-stars', `${githubId}${ideaId ? `/${ideaId}` : ''}`, reason),
   ]);
   return { ok: true as const, changed: res.meta.changes };
@@ -357,7 +387,7 @@ export async function setBuild(db: D1Database, ideaId: string, status: 'selected
  */
 export async function deleteAccount(db: D1Database, githubId: number, reason: string, now: number) {
   await db.batch([
-    db.prepare('UPDATE stars SET active = 0, updated_at = ? WHERE github_id = ? AND active = 1').bind(now, githubId),
+    db.prepare(`UPDATE stars SET active = 0, updated_at = ${at()} WHERE github_id = ? AND active = 1`).bind(now, githubId),
     db.prepare('DELETE FROM sessions WHERE github_id = ?').bind(githubId),
     db.prepare('DELETE FROM login_codes WHERE github_id = ?').bind(githubId),
     db.prepare("UPDATE accounts SET login = 'deleted-account', deleted_at = ?, updated_at = ? WHERE github_id = ?").bind(now, now, githubId),

@@ -102,7 +102,8 @@ export async function boardRoute(req: Request, env: BoardEnv, allowedOrigin: str
     if (!['top', 'new', 'building', 'built'].includes(view)) return json(400, { error: 'view' });
     const cursor = url.searchParams.get('cursor');
     if (cursor && !/^[0-9a-z.]{1,40}$/.test(cursor)) return json(400, { error: 'cursor' });
-    return json(200, { ...(await listIdeas(env.BOARD_DB, view, cursor, week)), week }, { cache: 'public' });
+    const limit = Math.max(1, Math.min(Number(url.searchParams.get('limit')) || 12, 30));
+    return json(200, { ...(await listIdeas(env.BOARD_DB, view, cursor, week, limit)), week }, { cache: 'public' });
   }
   const one = /^\/board\/ideas\/([^/]+)(\/star)?$/.exec(path);
   if (one && !one[2] && req.method === 'GET') {

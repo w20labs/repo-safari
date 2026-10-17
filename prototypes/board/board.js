@@ -147,6 +147,7 @@
   function open(view = 'top', opener = null) {
     if (!root) build();
     state.opener = opener ?? document.activeElement;
+    S.pauseGame?.(); // a key held down in the game must not keep walking behind the board
     if (root.hidden) {
       root.hidden = false;
       document.body.classList.add('board-open');
@@ -164,7 +165,7 @@
     if (!root || root.hidden) return;
     root.hidden = true;
     document.body.classList.remove('board-open');
-    clearInterval(countdown);
+    clearInterval(countdown); clearTimeout(state.cutoffTimer);
     if (/^#idea=/.test(location.hash) || location.hash === '#ideas') history.replaceState(null, '', location.pathname + location.search);
     state.opener?.focus?.({ preventScroll: true });
   }
@@ -192,6 +193,14 @@
     if (state.contestError) { box.replaceChildren(h('p', null, 'This week’s contest couldn’t load. ', h('button', { type: 'button', class: 'btn board-link', onclick: loadContest }, 'Try again'))); return; }
     if (!c) { box.replaceChildren(h('p', { class: 'board-muted' }, 'Loading this week…')); return; }
     const now = c.now + (Date.now() - c.fetchedAt); // the server's clock, moved on locally
+    // Monday 00:00 UTC passed while the board was open: fetch the new week (and its ranking) instead of showing "in 0m"
+    if (c.week && now >= c.week.end && !state.rolling) {
+      state.rolling = true;
+      loadContest().then(() => { state.rolling = false; if (state.view === 'top' && !state.detail) show('top', true); });
+    }
+    // and wake up exactly at the cutoff rather than up to 30 s later
+    clearTimeout(state.cutoffTimer);
+    if (c.week && now < c.week.end && c.week.end - now < 2 * 3_600_000) state.cutoffTimer = setTimeout(renderContest, c.week.end - now + 250);
     const parts = [];
     if (c.week) {
       parts.push(h('p', { class: 'board-week' },
@@ -304,7 +313,8 @@
     const on = state.starred.has(i.id), busy = state.pending.has(i.id);
     return h('button', {
       type: 'button', class: `btn board-star${on ? ' on' : ''}`, 'data-star': i.id, 'aria-pressed': String(on), 'aria-label': `Star ${i.name}`,
-      'aria-busy': busy ? 'true' : null, disabled: busy, onclick: () => setStar(i.id, !on),
+      // while saving it stays focusable (a disabled button would drop keyboard focus); repeat presses are ignored
+      'aria-busy': busy ? 'true' : null, 'aria-disabled': busy ? 'true' : null, onclick: () => setStar(i.id, !on),
     }, busy ? 'Saving…' : on ? '★ Starred' : '☆ Star');
   }
   const shareButton = (i) => h('button', { type: 'button', class: 'btn', onclick: (e) => share(i, e.currentTarget) }, 'Share');
@@ -378,6 +388,34 @@
     announce(r.data.starred ? `Starred ${name}. ${r.data.total} total.` : `Removed your star from ${name}.`);
     refreshIdea(id);
     for (const m of [10, 100]) if (before < m && r.data.total >= m) celebrate(id, m);
+    // the vote may change the leader, ranks and ties: refresh them from the server, in place
+    loadContest();
+    refreshRanks(id);
+  }
+  /**
+   * Re-reads the ranking after a vote and updates each card's numbers and tie note where it is: cards don't jump
+   * under the pointer or lose focus. If the order is now wrong, a button offers to re-sort.
+   */
+  async function refreshRanks(id) {
+    if (state.detail) {
+      const r = await api(`/board/ideas/${id}`);
+      if (r.ok && state.detail?.idea?.id === id) { Object.assign(state.detail.idea, { rank: r.data.idea.rank, weekStars: r.data.idea.weekStars, totalStars: r.data.idea.totalStars }); refreshIdea(id); }
+      return;
+    }
+    if (state.view !== 'top') return;
+    const r = await api(`/board/ideas?view=top&limit=${Math.min(30, Math.max(1, state.items.length))}`);
+    if (!r.ok || state.view !== 'top' || state.detail) return;
+    const fresh = r.data.items;
+    const by = new Map(fresh.map((x, k) => [x.id, { ...x, tieAfter: k && fresh[k - 1].weekStars === x.weekStars ? fresh[k - 1].name : null }]));
+    for (const it of state.items) {
+      const f = by.get(it.id);
+      Object.assign(it, f ? { rank: f.rank, weekStars: f.weekStars, totalStars: f.totalStars, tieAfter: f.tieAfter } : { rank: null, tieAfter: null });
+      refreshIdea(it.id);
+    }
+    const sorted = state.items.every((it, k, all) => k === 0 || (all[k - 1].rank ?? Infinity) <= (it.rank ?? Infinity));
+    const panel = root.querySelector('#boardPanel');
+    panel.querySelector('.board-resort')?.remove();
+    if (!sorted) panel.prepend(h('p', { class: 'board-muted board-resort' }, 'The ranking changed. ', h('button', { type: 'button', class: 'btn board-link', onclick: () => show('top', true) }, 'Show the new order')));
   }
   const findIdea = (id) => (state.detail?.idea?.id === id ? state.detail.idea : state.items.find((x) => x.id === id));
   /** Updates one card in place: no reordering, and focus stays on the same button. */
@@ -417,6 +455,7 @@
   function confirmPublish(result, index, opener) {
     const idea = result?.ideas?.[index];
     if (!idea || !result.draft) return;
+    S.pauseGame?.();
     const box = h('div', { class: 'board-confirm', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'pubTitle' });
     const shade = h('div', { class: 'board-shade' }, box);
     const done = () => { shade.remove(); document.removeEventListener('keydown', onKey, true); (opener && document.contains(opener) ? opener : document.querySelector('#showerBtn') ?? document.body).focus?.({ preventScroll: true }); };

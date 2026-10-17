@@ -17,7 +17,7 @@ const results = [];
 const check = (name, ok, extra = '') => { results.push(ok); console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${extra ? ` (${extra})` : ''}`); };
 
 // ---------- runtime ----------
-rmSync(new URL(`../${STATE}`, import.meta.url), { recursive: true, force: true });
+for (const dir of [STATE, `${STATE}-off`]) rmSync(new URL(`../${dir}`, import.meta.url), { recursive: true, force: true }); // fresh databases and limiter counts each run
 mkdirSync(new URL(`../${STATE}`, import.meta.url), { recursive: true });
 const wr = (args) => execFileSync('npx', ['wrangler', ...args, '--config', 'dev/wrangler.preview.toml', '--persist-to', STATE], { cwd, stdio: ['ignore', 'pipe', 'pipe'] }).toString();
 wr(['d1', 'migrations', 'apply', 'repo-safari-board-preview', '--local']);
@@ -42,9 +42,11 @@ const api = async (path, { method = 'GET', body, token, origin = PAGE, base = W,
   return { status: r.status, body: j };
 };
 const setClock = (at) => api('/dev/clock', { method: 'POST', body: { at }, origin: null });
+const ADMIN = 'local-preview-admin-token-0123456789abcdef'; // the preview config's fake token
+const admin = async (body) => { const r = await fetch(`${W}/board/admin`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Token': ADMIN }, body: JSON.stringify(body) }); return { status: r.status, body: await r.json() }; };
 const close = () => api('/dev/close', { method: 'POST', origin: null });
 let ipN = 0;
-const generate = async () => (await api('/ideas', { method: 'POST', ip: `10.0.0.${++ipN}`, body: { repos: ['n8n-io/n8n', 'axios/axios', 'logseq/logseq'] } })).body;
+const generate = async (repos = ['n8n-io/n8n', 'axios/axios', 'logseq/logseq']) => (await api('/ideas', { method: 'POST', ip: `10.0.0.${++ipN}`, body: { repos } })).body;
 /** The browser's sign-in, step by step: start -> fake GitHub -> callback -> page fragment -> exchange. */
 async function signIn(login) {
   const verifier = randomBytes(32).toString('base64url');
@@ -115,9 +117,9 @@ const assigned = sql(`SELECT idea_id, first_starred_at AS f FROM stars WHERE ide
 check('Sunday 23:59:59.999 counts for the old week; 00:00:00.000 for the new one', assigned[0].f === MON9 - 1 && assigned.slice(1).every((r) => r.f === MON9));
 // the launch week closes late, five times at once
 await setClock(MON9 + 6 * 3600_000);
-const closers = await Promise.all([close(), close(), close(), close(), api('/board/admin', { method: 'POST', origin: null, body: { action: 'close' } })]);
+const closers = await Promise.all([close(), close(), close(), close(), admin({ action: 'close' })]);
 const weekRows = sql(`SELECT week_start, winner_id, partial FROM contests ORDER BY week_start`);
-check('five simultaneous closes: one result, one queue entry', weekRows.length === 1 && sql('SELECT COUNT(*) AS n FROM build_queue')[0].n === 1 && closers.slice(0, 4).every((r) => r.status === 200));
+check('five simultaneous closes: one result, one queue entry', weekRows.length === 1 && sql('SELECT COUNT(*) AS n FROM build_queue')[0].n === 1 && closers.every((r) => r.status === 200));
 check('the partial launch week went to the idea with the most new stars', weekRows[0].winner_id === id && weekRows[0].partial === 1, JSON.stringify(weekRows));
 // after the cutoff: y collects; x loses a star; a delayed close of week 2 must use the state at its cutoff
 const extra = await Promise.all([signIn('voter20'), signIn('voter21'), signIn('voter22')]);
@@ -129,7 +131,7 @@ await setClock(MON16 + 2 * 86_400_000); // the job is two days late; meanwhile:
 await api(`/board/ideas/${x}/star`, { method: 'DELETE', token: extra[0] });
 await api(`/board/ideas/${x}/star`, { method: 'DELETE', token: extra[1] });
 for (const t of voters.slice(3, 8)) await api(`/board/ideas/${y}/star`, { method: 'PUT', token: t });
-await api('/board/admin', { method: 'POST', origin: null, body: { action: 'hide', idea: x, reason: 'late report (test)' } });
+check('owner hide after the cutoff is accepted', (await admin({ action: 'hide', idea: x, reason: 'late report (test)' })).status === 200);
 await close();
 const w2 = sql(`SELECT winner_id, winner_score FROM contests WHERE week_start = ${MON9}`)[0];
 check('a late close uses the cutoff, not later stars, unstars or moderation', w2.winner_id === x && w2.winner_score === 3, JSON.stringify(w2));
@@ -142,6 +144,38 @@ const all = sql('SELECT week_start, winner_id FROM contests ORDER BY week_start'
 const winners = all.map((r) => r.winner_id).filter(Boolean);
 check('catch-up closes the missed weeks oldest first, with no repeat winner', all.length === 5 && all.every((r, k) => k === 0 || r.week_start > all[k - 1].week_start) && new Set(winners).size === winners.length, JSON.stringify(all.map((r) => [new Date(r.week_start).toISOString().slice(0, 10), r.winner_id])));
 
+// ---------- review fixes on the real runtime ----------
+const sealed = Number(sql("SELECT value FROM board_settings WHERE key = 'sealed_through'")[0].value);
+const resultsBefore = JSON.stringify(sql('SELECT * FROM contests ORDER BY week_start'));
+await setClock(MON16 - 5000); // a request that read the clock on a Sunday long closed…
+const gen3 = await generate(['rustls/rustls', 'excalidraw/excalidraw', 'n8n-io/n8n']); // new text: not a duplicate
+const late = (await publish(alice, gen3, 0)).body.id;
+await api(`/board/ideas/${late}/star`, { method: 'PUT', token: voters[9] });
+const lateRow = sql(`SELECT first_starred_at AS f FROM stars WHERE idea_id = '${late}'`)[0];
+const latePub = sql(`SELECT published_at AS p FROM ideas WHERE id = '${late}'`)[0];
+check('a write that lands after its week was closed is dated after the seal; closed results don’t change', lateRow.f === sealed && latePub.p === sealed && JSON.stringify(sql('SELECT * FROM contests ORDER BY week_start')) === resultsBefore, JSON.stringify({ sealed, ...lateRow }));
+// hold -> decline -> reinstate: it leads publicly, and it can win
+await setClock(sealed + 3600_000);
+const gen4 = await generate(['excalidraw/excalidraw', 'rustls/rustls', 'logseq/logseq']); // drafts last 24 hours on the (test) clock
+const owner = await signIn('carol'); // sessions last 30 days; the test clock has moved on
+const [duck, haiku] = [(await publish(owner, gen4, 1)).body.id, (await publish(owner, gen4, 2)).body.id];
+const fresh = await Promise.all(Array.from({ length: 7 }, (_, k) => signIn(`voter${k}`)));
+await Promise.all(fresh.map((t) => api(`/board/ideas/${duck}/star`, { method: 'PUT', token: t })));
+await Promise.all(fresh.slice(0, 4).map((t) => api(`/board/ideas/${haiku}/star`, { method: 'PUT', token: t })));
+const mods = [];
+for (const action of ['hold', 'decline', 'reinstate']) mods.push((await admin({ action, idea: duck, reason: 'test' })).status);
+const leader = (await api('/board/ideas?view=top')).body.items[0];
+await setClock(sealed + 7 * 86_400_000 + 1000);
+await close();
+const won = sql(`SELECT winner_id, winner_score FROM contests WHERE week_start = ${sealed}`)[0];
+check('hold, decline, reinstate: it leads with 7 and wins with 7', mods.every((x) => x === 200) && leader.id === duck && leader.weekStars === 7 && won.winner_id === duck && won.winner_score === 7, JSON.stringify(won));
+// 12 publications at once from one account: 10 go through
+const trio = ['logseq/logseq', 'axios/axios', 'rustls/rustls'];
+const burstGen = await Promise.all([[0, 1, 2], [1, 2, 0], [2, 0, 1], [0, 2, 1]].map((o) => generate(o.map((k) => trio[k])))); // 12 different ideas
+const frank = await signIn('voter39');
+const pubs = await Promise.all(burstGen.flatMap((g) => [0, 1, 2].map((k) => publish(frank, g, k))));
+check('12 simultaneous publications by one account: exactly 10 published', pubs.filter((r) => r.status === 200 && r.body.created).length === 10 && pubs.filter((r) => r.status === 429).length === 2, pubs.map((r) => r.status).join(','));
+
 // ---------- 4. failures and the board switched off ----------
 await fetch(`${FAKE}/fake/fail-model`, { method: 'POST', body: JSON.stringify({ n: 5 }) }); // more than the SDK's automatic retries
 const failed = await api('/ideas', { method: 'POST', ip: '10.9.9.9', body: { repos: ['n8n-io/n8n', 'axios/axios', 'logseq/logseq'] } });
@@ -151,7 +185,7 @@ await setClock(MON16 + 60 * 86_400_000);
 check('sessions expire', (await api('/board/me', { token: expired })).status === 401);
 const off = await api('/ideas', { method: 'POST', base: OFF, ip: '10.8.8.8', body: { repos: ['n8n-io/n8n', 'axios/axios', 'logseq/logseq'] } });
 const offPaths = await Promise.all(['/board/contest', '/board/ideas?view=top', '/auth/github/start', '/dev/clock'].map((p) => fetch(`${OFF}${p}`).then((r) => r.status)));
-check('board off: generation works with no draft; board, sign-in and dev paths are 404', off.status === 200 && off.body.ideas.length === 3 && !('draft' in off.body) && offPaths.every((s) => s === 404), offPaths.join(','));
+check('board off: generation works with no draft; board, sign-in and dev paths are 404', off.status === 200 && off.body.ideas.length === 3 && !('draft' in off.body) && offPaths.every((s) => s === 404), `${off.status} ${JSON.stringify(off.body).slice(0, 80)} ${offPaths.join(',')}`);
 
 console.log(`\n${results.filter(Boolean).length}/${results.length} passed`);
 process.exit(results.every(Boolean) ? 0 : 1);

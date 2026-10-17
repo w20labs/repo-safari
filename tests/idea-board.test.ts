@@ -140,10 +140,10 @@ describe('board storage', () => {
   it('a week goes to new stars, not lifetime stars: 7 new beats 100 lifetime with 2 new', async () => {
     const old = await publishAt('Old favourite', LAUNCH);
     await stars(old, 1000, 98, LAUNCH + 1000, 10); // 98 in the launch week
-    await closeDueWeeks(db, MON12 + 1); // launch week: Old favourite wins it
-    const fresh = await publishAt('Fresh', MON12 + 10);
     const old2 = await publishAt('Old but not chosen', LAUNCH + 50);
-    await stars(old2, 3000, 98, LAUNCH + 2000, 10); // lifetime 98 + 2 below = 100
+    await stars(old2, 3000, 98, LAUNCH + 2000, 10); // lifetime 98 + 2 below = 100 (still launch week)
+    await closeDueWeeks(db, MON12 + 1); // launch week: 98 each; Old favourite got there first and wins it
+    const fresh = await publishAt('Fresh', MON12 + 10);
     await stars(old2, 4000, 2, MON12 + 100);
     await stars(fresh, 5000, 7, MON12 + 200);
     const top = await listIdeas(db, 'top', null, weekAt(MON12 + 1000, LAUNCH));
@@ -152,6 +152,74 @@ describe('board storage', () => {
     expect(w).toMatchObject({ start: MON12, winner: fresh, score: 7, already: false });
     expect(db.raw.prepare('SELECT status FROM ideas WHERE id = ?').get(fresh)).toEqual({ status: 'selected' });
     expect(db.raw.prepare('SELECT weekly_stars, lifetime_stars, status FROM build_queue WHERE idea_id = ?').get(fresh)).toEqual({ weekly_stars: 7, lifetime_stars: 7, status: 'selected' });
+  });
+
+  it('a slow write that lands after its week was closed is dated into the next week (and can’t contradict the result)', async () => {
+    const a = await publishAt('Late star', LAUNCH);
+    account(42);
+    const sundayRead = MON12 - 1000; // the request read the clock on Sunday…
+    expect((await closeDueWeeks(db, MON12 + 5))[0]).toMatchObject({ winner: null }); // …the week closed on Monday…
+    await setStar(db, a, 42, true, sundayRead, weekAt(sundayRead, LAUNCH)); // …then its write landed
+    expect(db.raw.prepare('SELECT first_starred_at AS f FROM stars').get()).toEqual({ f: MON12 });
+    expect(db.raw.prepare('SELECT MIN(at) AS t FROM star_events').get()).toEqual({ t: MON12 });
+    // the history still agrees with the frozen result, and the star counts for the week it really joined
+    const replay = validContributions(weekAt(LAUNCH, LAUNCH)!, [], db.raw.prepare('SELECT idea_id AS ideaId, github_id AS githubId, at, action FROM star_events').all() as StarEvent[]);
+    expect(replay).toEqual([]);
+    expect((await listIdeas(db, 'top', null, weekAt(MON12, LAUNCH))).items.map((i) => [i.id, i.weekStars])).toEqual([[a, 1]]);
+    expect((await closeDueWeeks(db, MON19))[0]).toMatchObject({ winner: a, score: 1 });
+    // late unstars, moderation and publications are dated after the seal too
+    await setStar(db, a, 42, false, MON12 - 50, null);
+    await moderate(db, a, 'hold', 'late', null, MON12 - 40);
+    expect(db.raw.prepare("SELECT MIN(at) AS t FROM star_events WHERE action = 'unstar'").get()).toEqual({ t: MON19 });
+    expect(db.raw.prepare('SELECT at FROM moderation_events').get()).toEqual({ at: MON19 });
+  });
+
+  it('moderation: what the board shows and what the close decides follow the same rules, for every sequence', async () => {
+    const actions = ['hide', 'unhide', 'hold', 'release', 'decline', 'reinstate'] as const;
+    const seqs: (typeof actions[number])[][] = [[]];
+    for (let len = 1; len <= 3; len++) for (const prev of seqs.filter((q) => q.length === len - 1)) for (const a of actions) seqs.push([...prev, a]);
+    let n = 0;
+    for (const seq of seqs) {
+      const id = await publishAt(`Mod ${n++}`, LAUNCH, account(9000 + n));
+      for (const [k, a] of seq.entries()) await moderate(db, id, a, 'test', null, LAUNCH + 10 + k);
+      const row = db.raw.prepare('SELECT status, hidden_at FROM ideas WHERE id = ?').get(id) as { status: string; hidden_at: number | null };
+      const live = row.status === 'collecting' && row.hidden_at === null;
+      const events = (db.raw.prepare('SELECT idea_id AS ideaId, at, action FROM moderation_events WHERE idea_id = ?').all(id)) as Parameters<typeof eligibleAt>[2];
+      const replayed = eligibleAt(weekAt(LAUNCH, LAUNCH)!, [{ id, publishedAt: LAUNCH }], events, new Set()).length === 1;
+      expect([seq.join('>'), live]).toEqual([seq.join('>'), replayed]);
+    }
+    expect(seqs.length).toBe(259);
+  });
+
+  it('hold, decline, reinstate: the idea leads and it can win', async () => {
+    const duck = await publishAt('Duck', LAUNCH), haiku = await publishAt('Haiku', LAUNCH);
+    await stars(duck, 100, 7, LAUNCH + 10); await stars(haiku, 200, 4, LAUNCH + 10);
+    for (const a of ['hold', 'decline', 'reinstate'] as const) await moderate(db, duck, a, 'test', null, LAUNCH + 5000);
+    expect((await listIdeas(db, 'top', null, weekAt(LAUNCH + 6000, LAUNCH))).items[0].id).toBe(duck);
+    expect((await closeDueWeeks(db, MON12))[0].winner).toBe(duck);
+  });
+
+  it('simultaneous publications can’t pass the daily limit; simultaneous stars can’t pass the rate limit', async () => {
+    const me = account(55);
+    const drafts = await Promise.all(Array.from({ length: 12 }, (_, k) => saveDraft(db, REPOS, [idea(`Burst ${k}`)], 'm', LAUNCH)));
+    const results = await Promise.all(drafts.map((d) => publishDraft(db, me, d.id, d.receipt, 0, LAUNCH + 1)));
+    expect(results.filter((r) => 'id' in r)).toHaveLength(10);
+    expect(results.filter((r) => 'error' in r && r.error === 'limit')).toHaveLength(2);
+    const targets = await Promise.all(Array.from({ length: 70 }, (_, k) => publishAt(`Target ${k}`, LAUNCH + 2, account(7000 + k))));
+    account(66);
+    const w = weekAt(LAUNCH + 10, LAUNCH);
+    const stars = await Promise.all(targets.map((t) => setStar(db, t, 66, true, LAUNCH + 10, w)));
+    expect(stars.filter((r) => 'starred' in r)).toHaveLength(60);
+    expect(db.raw.prepare('SELECT COUNT(*) AS n FROM stars WHERE github_id = 66').get()).toEqual({ n: 60 });
+  });
+
+  it('the same idea from the same repos in another order is the same record', async () => {
+    const d1 = await saveDraft(db, REPOS, [idea('Same')], 'm', LAUNCH);
+    const d2 = await saveDraft(db, [...REPOS].reverse(), [idea('Same')], 'm', LAUNCH);
+    const a = await publishDraft(db, account(1), d1.id, d1.receipt, 0, LAUNCH);
+    const b = await publishDraft(db, account(2), d2.id, d2.receipt, 0, LAUNCH);
+    expect(b).toEqual({ id: (a as { id: string }).id, created: false });
+    expect(JSON.parse((db.raw.prepare('SELECT repos_json AS r FROM ideas').get() as { r: string }).r).map((r: RepoSnapshot) => r.name)).toEqual(REPOS.map((r) => r.name)); // the first publication's order is kept
   });
 
   it('one star can win; a week with no stars has no winner; a winner never wins again', async () => {

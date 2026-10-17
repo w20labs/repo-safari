@@ -220,6 +220,31 @@ let ideaId = null;
   check('legacy #mix= links: the shared view still opens, with nothing to publish', (await p.locator('.idea').count()) === 3 && (await p.locator('.btn.publish').count()) === 0);
   await ctx.close(); }
 
+// ---------- review fixes: fresh ranks after a vote, held keys, the Monday rollover ----------
+{ const ctx = await context(); const p = await page(ctx);
+  await p.click('#ideasBtn'); await p.locator('.board-card').first().waitFor();
+  await p.click('#boardAccount button'); await github(p, 'dana');
+  await p.locator('.board-card').first().waitFor();
+  const duck = p.locator('.board-card', { hasText: 'Rubber Duck Radio' });
+  await duck.locator('.board-star').focus(); await p.keyboard.press('Enter');
+  await duck.locator('.board-stats', { hasText: '#1 this week' }).waitFor();
+  await p.locator('#boardContest', { hasText: 'Leading for now: Rubber Duck Radio' }).waitFor();
+  const duckStats = await duck.locator('.board-stats').textContent(), haikuStats = await p.locator('.board-card', { hasText: 'Standup Haiku' }).locator('.board-stats').textContent();
+  check('after a vote: rank, tie note and leader come fresh from the server; cards stay put and focus stays on the star',
+    duckStats.startsWith('⭐ 5 this week') && !duckStats.includes('Tied') && haikuStats.includes('#2 this week') && !haikuStats.includes('Tied')
+    && (await p.evaluate(() => document.activeElement.closest('.board-card')?.textContent.includes('Rubber Duck'))) && (await p.locator('.board-resort').isVisible()), `${duckStats} | ${haikuStats}`);
+  await p.click('.board-resort button'); await p.locator('.board-card').first().waitFor();
+  check('…and “Show the new order” re-sorts', (await p.locator('.board-card h3').first().textContent()) === 'Rubber Duck Radio');
+  await ctx.close(); }
+{ const ctx = await context(); const p = await page(ctx);
+  await p.keyboard.down('ArrowRight'); await p.waitForTimeout(250);
+  await p.click('#ideasBtn');
+  const x0 = await p.evaluate(() => body.x); await p.waitForTimeout(600);
+  const x1 = await p.evaluate(() => body.x);
+  await p.keyboard.up('ArrowRight');
+  check('a key held while opening the board doesn’t keep the walker going', x1 === x0, `${x0} -> ${x1}`);
+  await ctx.close(); }
+
 // ---------- 7. milestones, with and without motion ----------
 { const voters = await Promise.all(Array.from({ length: 8 }, (_, k) => signInApi(`voter${30 + k}`)));
   for (const t of voters) await api('/board/ideas/kitephysic/star', { method: 'PUT', headers: { Authorization: `Bearer ${t}` } }); // 1 + 8 = 9
@@ -267,6 +292,17 @@ for (const [w, h] of [[1280, 800], [390, 844], [375, 667], [320, 568]]) {
   await shot(p, 'b-webkit-detail');
   await p.click('.board-back'); await p.locator('.board-card').first().waitFor();
   check('WebKit: the board lists ideas with no sideways scroll', (await p.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 0);
+  await ctx.close(); }
+
+// ---------- Monday 00:00 UTC while the board is open ----------
+{ const MON26 = Date.parse('2026-10-26T00:00:00Z');
+  const setClock = (at) => fetch(`${W}/dev/clock`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ at }) });
+  await setClock(MON26 - 3000);
+  const ctx = await context(); const p = await page(ctx);
+  await p.click('#ideasBtn'); await p.locator('#boardContest', { hasText: 'Voting closes Mon 26 Oct' }).waitFor();
+  await setClock(MON26 + 2000); // the server's clock passes the cutoff too
+  await p.locator('#boardContest', { hasText: 'Mon 26 Oct, 00:00 UTC → Mon 2 Nov' }).waitFor({ timeout: 10_000 });
+  check('an open board moves to the new week at the cutoff, not “in 0m”', !(await p.locator('#boardContest').textContent()).includes('in 0m'));
   await ctx.close(); }
 
 for (const b of Object.values(browsers)) await b.close();
