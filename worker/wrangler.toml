@@ -9,10 +9,10 @@ preview_urls = false # only the one public address can spend the key
 [vars]
 REPOS_URL = "https://w20labs.github.io/repo-safari/repos.json"
 ALLOWED_ORIGINS = "https://w20labs.github.io"
-# The idea board (docs/idea-board.md). "0": no board routes, no drafts, and the schedule does nothing.
-# Turn it on together with the site build's BOARD_ENABLED, after the D1 database, OAuth app and secrets below exist.
-BOARD_ENABLED = "0"
-# GITHUB_CLIENT_ID = "<the GitHub OAuth app's client id>"   # secrets: GITHUB_CLIENT_SECRET, ADMIN_TOKEN
+# The idea board (docs/idea-board.md): on. "0" turns it off: no board routes, no drafts, and the schedule does nothing.
+# Keep it in step with the site build's BOARD_ENABLED Actions variable.
+BOARD_ENABLED = "1"
+GITHUB_CLIENT_ID = "Ov23liPOhh3fIvkjSkyG" # secrets: GITHUB_CLIENT_SECRET, ADMIN_TOKEN
 
 # Rate limits: one Durable Object (src/limiter.ts), so every check-and-count is atomic.
 [[durable_objects.bindings]]
@@ -23,12 +23,12 @@ class_name = "Limiter"
 tag = "v1"
 new_sqlite_classes = ["Limiter"]
 
-# Idea board storage and its hourly contest closing. Uncomment when activating (docs/idea-board.md, "Activation"):
-# [[d1_databases]]
-# binding = "BOARD_DB"
-# database_name = "repo-safari-board"
-# database_id = "<from: npx wrangler d1 create repo-safari-board>"
-# migrations_dir = "migrations"
-#
-# [triggers]
-# crons = ["0 * * * *"]
+# Idea board storage and its hourly contest closing (docs/idea-board.md, "Activation").
+[[d1_databases]]
+binding = "BOARD_DB"
+database_name = "repo-safari-board"
+database_id = "c93d1b33-2f83-467a-b728-d84e92d94fe5"
+migrations_dir = "migrations"
+
+[triggers]
+crons = ["0 * * * *"]

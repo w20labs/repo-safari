@@ -13,7 +13,7 @@
   const KIND = { useful: 'Useful', unexpected: 'Unexpected', ridiculous: 'Ridiculous' };
   const POLICY = 'Every week, we build and share an open-source prototype of the idea that earns the most new stars that week.';
   /** The weekly-build promise is the owner's call. Until it's approved, the page marks it as proposed wording. */
-  const POLICY_APPROVED = false;
+  const POLICY_APPROVED = true;
   const policyLine = (cls) => h('p', { class: cls }, POLICY_APPROVED ? null : h('span', { class: 'board-tag' }, 'Proposed wording, pending approval'), POLICY_APPROVED ? null : ' ', POLICY);
   const STATUS = { selected: 'Queued', building: 'Building', built: 'Built', held: 'On hold', declined: 'Declined' };
 
