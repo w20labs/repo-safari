@@ -73,7 +73,7 @@ The session token lives in the page's `localStorage`. On `w20labs.github.io` eve
 
 | Rule | Detail |
 |---|---|
-| Week | Monday 00:00 UTC (inclusive) to the next Monday 00:00 UTC (exclusive). The first week starts when the board is first used while enabled and ends at the next Monday: a partial week, labelled as such |
+| Week | Monday 00:00 UTC (inclusive) to the next Monday 00:00 UTC (exclusive). The first week starts when the board is first used while enabled and ends at the next Monday; if that would leave it under 3 days, it runs on to the Monday after. It's labelled the launch week |
 | Score | Valid new stars: first given inside the week, still active and not excluded at the cutoff. Lifetime stars don't count |
 | Example | An idea with 7 new stars this week beats one with 100 lifetime stars but only 2 new this week |
 | Minimum | One star can win. If no eligible idea has a star, the week is recorded with no winner |
@@ -199,11 +199,11 @@ Useful ratios: publication rate `board/publish ÷ ideas/generated`; sign-in comp
 
 ## Activation
 
-Done on 17 Oct 2026: the board is live, with the `repo-safari-board` database and the w20labs OAuth app. The first contest week runs from the launch that morning to Monday 19 Oct, 00:00 UTC. The steps, for re-creating it (for example on another Cloudflare account):
+Done on 17 Oct 2026: the board is live, with the `repo-safari-board` database and the w20labs OAuth app. The launch (09:06 UTC) was less than 3 days before Monday 19 Oct, so the first contest week runs on to Monday 26 Oct, 00:00 UTC. The steps, for re-creating it (for example on another Cloudflare account):
 
 1. **D1:** `cd worker && npx wrangler d1 create repo-safari-board`; put the new id in the `[[d1_databases]]` block of `worker/wrangler.toml`; `npx wrangler d1 migrations apply repo-safari-board --remote`.
 2. **GitHub OAuth app** (w20labs organization → Settings → Developer settings → OAuth Apps): homepage `https://w20labs.github.io/repo-safari/`, callback `https://repo-safari-ideas.<account>.workers.dev/auth/github/callback`. Put the client id in `GITHUB_CLIENT_ID`; `npx wrangler secret put GITHUB_CLIENT_SECRET`; `npx wrangler secret put ADMIN_TOKEN` (e.g. `openssl rand -base64 36`).
-3. **Worker:** set `BOARD_ENABLED = "1"` and `npx wrangler deploy`. The first board request records the launch time; the first week ends at the next Monday 00:00 UTC.
+3. **Worker:** set `BOARD_ENABLED = "1"` and `npx wrangler deploy`. The first board request records the launch time; the first week ends at the next Monday 00:00 UTC, or the one after if that's less than 3 days away.
 4. **Site:** add the Actions variable `BOARD_ENABLED` = `1` (passed to the build next to `IDEAS_URL`) and run the Deploy workflow.
 5. Check: open `#ideas`, sign in, publish a test idea, star it from a second account, then hide it with `board-admin`.
 

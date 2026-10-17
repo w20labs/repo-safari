@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { WEEK, eligibleAt, mondayOf, rank, validContributions, weekAt, weeksToClose, type Contribution, type StarEvent } from '../worker/src/board/contest.ts';
+import { WEEK, eligibleAt, firstWeekEnd, mondayOf, rank, validContributions, weekAt, weeksToClose, type Contribution, type StarEvent } from '../worker/src/board/contest.ts';
 import { closeDueWeeks, closeWeek, moderate, moderateStars, publishDraft, saveDraft, setBuild, setStar, listIdeas, getIdea, contestInfo, launchAt, deleteAccount, cleanup, type DraftIdea, type RepoSnapshot } from '../worker/src/board/store.ts';
 import { sqliteD1 } from './support/d1-sqlite.ts';
 
@@ -19,6 +19,16 @@ describe('contest weeks', () => {
     expect(weekAt(MON12 - 1, LAUNCH)).toEqual({ start: LAUNCH, end: MON12, partial: true });
     expect(weekAt(MON12, LAUNCH)).toEqual({ start: MON12, end: MON19, partial: false }); // the cutoff belongs to the new week
     expect(weekAt(MON12, MON12)?.partial).toBe(false); // launching on a Monday midnight: a full first week
+  });
+
+  it('a launch less than 3 days before a Monday runs on to the Monday after', () => {
+    const sat = T('2026-10-17T09:06:28.953Z'); // the real launch: 1 day 15 hours before Mon 19 Oct
+    expect(firstWeekEnd(sat)).toBe(MON26);
+    expect(weekAt(MON19, sat)).toEqual({ start: sat, end: MON26, partial: true }); // Mon 19 Oct is no longer a cutoff
+    expect(weekAt(MON26, sat)).toEqual({ start: MON26, end: MON26 + 7 * 86_400_000, partial: false });
+    expect(weeksToClose(sat, null, MON26 + 1).map((w) => [w.start, w.end])).toEqual([[sat, MON26]]);
+    expect(firstWeekEnd(MON12 - 3 * 86_400_000)).toBe(MON12); // exactly 3 days: the normal first Monday
+    expect(firstWeekEnd(MON12 - 3 * 86_400_000 + 1)).toBe(MON19);
   });
   it('closes ended weeks oldest first, a bounded number at a time', () => {
     expect(weeksToClose(LAUNCH, null, MON12 - 1)).toEqual([]);
